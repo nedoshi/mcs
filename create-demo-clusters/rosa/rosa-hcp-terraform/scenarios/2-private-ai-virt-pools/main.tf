@@ -11,6 +11,10 @@ terraform {
       source  = "terraform-redhat/rhcs"
       version = "~> 1.6"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.9"
+    }
   }
 }
 
@@ -57,20 +61,22 @@ resource "rhcs_rosa_oidc_config" "oidc_config" {
   managed = true
 }
 
-# Account Roles
-resource "rhcs_rosa_account_roles" "account_roles" {
-  count = var.create_account_roles ? 1 : 0
-
-  account_role_prefix = "${local.cluster_name}-account"
-  openshift_version   = var.openshift_version
-}
-
-# Operator Roles
-resource "rhcs_rosa_operator_roles" "operator_roles" {
-  cluster_id          = rhcs_cluster_rosa_hcp.cluster.id
+# Local values for STS roles
+locals {
+  account_role_prefix = var.create_account_roles ? "${local.cluster_name}-account" : var.existing_account_role_prefix
   operator_role_prefix = "${local.cluster_name}-operator"
-  account_role_prefix  = var.create_account_roles ? rhcs_rosa_account_roles.account_roles[0].account_role_prefix : var.existing_account_role_prefix
-  oidc_config_id       = rhcs_rosa_oidc_config.oidc_config.id
+  aws_account_id = data.aws_caller_identity.current.account_id
+  aws_account_arn = data.aws_caller_identity.current.arn
+  
+  sts_roles = {
+    role_arn         = "arn:aws:iam::${local.aws_account_id}:role/${local.account_role_prefix}-HCP-ROSA-Installer-Role"
+    support_role_arn  = "arn:aws:iam::${local.aws_account_id}:role/${local.account_role_prefix}-HCP-ROSA-Support-Role"
+    instance_iam_roles = {
+      worker_role_arn = "arn:aws:iam::${local.aws_account_id}:role/${local.account_role_prefix}-HCP-ROSA-Worker-Role"
+    }
+    operator_role_prefix = local.operator_role_prefix
+    oidc_config_id      = rhcs_rosa_oidc_config.oidc_config.id
+  }
 }
 
 # ROSA HCP Cluster
@@ -85,21 +91,24 @@ resource "rhcs_cluster_rosa_hcp" "cluster" {
   # Private cluster
   private = true
   
+  # Required STS configuration
+  sts = local.sts_roles
+  
+  # Required availability zones
+  availability_zones = var.availability_zones
+  
   # Default Compute Configuration
   replicas             = var.default_replicas
   compute_machine_type = var.default_compute_machine_type
   
-  # Availability
-  multi_az = length(var.availability_zones) > 1
-  
-  # OIDC Configuration
-  oidc_config_id = rhcs_rosa_oidc_config.oidc_config.id
-  
   # Account configuration
-  aws_account_id = data.aws_caller_identity.current.account_id
+  aws_account_id = local.aws_account_id
+  
+  # Admin user configuration
+  create_admin_user = var.create_admin_user
   
   properties = {
-    rosa_creator_arn = data.aws_caller_identity.current.arn
+    rosa_creator_arn = local.aws_account_arn
   }
 
   lifecycle {
@@ -127,6 +136,7 @@ resource "rhcs_hcp_machine_pool" "ai_pool" {
   
   replicas      = var.ai_pool_replicas
   subnet_id     = module.vpc.private_subnet_ids[0]
+  auto_repair   = true
   
   # Auto-scaling configuration
   autoscaling = var.enable_ai_autoscaling ? {
@@ -145,9 +155,10 @@ resource "rhcs_hcp_machine_pool" "ai_pool" {
   # Taints to dedicate nodes to AI workloads
   taints = var.taint_ai_nodes ? [
     {
-      key    = "workload"
-      value  = "ai"
-      effect = "NoSchedule"
+      key          = "workload"
+      value        = "ai"
+      effect       = "NoSchedule"
+      schedule_type = "NoSchedule"
     }
   ] : []
 
@@ -166,6 +177,7 @@ resource "rhcs_hcp_machine_pool" "virt_pool" {
   
   replicas      = var.virt_pool_replicas
   subnet_id     = module.vpc.private_subnet_ids[1]
+  auto_repair   = true
   
   # Auto-scaling
   autoscaling = var.enable_virt_autoscaling ? {
@@ -185,9 +197,10 @@ resource "rhcs_hcp_machine_pool" "virt_pool" {
   # Taints to dedicate nodes to virtualization
   taints = var.taint_virt_nodes ? [
     {
-      key    = "workload"
-      value  = "virtualization"
-      effect = "NoSchedule"
+      key          = "workload"
+      value        = "virtualization"
+      effect       = "NoSchedule"
+      schedule_type = "NoSchedule"
     }
   ] : []
 
@@ -207,6 +220,12 @@ resource "rhcs_hcp_machine_pool" "highmem_pool" {
   
   replicas      = var.highmem_pool_replicas
   subnet_id     = module.vpc.private_subnet_ids[2]
+  auto_repair   = true
+  
+  # Autoscaling is required - set to disabled
+  autoscaling = {
+    enabled = false
+  }
   
   labels = {
     "workload-type" = "memory-intensive"
@@ -216,14 +235,6 @@ resource "rhcs_hcp_machine_pool" "highmem_pool" {
   depends_on = [time_sleep.wait_for_cluster]
 }
 
-# Admin Credentials
-resource "rhcs_cluster_rosa_hcp_admin_credentials" "admin_credentials" {
-  count = var.create_admin_user ? 1 : 0
-  
-  cluster = rhcs_cluster_rosa_hcp.cluster.id
-  
-  depends_on = [time_sleep.wait_for_cluster]
-}
 
 # Bastion Host (for cluster access)
 resource "aws_security_group" "bastion" {

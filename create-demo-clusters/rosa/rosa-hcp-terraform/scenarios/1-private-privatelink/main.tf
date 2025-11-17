@@ -11,6 +11,10 @@ terraform {
       source  = "terraform-redhat/rhcs"
       version = "~> 1.6"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.9"
+    }
   }
 }
 
@@ -52,25 +56,27 @@ module "vpc" {
   tags = local.tags
 }
 
-# Account Roles (only needed once per AWS account)
-resource "rhcs_rosa_account_roles" "account_roles" {
-  count = var.create_account_roles ? 1 : 0
-
-  account_role_prefix = "${local.cluster_name}-account"
-  openshift_version   = var.openshift_version
-}
-
 # OIDC Config
 resource "rhcs_rosa_oidc_config" "oidc_config" {
   managed = true
 }
 
-# Operator Roles
-resource "rhcs_rosa_operator_roles" "operator_roles" {
-  cluster_id          = rhcs_cluster_rosa_hcp.cluster.id
+# Local values for STS roles
+locals {
+  account_role_prefix = var.create_account_roles ? "${local.cluster_name}-account" : var.existing_account_role_prefix
   operator_role_prefix = "${local.cluster_name}-operator"
-  account_role_prefix  = var.create_account_roles ? rhcs_rosa_account_roles.account_roles[0].account_role_prefix : var.existing_account_role_prefix
-  oidc_config_id       = rhcs_rosa_oidc_config.oidc_config.id
+  aws_account_id = data.aws_caller_identity.current.account_id
+  aws_account_arn = data.aws_caller_identity.current.arn
+  
+  sts_roles = {
+    role_arn         = "arn:aws:iam::${local.aws_account_id}:role/${local.account_role_prefix}-HCP-ROSA-Installer-Role"
+    support_role_arn  = "arn:aws:iam::${local.aws_account_id}:role/${local.account_role_prefix}-HCP-ROSA-Support-Role"
+    instance_iam_roles = {
+      worker_role_arn = "arn:aws:iam::${local.aws_account_id}:role/${local.account_role_prefix}-HCP-ROSA-Worker-Role"
+    }
+    operator_role_prefix = local.operator_role_prefix
+    oidc_config_id      = rhcs_rosa_oidc_config.oidc_config.id
+  }
 }
 
 # ROSA HCP Private Cluster with PrivateLink
@@ -82,25 +88,27 @@ resource "rhcs_cluster_rosa_hcp" "cluster" {
   # Network Configuration
   aws_subnet_ids = module.vpc.private_subnet_ids
   
-  # Private cluster with PrivateLink
+  # Private cluster (PrivateLink is enabled by default for private clusters)
   private = true
-  aws_private_link = true
+  
+  # Required STS configuration
+  sts = local.sts_roles
+  
+  # Required availability zones
+  availability_zones = var.availability_zones
   
   # Compute Configuration
   replicas             = var.replicas
   compute_machine_type = var.compute_machine_type
   
-  # Availability
-  multi_az = length(var.availability_zones) > 1
+  # Account configuration
+  aws_account_id = local.aws_account_id
   
-  # OIDC Configuration
-  oidc_config_id = rhcs_rosa_oidc_config.oidc_config.id
-  
-  # Account roles
-  aws_account_id = data.aws_caller_identity.current.account_id
+  # Admin user configuration
+  create_admin_user = var.create_admin_user
   
   properties = {
-    rosa_creator_arn = data.aws_caller_identity.current.arn
+    rosa_creator_arn = local.aws_account_arn
   }
 
   lifecycle {
@@ -118,15 +126,6 @@ resource "rhcs_cluster_rosa_hcp" "cluster" {
 resource "time_sleep" "wait_for_cluster" {
   depends_on = [rhcs_cluster_rosa_hcp.cluster]
   create_duration = "10m"
-}
-
-# Cluster Admin User (optional)
-resource "rhcs_cluster_rosa_hcp_admin_credentials" "admin_credentials" {
-  count = var.create_admin_user ? 1 : 0
-  
-  cluster = rhcs_cluster_rosa_hcp.cluster.id
-  
-  depends_on = [time_sleep.wait_for_cluster]
 }
 
 # Bastion Host Security Group

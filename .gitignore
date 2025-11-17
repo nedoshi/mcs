@@ -1,0 +1,26 @@
+# Terraform generated files
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override_*.tf
+*_override.tf
+
+# Provider-specific files (adjust as needed)
+# For AWS:
+# .terraform/providers/registry.terraform.io/hashicorp/aws/
+
+# For Azure:
+# .terraform/providers/registry.terraform.io/hashicorp/azurerm/
+
+# For GCP:
+# .terraform/providers/registry.terraform.io/hashicorp/google/
+
+# Editor-specific files (examples)
+.vscode/
+.idea/
+*.swp
+*.bak
+*~
