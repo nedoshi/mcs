@@ -1,153 +1,165 @@
-variable "openshift_version" {
+# scenarios/4-zero-egress/variables.tf
+
+variable "aws_region" {
+  description = "AWS region"
   type        = string
-  default     = "4.19.4"
-  description = "Desired version of OpenShift for the cluster, for example '4.1.0'. If version is greater than the currently running version, an upgrade will be scheduled."
+  default     = "us-east-1"
 }
 
-# ROSA Cluster info
-variable "cluster_name" {
-  default     = null
-  type        = string
-  description = "The name of the ROSA cluster to create"
+variable "availability_zones" {
+  description = "Availability zones"
+  type        = list(string)
+  default     = ["us-east-1a", "us-east-1b", "us-east-1c"]
 }
 
-variable "additional_tags" {
-  default = {
-    Terraform   = "true"
-    Environment = "dev"
-    cost-center = "468"
-    Owner       = "nedoshi@redhat.com"
-  }
-  description = "Additional AWS resource tags"
-  type        = map(string)
-}
-
-variable "multi_az" {
+variable "create_vpc" {
+  description = "Create new VPC"
   type        = bool
-  description = "Multi AZ Cluster for High Availability"
   default     = true
 }
 
-variable "path" {
-  description = "(Optional) The arn path for the account/operator roles as well as their policies."
+variable "existing_vpc_id" {
+  description = "Existing VPC ID"
   type        = string
   default     = null
 }
 
-variable "machine_type" {
-  description = "The AWS instance type used for your default worker pool"
+variable "vpc_cidr" {
+  description = "VPC CIDR"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "cluster_name" {
+  description = "Cluster name"
+  type        = string
+}
+
+variable "openshift_version" {
+  description = "OpenShift version"
+  type        = string
+  default     = "4.14"
+}
+
+variable "replicas" {
+  description = "Worker node replicas"
+  type        = number
+  default     = 3
+}
+
+variable "compute_machine_type" {
+  description = "Instance type"
   type        = string
   default     = "m5.xlarge"
 }
 
-variable "worker_node_replicas" {
-  default     = 3
-  description = "Number of worker nodes to provision. Single zone clusters need at least 2 nodes, multizone clusters need at least 3 nodes"
-  type        = number
-}
-
-
-variable "autoscaling_enabled" {
-  description = "Enables autoscaling. This variable requires you to set a maximum and minimum replicas range using the `max_replicas` and `min_replicas` variables."
+variable "rhcs_token" {
+  description = "RHCS token"
   type        = string
-  default     = "false"
+  sensitive   = true
 }
 
-variable "min_replicas" {
-  description = "The minimum number of replicas for autoscaling."
-  type        = number
-  default     = 3
-}
-
-variable "max_replicas" {
-  description = "The maximum number of replicas not exceeded by the autoscaling functionality."
-  type        = number
-  default     = 3
-}
-
-variable "bastion_public_ssh_key" {
-  description = <<EOF
-  Location to an SSH public key file on the local system which is used to provide connectivity to the bastion host
-  when the 'private' variable is set to 'true'.
-  EOF
+variable "rhcs_url" {
+  description = "RHCS API URL"
   type        = string
-  default     = "~/.ssh/id_rsa.pub"
+  default     = "https://api.openshift.com"
 }
 
-variable "bastion_public_ip" {
-  description = "Should the Bastion have a public ip?"
+variable "create_account_roles" {
+  description = "Create account roles"
   type        = bool
   default     = false
 }
 
-variable "proxy" {
+variable "existing_account_role_prefix" {
+  description = "Existing account role prefix"
+  type        = string
   default     = null
-  description = "cluster-wide HTTP or HTTPS proxy settings"
-  type = object({
-    http_proxy              = string           # required  http proxy
-    https_proxy             = string           # required  https proxy
-    additional_trust_bundle = optional(string) # a string contains contains a PEM-encoded X.509 certificate bundle that will be added to the nodes' trusted certificate store.
-    no_proxy                = optional(string) # no proxy
-  })
 }
 
-variable "private_cluster" {
+variable "create_admin_user" {
+  description = "Create admin user"
   type        = bool
-  description = "Do you want this cluster to be private? true or false"
+  default     = true
 }
 
-#VPC Info
-variable "vpc_name" {
-  type        = string
-  description = "VPC Name"
-  default     = "nedoshi-tf-vpc"
+# VPC Endpoints
+variable "vpc_interface_endpoints" {
+  description = "VPC interface endpoints to create"
+  type        = list(string)
+  default = [
+    "ec2",
+    "ecr.api",
+    "ecr.dkr",
+    "elasticloadbalancing",
+    "sts",
+    "logs",
+    "secretsmanager",
+    "kms",
+    "elasticfilesystem"
+  ]
 }
 
-variable "vpc_cidr_block" {
-  type        = string
-  description = "value of the CIDR block to use for the VPC"
-  default     = "10.0.0.0/16"
-}
-
-variable "private_subnet_cidrs" {
-  type        = list(any)
-  description = "The CIDR blocks to use for the private subnets"
-  default     = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
-}
-
-variable "public_subnet_cidrs" {
-  type        = list(any)
-  description = "The CIDR blocks to use for the public subnets"
-  default     = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
-}
-
-variable "single_nat_gateway" {
+# ECR Configuration
+variable "create_ecr_repository" {
+  description = "Create private ECR repository"
   type        = bool
-  description = "Single NAT or per NAT for subnet"
+  default     = true
+}
+
+# HTTP Proxy Configuration
+variable "enable_http_proxy" {
+  description = "Enable HTTP proxy"
+  type        = bool
   default     = false
 }
 
-variable "aws_region" {
+variable "proxy_instance_type" {
+  description = "Proxy instance type"
   type        = string
-  description = "AWS region where resources will be created"
-  default     = "us-east-1"
+  default     = "t3.small"
 }
 
-variable "token" {
+variable "no_proxy" {
+  description = "No proxy domains"
   type        = string
-  description = "The token for the RHCS provider"
-  default     = null
+  default     = ".cluster.local,.svc,10.0.0.0/16,169.254.169.254"
 }
 
-
-variable "client_id" {
+# Bastion Configuration
+variable "bastion_instance_type" {
+  description = "Bastion instance type"
   type        = string
-  description = "The client id for the RHCS provider"
-  default     = null
+  default     = "t3.micro"
 }
 
-variable "client_secret" {
+variable "bastion_ssh_public_key" {
+  description = "Bastion SSH public key"
   type        = string
-  description = "The client secret for the RHCS provider"
-  default     = null
+}
+
+variable "bastion_allowed_cidr_blocks" {
+  description = "Allowed CIDR blocks for bastion SSH"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
+# S3 Configuration
+variable "create_s3_bucket" {
+  description = "Create S3 bucket for cluster data"
+  type        = bool
+  default     = true
+}
+
+# Tags
+variable "environment" {
+  description = "Environment"
+  type        = string
+  default     = "production"
+}
+
+variable "tags" {
+  description = "Additional tags"
+  type        = map(string)
+  default     = {}
 }

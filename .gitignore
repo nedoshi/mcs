@@ -1,26 +1,52 @@
-# Terraform generated files
-.terraform/
-.terraform.lock.hcl
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
 *.tfstate
 *.tfstate.*
+
+# Crash log files
 crash.log
+crash.*.log
+
+# Exclude all .tfvars files, which are likely to contain sensitive data
+*.tfvars
+*.tfvars.json
+
+# Ignore override files
 override.tf
-override_*.tf
+override.tf.json
 *_override.tf
+*_override.tf.json
 
-# Provider-specific files (adjust as needed)
-# For AWS:
-# .terraform/providers/registry.terraform.io/hashicorp/aws/
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc
 
-# For Azure:
-# .terraform/providers/registry.terraform.io/hashicorp/azurerm/
+# SSH keys
+*.pem
+*.key
+id_rsa*
 
-# For GCP:
-# .terraform/providers/registry.terraform.io/hashicorp/google/
+# Backup files
+*.bak
+*.backup
 
-# Editor-specific files (examples)
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
 .vscode/
 .idea/
 *.swp
-*.bak
+*.swo
 *~
+
+# Environment files
+.env
+.env.local
+
+# Kubeconfig
+kubeconfig
+*.kubeconfig
