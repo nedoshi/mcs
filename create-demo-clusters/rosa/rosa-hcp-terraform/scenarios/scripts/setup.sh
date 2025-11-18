@@ -4,7 +4,26 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# Determine project root based on script location
+# Check if we're in scenarios/scripts/ or scripts/
+if [[ "$SCRIPT_DIR" == */scenarios/scripts ]]; then
+    # Script is in scenarios/scripts/, go up 2 levels to project root
+    PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+    SCENARIOS_DIR="${PROJECT_ROOT}/scenarios"
+elif [[ "$SCRIPT_DIR" == */scripts ]]; then
+    # Script is in scripts/, go up 1 level to project root
+    PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+    SCENARIOS_DIR="${PROJECT_ROOT}/scenarios"
+else
+    # Fallback: assume we're at project root
+    PROJECT_ROOT="${SCRIPT_DIR}"
+    SCENARIOS_DIR="${PROJECT_ROOT}/scenarios"
+fi
+
+echo "DEBUG: Script directory: ${SCRIPT_DIR}"
+echo "DEBUG: Project root: ${PROJECT_ROOT}"
+echo "DEBUG: Scenarios directory: ${SCENARIOS_DIR}"
 
 # Colors
 RED='\033[0;31m'
@@ -80,25 +99,24 @@ if ! rosa whoami &>/dev/null; then
     exit 1
 fi
 
-ROSA_USER=$(rosa whoami | grep "AWS Account ID" | awk '{print $NF}')
-echo -e "${GREEN}✓ ROSA logged in (Account: ${ROSA_USER})${NC}"
+ROSA_USER=$(rosa whoami 2>/dev/null | grep "AWS Account ID" | awk '{print $NF}' || echo "logged in")
+echo -e "${GREEN}✓ ROSA logged in${NC}"
 
 # Verify ROSA quota
 echo -e "\n${YELLOW}Verifying ROSA quota...${NC}"
-if ! rosa verify quota --region="${AWS_REGION}" &>/dev/null; then
-    echo -e "${RED}✗ ROSA quota verification failed${NC}"
-    echo "Run: rosa verify quota --region=${AWS_REGION}"
-    exit 1
+if rosa verify quota --region="${AWS_REGION}" &>/dev/null; then
+    echo -e "${GREEN}✓ ROSA quota verified${NC}"
+else
+    echo -e "${YELLOW}⚠ ROSA quota verification failed - may need quota increase${NC}"
 fi
-echo -e "${GREEN}✓ ROSA quota verified${NC}"
 
 # Check for account roles
 echo -e "\n${YELLOW}Checking for ROSA account roles...${NC}"
-ACCOUNT_ROLES=$(rosa list account-roles --region="${AWS_REGION}" 2>/dev/null | grep -v "^I:" | wc -l)
+ACCOUNT_ROLES=$(rosa list account-roles 2>/dev/null | grep -c "ManagedOpenShift" || echo "0")
 if [ "$ACCOUNT_ROLES" -eq 0 ]; then
     echo -e "${YELLOW}⚠ No account roles found${NC}"
     echo "You'll need to set 'create_account_roles = true' in your terraform.tfvars"
-    echo "Or create them manually with: rosa create account-roles"
+    echo "Or create them manually with: rosa create account-roles --mode auto"
 else
     echo -e "${GREEN}✓ Account roles exist${NC}"
 fi
@@ -114,19 +132,19 @@ read -p "Select scenario (1-4): " SCENARIO
 
 case $SCENARIO in
     1)
-        SCENARIO_DIR="${PROJECT_ROOT}/scenarios/1-private-privatelink"
+        SCENARIO_SUBDIR="1-private-privatelink"
         SCENARIO_NAME="Private PrivateLink"
         ;;
     2)
-        SCENARIO_DIR="${PROJECT_ROOT}/scenarios/2-private-ai-virt-pools"
+        SCENARIO_SUBDIR="2-private-ai-virt-pools"
         SCENARIO_NAME="AI/Virtualization Pools"
         ;;
     3)
-        SCENARIO_DIR="${PROJECT_ROOT}/scenarios/3-public-idp-pools"
+        SCENARIO_SUBDIR="3-public-idp-pools"
         SCENARIO_NAME="Public with IDP"
         ;;
     4)
-        SCENARIO_DIR="${PROJECT_ROOT}/scenarios/4-zero-egress"
+        SCENARIO_SUBDIR="4-zero-egress"
         SCENARIO_NAME="Zero Egress"
         ;;
     *)
@@ -135,29 +153,44 @@ case $SCENARIO in
         ;;
 esac
 
+SCENARIO_DIR="${SCENARIOS_DIR}/${SCENARIO_SUBDIR}"
+
 echo -e "\n${GREEN}Selected: ${SCENARIO_NAME}${NC}"
+echo -e "Scenario directory: ${SCENARIO_DIR}"
 
 # Check if scenario directory exists
 if [ ! -d "$SCENARIO_DIR" ]; then
     echo -e "${RED}✗ Scenario directory not found: ${SCENARIO_DIR}${NC}"
+    echo ""
+    echo "Available directories in ${SCENARIOS_DIR}:"
+    ls -1 "${SCENARIOS_DIR}/" 2>/dev/null || echo "  (none found)"
     exit 1
 fi
 
 cd "$SCENARIO_DIR"
+echo -e "${GREEN}✓ Changed to scenario directory${NC}"
 
 # Check for terraform.tfvars
 if [ ! -f "terraform.tfvars" ]; then
-    echo -e "\n${YELLOW}Creating terraform.tfvars from example...${NC}"
+    echo -e "\n${YELLOW}terraform.tfvars not found${NC}"
+    
     if [ -f "terraform.tfvars.example" ]; then
+        echo -e "${YELLOW}Creating terraform.tfvars from example...${NC}"
         cp terraform.tfvars.example terraform.tfvars
         echo -e "${GREEN}✓ Created terraform.tfvars${NC}"
-        echo -e "${YELLOW}Please edit terraform.tfvars with your values before proceeding${NC}"
-        echo "File location: ${SCENARIO_DIR}/terraform.tfvars"
-        exit 0
-    else
-        echo -e "${RED}✗ terraform.tfvars.example not found${NC}"
-        exit 1
     fi
+    
+    echo -e "\n${YELLOW}⚠ Please edit terraform.tfvars with your values before proceeding${NC}"
+    echo "File location: ${SCENARIO_DIR}/terraform.tfvars"
+    echo ""
+    echo "Required values to update:"
+    echo "  - rhcs_token (from https://console.redhat.com/openshift/token)"
+    echo "  - cluster_name"
+    echo "  - bastion_ssh_public_key (if applicable)"
+    echo "  - aws_region (if different from default)"
+    echo ""
+    echo "After updating terraform.tfvars, run this script again."
+    exit 0
 fi
 
 # Initialize Terraform
@@ -181,9 +214,7 @@ fi
 # Run terraform plan
 echo -e "\n${YELLOW}Running terraform plan...${NC}"
 if terraform plan -out=tfplan; then
-    echo -e "${GREEN}✓ Plan created successfully${NC}"
-    echo ""
-    echo -e "${GREEN}========================================${NC}"
+    echo -e "\n${GREEN}========================================${NC}"
     echo -e "${GREEN}Setup Complete!${NC}"
     echo -e "${GREEN}========================================${NC}"
     echo ""
@@ -191,8 +222,17 @@ if terraform plan -out=tfplan; then
     echo "  cd ${SCENARIO_DIR}"
     echo "  terraform apply tfplan"
     echo ""
+    echo "Or simply run:"
+    echo "  terraform apply"
+    echo ""
     echo "Estimated time to complete: 40-60 minutes"
 else
     echo -e "${RED}✗ Plan failed${NC}"
+    echo ""
+    echo "Common issues:"
+    echo "  1. Check that rhcs_token is valid"
+    echo "  2. Verify AWS credentials are correct"
+    echo "  3. Ensure account roles exist or set create_account_roles=true"
+    echo "  4. Check that cluster_name is unique"
     exit 1
 fi

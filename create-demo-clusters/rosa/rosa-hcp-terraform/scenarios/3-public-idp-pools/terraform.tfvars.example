@@ -1,0 +1,87 @@
+# scenarios/3-public-idp-pools/terraform.tfvars.example
+
+# AWS Configuration
+aws_region         = "us-east-1"
+availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
+
+# Cluster Configuration
+cluster_name          = "rosa-public-dev"
+openshift_version     = "4.14"
+default_replicas      = 2
+default_compute_machine_type = "m5.xlarge"
+
+# VPC Configuration
+create_vpc         = true
+vpc_cidr           = "10.0.0.0/16"
+single_nat_gateway = true  # Cost savings
+
+# RHCS Configuration
+rhcs_token               = "your-token-here"
+create_account_roles     = false
+existing_account_role_prefix = "rosa-account"
+
+# Development Pool
+create_dev_pool          = true
+dev_instance_type        = "m5.large"
+enable_dev_autoscaling   = true
+dev_pool_min_replicas    = 1
+dev_pool_max_replicas    = 5
+
+# Production Pool
+create_prod_pool         = true
+prod_instance_type       = "m5.2xlarge"
+enable_prod_autoscaling  = true
+prod_pool_min_replicas   = 2
+prod_pool_max_replicas   = 10
+
+# Testing Pool
+create_test_pool         = false
+
+# HTPasswd IDP (always enabled for emergency access)
+htpasswd_username = "kubeadmin"
+
+# GitHub IDP
+enable_github_idp        = true
+github_client_id         = "your-github-client-id"
+github_client_secret     = "your-github-client-secret"
+github_organizations     = ["your-org"]
+# github_teams           = ["your-org/team-name"]
+
+# Google IDP
+enable_google_idp        = false
+# google_client_id       = "your-google-client-id"
+# google_client_secret   = "your-google-client-secret"
+# google_hosted_domain   = "yourcompany.com"
+
+# GitLab IDP
+enable_gitlab_idp        = false
+# gitlab_client_id       = "your-gitlab-client-id"
+# gitlab_client_secret   = "your-gitlab-client-secret"
+# gitlab_url             = "https://gitlab.com"
+
+# LDAP IDP
+enable_ldap_idp          = false
+# ldap_bind_dn           = "cn=admin,dc=example,dc=com"
+# ldap_bind_password     = "password"
+# ldap_url               = "ldaps://ldap.example.com:636/dc=example,dc=com?uid?sub"
+
+# OpenID Connect IDP
+enable_oidc_idp          = false
+# oidc_idp_name          = "keycloak"
+# oidc_client_id         = "openshift"
+# oidc_client_secret     = "secret"
+# oidc_issuer            = "https://keycloak.example.com/auth/realms/master"
+
+# RBAC - Grant cluster-admin to specific users
+cluster_admin_users = [
+  "github:your-username",
+  # "google:admin@yourcompany.com"
+]
+
+# Tags
+environment = "development"
+tags = {
+  Owner      = "platform-team"
+  CostCenter = "engineering"
+  Project    = "rosa-hcp-demo"
+}
