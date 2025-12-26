@@ -8,3 +8,6 @@
 	path = create-demo-clusters/aws/tf-rosa
 	url = https://github.com/nedoshi/tf-rosa.git
 
+[submodule "create-demo-clusters/azure/aro-terra-gitactions"]
+	path = create-demo-clusters/azure/aro-terra-gitactions
+	url = https://github.com/nedoshi/aro-terra-gitactions.git
