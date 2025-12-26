@@ -1,0 +1,23 @@
+apiVersion: platform.stackrox.io/v1alpha1
+kind: SecuredCluster
+metadata:
+  name: secured-cluster
+  namespace: rhacs-operator
+  labels:
+    app: stackrox-secured-cluster
+    managed-by: kustomize
+spec:
+  admissionControl:
+    listenOnCreates: true
+    listenOnEvents: true
+    listenOnUpdates: true
+    dynamic:
+      enforceOnCreates: false
+      enforceOnUpdates: false
+  centralEndpoint: central.rhacs-operator.svc:443
+  clusterName: openshift-cluster
+  perNode:
+    collector:
+      collectionMethod: KernelModule
+    taintToleration: None
+

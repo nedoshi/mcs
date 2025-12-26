@@ -1,0 +1,30 @@
+apiVersion: rhdh.redhat.com/v1alpha4
+kind: Backstage
+metadata:
+  name: developer-hub
+  namespace: rhdh-operator
+  labels:
+    app.kubernetes.io/name: backstage
+    app.kubernetes.io/component: developer-hub
+    managed-by: kustomize
+spec:
+  application:
+    # Enable route creation
+    route:
+      enabled: true
+    # Resource requirements
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+  database:
+    enableLocalDb: true
+  postgres:
+    enabled: true
+    size: 10Gi
+  custom:
+    enabled: false
+

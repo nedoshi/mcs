@@ -1,0 +1,10 @@
+[submodule "create-demo-clusters/azure/terraform-aro"]
+	path = create-demo-clusters/azure/terraform-aro
+	url = https://github.com/nedoshi/terraform-aro.git
+[submodule "create-demo-clusters/gcp/tf-osd-gcp"]
+	path = create-demo-clusters/gcp/tf-osd-gcp
+	url = https://github.com/rh-mobb/tf-osd-gcp.git
+[submodule "create-demo-clusters/aws/tf-rosa"]
+	path = create-demo-clusters/aws/tf-rosa
+	url = https://github.com/nedoshi/tf-rosa.git
+

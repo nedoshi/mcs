@@ -1,0 +1,55 @@
+apiVersion: datasciencecluster.opendatahub.io/v1
+kind: DataScienceCluster
+metadata:
+  name: default-dsc
+  namespace: redhat-ods-operator
+  labels:
+    app: opendatahub
+    opendatahub.io/dashboard: "true"
+    managed-by: kustomize
+spec:
+  components:
+    # Dashboard - Required for AI dashboard access
+    dashboard:
+      managementState: Managed
+    
+    # Workbenches - Jupyter notebooks and development environments
+    workbenches:
+      managementState: Managed
+    
+    # Data Science Pipelines - ML workflow orchestration
+    datasciencepipelines:
+      managementState: Managed
+    
+    # Model Registry - Model versioning and management
+    modelregistry:
+      managementState: Managed
+    
+    # KServe - Model serving (requires Serverless)
+    kserve:
+      managementState: Removed
+      serving:
+        ingressGateway:
+          certificate:
+            type: SelfSigned
+    
+    # ModelMesh - Alternative model serving
+    modelmeshserving:
+      managementState: Removed
+    
+    # CodeFlare - Multi-cluster job scheduling
+    codeflare:
+      managementState: Removed
+    
+    # Ray - Distributed computing framework
+    ray:
+      managementState: Removed
+    
+    # Kueue - Job queue management
+    kueue:
+      managementState: Removed
+    
+    # Training Operator - Distributed training
+    trainingoperator:
+      managementState: Removed
+
