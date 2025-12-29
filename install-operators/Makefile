@@ -5,7 +5,7 @@ BASE_DIR := operators
 OVERLAYS_DIR := overlays
 ARGOCD_DIR := argocd
 ENVIRONMENTS := dev staging prod
-OPERATORS := pipelines rhtas acs ai virtualization developer-hub
+OPERATORS := pipelines rhtas acs ai virtualization developer-hub gitops
 
 # Operator definitions
 OPERATOR_PIPELINES_NAME := openshift-pipelines-operator
@@ -38,6 +38,11 @@ OPERATOR_DEVELOPER_HUB_NAMESPACE := rhdh-operator
 OPERATOR_DEVELOPER_HUB_SUBSCRIPTION := rhdh
 OPERATOR_DEVELOPER_HUB_CHANNEL := fast
 
+OPERATOR_GITOPS_NAME := openshift-gitops-operator
+OPERATOR_GITOPS_NAMESPACE := openshift-gitops-operator
+OPERATOR_GITOPS_SUBSCRIPTION := openshift-gitops-operator
+OPERATOR_GITOPS_CHANNEL := latest
+
 # Default target
 .DEFAULT_GOAL := help
 
@@ -56,6 +61,7 @@ generate-operators: ## Generate operator manifests (replaces script.sh)
 	@$(MAKE) generate-operator-ai
 	@$(MAKE) generate-operator-virtualization
 	@$(MAKE) generate-operator-developer-hub
+	@$(MAKE) generate-operator-gitops
 	@$(MAKE) generate-kustomization
 	@echo "✅ Operator GitOps structure created successfully"
 
@@ -65,6 +71,7 @@ generate-operator-pipelines:
 	@printf 'apiVersion: v1\nkind: Namespace\nmetadata:\n  name: %s\n' $(OPERATOR_PIPELINES_NAMESPACE) > $(BASE_DIR)/pipelines/namespace.yaml
 	@printf 'apiVersion: operators.coreos.com/v1\nkind: OperatorGroup\nmetadata:\n  name: pipelines-og\n  namespace: %s\nspec:\n  targetNamespaces:\n  - %s\n' $(OPERATOR_PIPELINES_NAMESPACE) $(OPERATOR_PIPELINES_NAMESPACE) > $(BASE_DIR)/pipelines/operatorgroup.yaml
 	@printf 'apiVersion: operators.coreos.com/v1alpha1\nkind: Subscription\nmetadata:\n  name: %s\n  namespace: %s\nspec:\n  channel: %s\n  name: %s\n  source: redhat-operators\n  sourceNamespace: openshift-marketplace\n' $(OPERATOR_PIPELINES_SUBSCRIPTION) $(OPERATOR_PIPELINES_NAMESPACE) $(OPERATOR_PIPELINES_CHANNEL) $(OPERATOR_PIPELINES_SUBSCRIPTION) > $(BASE_DIR)/pipelines/subscription.yaml
+	@printf 'apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\n\nresources:\n- namespace.yaml\n- operatorgroup.yaml\n- subscription.yaml\n' > $(BASE_DIR)/pipelines/kustomization.yaml
 
 generate-operator-rhtas:
 	@echo "  Creating rhtas operator"
@@ -72,6 +79,7 @@ generate-operator-rhtas:
 	@printf 'apiVersion: v1\nkind: Namespace\nmetadata:\n  name: %s\n' $(OPERATOR_RHTAS_NAMESPACE) > $(BASE_DIR)/rhtas/namespace.yaml
 	@printf 'apiVersion: operators.coreos.com/v1\nkind: OperatorGroup\nmetadata:\n  name: rhtas-og\n  namespace: %s\nspec:\n  targetNamespaces:\n  - %s\n' $(OPERATOR_RHTAS_NAMESPACE) $(OPERATOR_RHTAS_NAMESPACE) > $(BASE_DIR)/rhtas/operatorgroup.yaml
 	@printf 'apiVersion: operators.coreos.com/v1alpha1\nkind: Subscription\nmetadata:\n  name: %s\n  namespace: %s\nspec:\n  channel: %s\n  name: %s\n  source: redhat-operators\n  sourceNamespace: openshift-marketplace\n' $(OPERATOR_RHTAS_SUBSCRIPTION) $(OPERATOR_RHTAS_NAMESPACE) $(OPERATOR_RHTAS_CHANNEL) $(OPERATOR_RHTAS_SUBSCRIPTION) > $(BASE_DIR)/rhtas/subscription.yaml
+	@printf 'apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\n\nresources:\n- namespace.yaml\n- operatorgroup.yaml\n- subscription.yaml\n' > $(BASE_DIR)/rhtas/kustomization.yaml
 
 generate-operator-acs:
 	@echo "  Creating acs operator"
@@ -93,6 +101,7 @@ generate-operator-virtualization:
 	@printf 'apiVersion: v1\nkind: Namespace\nmetadata:\n  name: %s\n' $(OPERATOR_VIRTUALIZATION_NAMESPACE) > $(BASE_DIR)/virtualization/namespace.yaml
 	@printf 'apiVersion: operators.coreos.com/v1\nkind: OperatorGroup\nmetadata:\n  name: virtualization-og\n  namespace: %s\nspec:\n  targetNamespaces:\n  - %s\n' $(OPERATOR_VIRTUALIZATION_NAMESPACE) $(OPERATOR_VIRTUALIZATION_NAMESPACE) > $(BASE_DIR)/virtualization/operatorgroup.yaml
 	@printf 'apiVersion: operators.coreos.com/v1alpha1\nkind: Subscription\nmetadata:\n  name: %s\n  namespace: %s\nspec:\n  channel: %s\n  name: %s\n  source: redhat-operators\n  sourceNamespace: openshift-marketplace\n' $(OPERATOR_VIRTUALIZATION_SUBSCRIPTION) $(OPERATOR_VIRTUALIZATION_NAMESPACE) $(OPERATOR_VIRTUALIZATION_CHANNEL) $(OPERATOR_VIRTUALIZATION_SUBSCRIPTION) > $(BASE_DIR)/virtualization/subscription.yaml
+	@printf 'apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\n\nresources:\n- namespace.yaml\n- operatorgroup.yaml\n- subscription.yaml\n' > $(BASE_DIR)/virtualization/kustomization.yaml
 
 generate-operator-developer-hub:
 	@echo "  Creating developer-hub operator"
@@ -101,8 +110,16 @@ generate-operator-developer-hub:
 	@printf 'apiVersion: operators.coreos.com/v1\nkind: OperatorGroup\nmetadata:\n  name: developer-hub-og\n  namespace: %s\nspec:\n  targetNamespaces:\n  - %s\n' $(OPERATOR_DEVELOPER_HUB_NAMESPACE) $(OPERATOR_DEVELOPER_HUB_NAMESPACE) > $(BASE_DIR)/developer-hub/operatorgroup.yaml
 	@printf 'apiVersion: operators.coreos.com/v1alpha1\nkind: Subscription\nmetadata:\n  name: %s\n  namespace: %s\nspec:\n  channel: %s\n  name: %s\n  source: redhat-operators\n  sourceNamespace: openshift-marketplace\n' $(OPERATOR_DEVELOPER_HUB_SUBSCRIPTION) $(OPERATOR_DEVELOPER_HUB_NAMESPACE) $(OPERATOR_DEVELOPER_HUB_CHANNEL) $(OPERATOR_DEVELOPER_HUB_SUBSCRIPTION) > $(BASE_DIR)/developer-hub/subscription.yaml
 
+generate-operator-gitops:
+	@echo "  Creating gitops operator"
+	@mkdir -p $(BASE_DIR)/gitops
+	@printf 'apiVersion: v1\nkind: Namespace\nmetadata:\n  name: %s\n' $(OPERATOR_GITOPS_NAMESPACE) > $(BASE_DIR)/gitops/namespace.yaml
+	@printf 'apiVersion: operators.coreos.com/v1\nkind: OperatorGroup\nmetadata:\n  name: %s\n  namespace: %s\nspec:\n  targetNamespaces:\n  - %s\n  upgradeStrategy: Default\n' $(OPERATOR_GITOPS_NAME) $(OPERATOR_GITOPS_NAMESPACE) $(OPERATOR_GITOPS_NAMESPACE) > $(BASE_DIR)/gitops/operatorgroup.yaml
+	@printf 'apiVersion: operators.coreos.com/v1alpha1\nkind: Subscription\nmetadata:\n  name: %s\n  namespace: %s\nspec:\n  channel: %s\n  name: %s\n  source: redhat-operators\n  sourceNamespace: openshift-marketplace\n  installPlanApproval: Automatic\n' $(OPERATOR_GITOPS_SUBSCRIPTION) $(OPERATOR_GITOPS_NAMESPACE) $(OPERATOR_GITOPS_CHANNEL) $(OPERATOR_GITOPS_SUBSCRIPTION) > $(BASE_DIR)/gitops/subscription.yaml
+	@printf 'apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\n\nresources:\n- namespace.yaml\n- operatorgroup.yaml\n- subscription.yaml\n' > $(BASE_DIR)/gitops/kustomization.yaml
+
 generate-kustomization:
-	@printf 'apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\n\nresources:\n- pipelines\n- rhtas\n- acs\n- ai\n- virtualization\n- developer-hub\n' > $(BASE_DIR)/kustomization.yaml
+	@printf 'apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\n\nresources:\n- pipelines\n- rhtas\n- acs\n- ai\n- virtualization\n- developer-hub\n- gitops\n' > $(BASE_DIR)/kustomization.yaml
 
 generate-overlays: ## Generate environment overlays (dev, staging, prod)
 	@echo "➡️  Generating environment overlays..."
@@ -154,6 +171,7 @@ validate-csv: ## Validate CSV health for all operators
 	@$(MAKE) validate-csv-ai
 	@$(MAKE) validate-csv-virtualization
 	@$(MAKE) validate-csv-developer-hub
+	@$(MAKE) validate-csv-gitops
 	@echo "✅ CSV validation completed"
 
 validate-csv-pipelines:
@@ -186,13 +204,18 @@ validate-csv-developer-hub:
 	@oc get csv -n $(OPERATOR_DEVELOPER_HUB_NAMESPACE) -l operators.coreos.com/rhdh.rhdh-operator= -o jsonpath='{.items[*].status.phase}' | grep -q Succeeded || (echo "❌ Developer Hub CSV not in Succeeded phase" && exit 1)
 	@echo "  ✅ Developer Hub CSV is healthy"
 
+validate-csv-gitops:
+	@echo "  Checking gitops operator CSV..."
+	@oc get csv -n $(OPERATOR_GITOPS_NAMESPACE) -l operators.coreos.com/openshift-gitops-operator.openshift-gitops-operator= -o jsonpath='{.items[*].status.phase}' | grep -q Succeeded || (echo "❌ GitOps CSV not in Succeeded phase" && exit 1)
+	@echo "  ✅ GitOps CSV is healthy"
+
 validate-all: validate-csv ## Validate all operators (CSV health)
 	@echo "✅ All validations passed"
 
 validate-csv-detailed: ## Detailed CSV validation with status reporting
 	@echo "➡️  Detailed CSV validation..."
 	@echo ""
-	@for op in pipelines rhtas acs ai virtualization developer-hub; do \
+	@for op in pipelines rhtas acs ai virtualization developer-hub gitops; do \
 		echo "=== $$op Operator ==="; \
 		$(MAKE) validate-csv-detailed-$$op || true; \
 		echo ""; \
@@ -215,6 +238,9 @@ validate-csv-detailed-virtualization:
 
 validate-csv-detailed-developer-hub:
 	@oc get csv -n $(OPERATOR_DEVELOPER_HUB_NAMESPACE) -l operators.coreos.com/rhdh.rhdh-operator= -o custom-columns=NAME:.metadata.name,PHASE:.status.phase,REASON:.status.reason,MESSAGE:.status.message --no-headers 2>/dev/null || echo "No CSV found"
+
+validate-csv-detailed-gitops:
+	@oc get csv -n $(OPERATOR_GITOPS_NAMESPACE) -l operators.coreos.com/openshift-gitops-operator.openshift-gitops-operator= -o custom-columns=NAME:.metadata.name,PHASE:.status.phase,REASON:.status.reason,MESSAGE:.status.message --no-headers 2>/dev/null || echo "No CSV found"
 
 build: generate-operators generate-overlays generate-argocd ## Build all manifests (operators, overlays, Argo CD)
 

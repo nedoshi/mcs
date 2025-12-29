@@ -2,10 +2,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-- pipelines
-- rhtas
-- acs
-- ai
-- virtualization
-- developer-hub
-- gitops
+- namespace.yaml
+- operatorgroup.yaml
+- subscription.yaml

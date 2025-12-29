@@ -69,6 +69,122 @@ For detailed validation output:
 make validate-csv-detailed
 ```
 
+## Installing Generated Manifests
+
+After generating manifests with `make all` or `make generate-operators`, you can install them using one of the following methods:
+
+### Direct Installation (kubectl/oc)
+
+#### Option 1: Install All Operators (Base Configuration)
+
+**Note:** Some operators share the same namespace (e.g., `pipelines` and `rhtas` both use `openshift-operators`). Due to kustomize limitations with duplicate resources, you have two options:
+
+**Option 1a: Apply operators individually (Recommended)**
+
+Apply each operator separately to avoid namespace conflicts:
+
+```bash
+oc apply -k operators/pipelines/
+oc apply -k operators/rhtas/
+oc apply -k operators/acs/
+oc apply -k operators/ai/
+oc apply -k operators/virtualization/
+oc apply -k operators/developer-hub/
+oc apply -k operators/gitops/
+```
+
+**Option 1b: Apply all at once (may require namespace handling)**
+
+If you want to apply all at once, you may need to handle duplicate namespaces. The `openshift-operators` namespace is typically pre-existing in OpenShift clusters, so you can apply all operators:
+
+```bash
+oc apply -k operators/ --server-side=true
+```
+
+Or using kubectl:
+
+```bash
+kubectl apply -k operators/
+```
+
+#### Option 2: Install with Environment Overlay
+
+Apply operators with environment-specific configurations:
+
+**Development Environment:**
+```bash
+oc apply -k overlays/dev/
+```
+
+**Staging Environment:**
+```bash
+oc apply -k overlays/staging/
+```
+
+**Production Environment:**
+```bash
+oc apply -k overlays/prod/
+```
+
+#### Option 3: Install Individual Operators
+
+You can also install operators individually:
+
+```bash
+# Install a specific operator
+oc apply -k operators/pipelines/
+oc apply -k operators/acs/
+oc apply -k operators/ai/
+# etc.
+```
+
+### Verify Installation
+
+After applying the manifests, verify that the operators are installing:
+
+```bash
+# Check operator subscriptions
+oc get subscription -A
+
+# Check ClusterServiceVersions (CSVs)
+oc get csv -A
+
+# Validate CSV health
+make validate-csv
+```
+
+The operators will be installed via Operator Lifecycle Manager (OLM). Installation typically takes 5-15 minutes depending on the operator.
+
+### Helm Installation
+
+Install all operators using Helm charts:
+
+```bash
+cd helm
+helm dependency update
+helm install openshift-operators . --namespace operators --create-namespace
+```
+
+**Benefits of Helm installation:**
+- Version management and templating
+- Easy upgrades and rollbacks
+- Environment-specific values files
+- Enable/disable operators easily
+
+**Quick Start:**
+```bash
+# Install with default values
+cd helm && helm dependency update && helm install openshift-operators . --namespace operators --create-namespace
+
+# Install with production values
+helm install openshift-operators . -f values-prod.yaml --namespace operators --create-namespace
+
+# Install specific operators only
+helm install openshift-operators . --set pipelines.enabled=true --set acs.enabled=true --namespace operators --create-namespace
+```
+
+For detailed Helm installation instructions, see [helm/README.md](./helm/README.md).
+
 ## Makefile Targets
 
 | Target | Description |
@@ -105,14 +221,30 @@ install-operators/
 ├── Makefile                 # Main Makefile
 ├── README.md               # This file
 ├── script.sh               # Original script (deprecated, use Makefile)
-├── operators/              # Base operator manifests
+├── operators/              # Base operator manifests (Kustomize)
 │   ├── pipelines/
 │   ├── rhtas/
 │   ├── acs/
 │   ├── ai/
 │   ├── virtualization/
+│   ├── developer-hub/
+│   ├── gitops/
 │   └── kustomization.yaml
-├── overlays/               # Environment-specific overlays
+├── helm/                    # Helm charts for operators
+│   ├── Chart.yaml          # Parent chart
+│   ├── values.yaml         # Default values
+│   ├── values-dev.yaml     # Development values
+│   ├── values-prod.yaml    # Production values
+│   ├── charts/             # Operator subcharts
+│   │   ├── pipelines/
+│   │   ├── rhtas/
+│   │   ├── acs/
+│   │   ├── ai/
+│   │   ├── virtualization/
+│   │   ├── developer-hub/
+│   │   └── gitops/
+│   └── README.md           # Helm installation guide
+├── overlays/               # Environment-specific overlays (Kustomize)
 │   ├── dev/
 │   │   ├── kustomization.yaml
 │   │   └── patches.yaml
@@ -299,6 +431,8 @@ Validation checks:
 - ✅ ACS operator (rhacs-operator)
 - ✅ AI operator (rhods-operator)
 - ✅ Virtualization operator (kubevirt-hyperconverged)
+- ✅ Developer Hub operator (rhdh)
+- ✅ GitOps operator (openshift-gitops-operator)
 
 ## Customization
 
@@ -345,6 +479,45 @@ If CSV validation fails, check:
 2. Install plan status: `oc get installplan -A`
 3. CSV phase: `oc get csv -A`
 4. Operator pod status: `oc get pods -n <operator-namespace>`
+
+### ACS Operator Deployment Failure
+
+If the ACS operator CSV shows "InstallCheckFailed" with deployment timeout:
+
+1. **Check deployment and pods:**
+   ```bash
+   oc get deployment rhacs-operator-controller-manager -n rhacs-operator
+   oc get pods -n rhacs-operator -l app=rhacs-operator
+   oc describe pod -n rhacs-operator -l app=rhacs-operator
+   ```
+
+2. **Check pod logs:**
+   ```bash
+   oc logs -n rhacs-operator -l app=rhacs-operator --tail=100
+   ```
+
+3. **Check for resource constraints:**
+   ```bash
+   oc describe nodes
+   oc get resourcequota -n rhacs-operator
+   ```
+
+4. **Check events for errors:**
+   ```bash
+   oc get events -n rhacs-operator --sort-by='.lastTimestamp'
+   ```
+
+5. **Common fixes:**
+   - Delete and reinstall: `oc delete csv rhacs-operator.v4.9.2 -n rhacs-operator && oc delete subscription rhacs-operator -n rhacs-operator`
+   - Check image pull secrets: `oc get sa rhacs-operator-controller-manager -n rhacs-operator -o yaml`
+   - Verify cluster resources: `oc top nodes`
+   - Check for taints/tolerations: `oc describe nodes | grep -i taint`
+
+6. **Verify CRDs are installed:**
+   ```bash
+   oc get crd | grep stackrox
+   # Should show: centrals.platform.stackrox.io, securedclusters.platform.stackrox.io, securitypolicies.config.stackrox.io
+   ```
 
 ### Argo CD Sync Issues
 

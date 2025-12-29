@@ -2,7 +2,7 @@ apiVersion: platform.stackrox.io/v1alpha1
 kind: Central
 metadata:
   name: stackrox-central-services
-  namespace: rhacs-operator
+  namespace: stackrox
   labels:
     app: stackrox-central
     managed-by: kustomize

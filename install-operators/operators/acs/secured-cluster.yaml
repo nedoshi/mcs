@@ -14,7 +14,7 @@ spec:
     dynamic:
       enforceOnCreates: false
       enforceOnUpdates: false
-  centralEndpoint: central.rhacs-operator.svc:443
+  centralEndpoint: central.stackrox.svc:443
   clusterName: openshift-cluster
   perNode:
     collector:
