@@ -2,6 +2,41 @@
 
 This directory contains tools for managing OpenShift operators using GitOps patterns with Kustomize and Argo CD.
 
+## 🚀 Quick Start (Simplest Method - Recommended)
+
+**Having issues with Kustomize or Helm?** Use the simple installation script that directly applies YAML files:
+
+```bash
+# Install GitOps operator (recommended first)
+./install-operator-simple.sh gitops
+
+# Install other operators
+./install-operator-simple.sh pipelines
+./install-operator-simple.sh acs
+./install-operator-simple.sh ai
+./install-operator-simple.sh rhtas
+./install-operator-simple.sh virtualization
+./install-operator-simple.sh developer-hub
+```
+
+**Why this method?**
+- ✅ No Kustomize complexity
+- ✅ No Helm chart dependencies
+- ✅ Direct `oc apply` - most reliable
+- ✅ Easy to debug
+- ✅ Works when other methods fail
+
+See [INSTALL_SIMPLE.md](./INSTALL_SIMPLE.md) for complete documentation.
+
+## Installation Methods
+
+This repository supports multiple installation methods:
+
+1. **Simple Script** (Recommended) - Direct YAML application, no dependencies
+2. **Kustomize** - For GitOps workflows
+3. **Helm Charts** - For complex deployments
+4. **Makefile** - For manifest generation
+
 ## Features
 
 - **Operator Manifest Generation**: Generate operator manifests (Namespace, OperatorGroup, Subscription)
@@ -11,11 +46,11 @@ This directory contains tools for managing OpenShift operators using GitOps patt
 
 ## Prerequisites
 
-- `make` - Build automation tool
-- `kubectl` or `oc` - Kubernetes/OpenShift CLI
+- `kubectl` or `oc` - Kubernetes/OpenShift CLI (for simple script)
+- `make` - Build automation tool (for Makefile method)
 - Access to an OpenShift cluster (for validation)
 
-## Quick Start
+## Quick Start (Makefile Method)
 
 ### Generate All Manifests
 
