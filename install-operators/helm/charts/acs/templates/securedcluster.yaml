@@ -1,0 +1,28 @@
+{{- if .Values.securedcluster.enabled }}
+apiVersion: platform.stackrox.io/v1alpha1
+kind: SecuredCluster
+metadata:
+  name: {{ .Values.securedcluster.name }}
+  namespace: {{ .Values.securedcluster.namespace | default .Values.namespace }}
+  labels:
+    app: stackrox-secured-cluster
+    app.kubernetes.io/managed-by: {{ .Release.Service | default "Helm" }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+spec:
+  admissionControl:
+    listenOnCreates: {{ .Values.securedcluster.admissionControl.listenOnCreates }}
+    listenOnEvents: {{ .Values.securedcluster.admissionControl.listenOnEvents }}
+    listenOnUpdates: {{ .Values.securedcluster.admissionControl.listenOnUpdates }}
+    dynamic:
+      enforceOnCreates: {{ .Values.securedcluster.admissionControl.dynamic.enforceOnCreates }}
+      enforceOnUpdates: {{ .Values.securedcluster.admissionControl.dynamic.enforceOnUpdates }}
+  centralEndpoint: {{ .Values.securedcluster.centralEndpoint }}
+  clusterName: {{ .Values.securedcluster.clusterName }}
+  perNode:
+    collector:
+      collectionMethod: {{ .Values.securedcluster.perNode.collector.collectionMethod }}
+    taintToleration: {{ .Values.securedcluster.perNode.taintToleration }}
+{{- end }}
+

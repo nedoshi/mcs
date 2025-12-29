@@ -1,0 +1,34 @@
+namespace: rhdh-operator
+subscription:
+  name: rhdh
+  channel: fast
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+
+# Backstage Custom Resource
+# After the operator is installed and CSV is in Succeeded phase,
+# enable this to create the Backstage instance
+backstage:
+  enabled: false
+  name: developer-hub
+  # Namespace for Backstage (defaults to operator namespace if not specified)
+  namespace: rhdh-operator
+  application:
+    route:
+      enabled: true
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+  database:
+    enableLocalDb: true
+  postgres:
+    enabled: true
+    size: 10Gi
+  custom:
+    enabled: false
+

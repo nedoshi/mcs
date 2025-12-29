@@ -1,0 +1,24 @@
+dependencies:
+- name: pipelines
+  repository: file://./charts/pipelines
+  version: 1.0.0
+- name: rhtas
+  repository: file://./charts/rhtas
+  version: 1.0.0
+- name: acs
+  repository: file://./charts/acs
+  version: 1.0.0
+- name: ai
+  repository: file://./charts/ai
+  version: 1.0.0
+- name: virtualization
+  repository: file://./charts/virtualization
+  version: 1.0.0
+- name: developer-hub
+  repository: file://./charts/developer-hub
+  version: 1.0.0
+- name: gitops
+  repository: file://./charts/gitops
+  version: 1.0.0
+digest: sha256:beccaf325e3a4da82f364b047d1ff7848d624193bb864fa751927ccc4888f4bc
+generated: "2025-12-29T11:25:27.412633-05:00"

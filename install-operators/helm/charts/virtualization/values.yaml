@@ -1,0 +1,28 @@
+namespace: openshift-cnv
+subscription:
+  name: kubevirt-hyperconverged
+  channel: stable
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+
+# HyperConverged Custom Resource
+# After the operator is installed and CSV is in Succeeded phase,
+# enable this to create the HyperConverged instance
+hyperconverged:
+  enabled: false
+  name: kubevirt-hyperconverged
+  # Optional: Customize HyperConverged spec
+  # Uncomment and modify as needed
+  # spec:
+  #   localStorageClassName: ""
+  #   scratchSpaceStorageClass: ""
+  #   featureGates:
+  #     enableCommonBootImageImport: true
+  #   liveMigrationConfig:
+  #     parallelMigrationsPerCluster: 5
+  #     bandwidthPerMigration: "64Mi"
+  #   permittedHostDevices:
+  #     pciHostDevices: []
+  #     mediatedDevices: []
+

@@ -1,0 +1,39 @@
+namespace: redhat-ods-operator
+subscription:
+  name: rhods-operator
+  channel: stable
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+
+# DataScienceCluster Custom Resource
+# After the operator is installed and CSV is in Succeeded phase,
+# enable this to create the DataScienceCluster instance
+datasciencecluster:
+  enabled: false
+  name: default-dsc
+  # Optional: Customize DataScienceCluster spec
+  # Uncomment and modify as needed
+  # spec:
+  #   components:
+  #     dashboard:
+  #       managementState: Managed
+  #     workbenches:
+  #       managementState: Managed
+  #     datasciencepipelines:
+  #       managementState: Managed
+  #     modelregistry:
+  #       managementState: Managed
+  #     kserve:
+  #       managementState: Removed
+  #     modelmeshserving:
+  #       managementState: Removed
+  #     codeflare:
+  #       managementState: Removed
+  #     ray:
+  #       managementState: Removed
+  #     kueue:
+  #       managementState: Removed
+  #     trainingoperator:
+  #       managementState: Removed
+

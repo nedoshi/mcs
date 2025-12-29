@@ -1,0 +1,8 @@
+namespace: openshift-operators
+subscription:
+  name: openshift-pipelines-operator
+  channel: stable
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+

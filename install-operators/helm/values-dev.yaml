@@ -1,0 +1,62 @@
+# Development environment values
+# Use faster channels and automatic approvals for development
+
+global:
+  channel: fast
+  installPlanApproval: Automatic
+
+pipelines:
+  enabled: true
+  subscription:
+    channel: fast
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Automatic
+
+rhtas:
+  enabled: true
+  subscription:
+    channel: fast
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Automatic
+
+acs:
+  enabled: true
+  subscription:
+    channel: fast
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Automatic
+
+ai:
+  enabled: true
+  subscription:
+    channel: fast
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Automatic
+
+virtualization:
+  enabled: false  # Disable in dev if not needed
+  subscription:
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Automatic
+
+developer-hub:
+  enabled: true
+  subscription:
+    channel: fast
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Automatic
+
+gitops:
+  enabled: true
+  subscription:
+    channel: latest
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Automatic
+

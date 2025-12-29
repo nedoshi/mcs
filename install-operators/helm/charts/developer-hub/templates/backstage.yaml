@@ -1,0 +1,33 @@
+{{- if .Values.backstage.enabled }}
+apiVersion: rhdh.redhat.com/v1alpha4
+kind: Backstage
+metadata:
+  name: {{ .Values.backstage.name }}
+  namespace: {{ .Values.backstage.namespace | default .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: backstage
+    app.kubernetes.io/component: developer-hub
+    app.kubernetes.io/managed-by: {{ .Release.Service | default "Helm" }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+spec:
+  application:
+    route:
+      enabled: {{ .Values.backstage.application.route.enabled }}
+    resources:
+      requests:
+        cpu: {{ .Values.backstage.application.resources.requests.cpu }}
+        memory: {{ .Values.backstage.application.resources.requests.memory }}
+      limits:
+        cpu: {{ .Values.backstage.application.resources.limits.cpu }}
+        memory: {{ .Values.backstage.application.resources.limits.memory }}
+  database:
+    enableLocalDb: {{ .Values.backstage.database.enableLocalDb }}
+  postgres:
+    enabled: {{ .Values.backstage.postgres.enabled }}
+    size: {{ .Values.backstage.postgres.size }}
+  custom:
+    enabled: {{ .Values.backstage.custom.enabled }}
+{{- end }}
+
