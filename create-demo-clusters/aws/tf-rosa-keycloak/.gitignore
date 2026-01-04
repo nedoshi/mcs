@@ -1,0 +1,17 @@
+# Backup files
+backups/
+*.sql
+
+# Terraform state (if any)
+*.tfstate
+*.tfstate.*
+
+# Sensitive files
+*.pem
+*.key
+*.crt
+
+# OS files
+.DS_Store
+Thumbs.db
+
