@@ -25,10 +25,11 @@ cd create-demo-clusters/aws/tf-rosa-keycloak
 
 The script will:
 - Create namespace
+- Install Keycloak Operator
 - Deploy PostgreSQL
 - Set up database
-- Deploy Keycloak
-- Create route
+- Deploy Keycloak (via operator)
+- Create route (if needed)
 - Show you the access URL
 
 ### Option 2: Manual Deployment
@@ -37,28 +38,37 @@ The script will:
 # 1. Create namespace
 oc apply -f 01-namespace.yaml
 
-# 2. Create secrets (⚠️ change passwords!)
+# 2. Install Keycloak Operator
+oc apply -f 00-operator-subscription.yaml
+# Wait for operator (2-5 minutes)
+oc wait --for=condition=AtLatestKnown installplan -l operators.coreos.com/keycloak-operator.keycloak= -n keycloak --timeout=600s
+
+# 3. Create secrets (⚠️ change passwords!)
 oc apply -f 04-secrets.yaml
 
-# 3. Deploy PostgreSQL
+# 4. Deploy PostgreSQL
 oc apply -f 02-postgresql.yaml
 oc wait --for=condition=ready pod -l app=postgresql -n keycloak --timeout=300s
 
-# 4. Setup database
+# 5. Setup database
 ./setup-database.sh
 
-# 5. Deploy Keycloak
+# 6. Deploy Keycloak (via operator)
 oc apply -f 03-keycloak.yaml
-oc wait --for=condition=ready pod -l app=keycloak -n keycloak --timeout=600s
+# Wait for Keycloak to be ready (5-10 minutes)
+oc wait --for=condition=ready keycloak/keycloak -n keycloak --timeout=900s
 
-# 6. Create route (choose one)
+# 7. Check if route was created automatically, or create one manually
+oc get route -n keycloak
+
+# If no route exists, create one:
 # Public route:
 oc apply -f 05-route-public.yaml
 
 # OR Private route:
 # oc apply -f 05-route-private.yaml
 
-# 7. Get the URL
+# 8. Get the URL
 oc get route keycloak -n keycloak
 ```
 
@@ -124,7 +134,10 @@ oc create secret generic keycloak-db-secret \
 
 # Restart deployments
 oc rollout restart deployment/postgresql -n keycloak
-oc rollout restart deployment/keycloak -n keycloak
+# For Keycloak, delete the pod and let operator recreate it
+oc delete pod -l app=keycloak -n keycloak
+# Or update the Keycloak CR to trigger a restart
+oc patch keycloak keycloak -n keycloak --type=json -p='[{"op": "replace", "path": "/spec/keycloakDeploymentSpec/image", "value": "quay.io/keycloak/keycloak:25.0.1"}]'
 ```
 
 ## Verify Deployment
@@ -133,20 +146,37 @@ oc rollout restart deployment/keycloak -n keycloak
 # Check all resources
 oc get all -n keycloak
 
-# Check pods
-oc get pods -n keycloak
+# Check Keycloak CR status
+oc get keycloak keycloak -n keycloak
+
+# Check operator pod
+oc get pods -n keycloak -l name=keycloak-operator
+
+# Check Keycloak pods
+oc get pods -n keycloak -l app=keycloak
 
 # Check route
 oc get route keycloak -n keycloak
 
 # View Keycloak logs
 oc logs -l app=keycloak -n keycloak -f
+
+# View operator logs
+oc logs -l name=keycloak-operator -n keycloak -f
 ```
 
 ## Troubleshooting
 
 ### Pods not starting
 ```bash
+# Check Keycloak CR status
+oc get keycloak keycloak -n keycloak -o yaml
+oc describe keycloak keycloak -n keycloak
+
+# Check operator logs
+oc logs -l name=keycloak-operator -n keycloak
+
+# Check pod status
 oc describe pod <pod-name> -n keycloak
 oc logs <pod-name> -n keycloak
 ```

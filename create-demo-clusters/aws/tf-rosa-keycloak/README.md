@@ -18,11 +18,22 @@ This guide provides a complete, production-ready setup for Keycloak on Red Hat O
 ## Overview
 
 This setup deploys:
-- **Keycloak** - Production-ready identity and access management
+- **Keycloak Operator** - Manages Keycloak lifecycle automatically
+- **Keycloak** - Production-ready identity and access management (managed by operator)
 - **PostgreSQL Database** - Persistent storage for Keycloak data
-- **OpenShift Routes** - External access without complex VPC networking
+- **OpenShift Routes** - External access without complex VPC networking (automatically created by operator)
 - **Persistent Volumes** - Data persistence for both Keycloak and PostgreSQL
 - **Production Configuration** - High availability, resource limits, and security best practices
+
+### Why Keycloak Operator?
+
+The Keycloak Operator provides:
+- ✅ **Automated Lifecycle Management** - Handles deployments, updates, and scaling
+- ✅ **Automatic Route Creation** - Creates OpenShift Routes automatically
+- ✅ **Health Monitoring** - Built-in health checks and monitoring
+- ✅ **Simplified Configuration** - Declarative configuration via Custom Resources
+- ✅ **Production Ready** - Best practices built-in
+- ✅ **Easy Updates** - Operator handles rolling updates
 
 ## Networking Solution for Private VPC
 
@@ -170,7 +181,24 @@ oc create namespace keycloak
 oc apply -f 01-namespace.yaml
 ```
 
-### Step 2: Create PostgreSQL Database
+### Step 2: Install Keycloak Operator
+
+The Keycloak Operator manages Keycloak lifecycle automatically:
+
+```bash
+# Install the Keycloak Operator
+oc apply -f 00-operator-subscription.yaml
+
+# Wait for the operator to be installed (this may take 2-5 minutes)
+oc wait --for=condition=AtLatestKnown installplan -l operators.coreos.com/keycloak-operator.keycloak= -n keycloak --timeout=600s
+
+# Verify operator is running
+oc get pods -n keycloak -l name=keycloak-operator
+```
+
+**Note**: The operator is installed from the `community-operators` catalog. If this catalog is not available, you may need to enable it in OperatorHub or use a different catalog source.
+
+### Step 3: Create PostgreSQL Database
 
 Keycloak requires a database for persistent storage. We'll use PostgreSQL:
 
@@ -185,9 +213,14 @@ oc wait --for=condition=ready pod -l app=postgresql -n keycloak --timeout=300s
 oc get pods -n keycloak
 ```
 
-### Step 3: Initialize PostgreSQL Database
+### Step 4: Initialize PostgreSQL Database
 
 ```bash
+# Use the provided script (recommended)
+chmod +x setup-database.sh
+./setup-database.sh
+
+# Or manually:
 # Get the PostgreSQL pod name
 POSTGRES_POD=$(oc get pod -l app=postgresql -n keycloak -o jsonpath='{.items[0].metadata.name}')
 
@@ -199,73 +232,90 @@ oc exec -it $POSTGRES_POD -n keycloak -- psql -U postgres -c "CREATE USER keyclo
 
 # Grant privileges
 oc exec -it $POSTGRES_POD -n keycloak -- psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak;"
-
-# Or use the provided script
-chmod +x setup-database.sh
-./setup-database.sh
 ```
 
-**⚠️ Security Note**: Change the default password in production! Update the password in `02-postgresql.yaml` and `03-keycloak.yaml` before deploying.
+**⚠️ Security Note**: Change the default password in production! Update the password in `04-secrets.yaml` before deploying.
 
-### Step 4: Create PostgreSQL Secret
+### Step 5: Create Database Secret
 
 ```bash
 # Create secret for database connection
+oc apply -f 04-secrets.yaml
+
+# Or manually:
 oc create secret generic keycloak-db-secret \
   --from-literal=username=keycloak \
   --from-literal=password=keycloak \
+  --from-literal=database=keycloak \
   -n keycloak
-
-# Or use the provided manifest
-oc apply -f 04-secrets.yaml
 ```
 
-### Step 5: Deploy Keycloak
+### Step 6: Deploy Keycloak (via Operator)
+
+Deploy Keycloak using the Custom Resource. The operator will handle everything:
 
 ```bash
-# Deploy Keycloak
+# Deploy Keycloak Custom Resource
 oc apply -f 03-keycloak.yaml
 
-# Wait for Keycloak to be ready
-oc wait --for=condition=ready pod -l app=keycloak -n keycloak --timeout=600s
+# Wait for Keycloak to be ready (this may take 5-10 minutes)
+oc wait --for=condition=ready keycloak/keycloak -n keycloak --timeout=900s
 
-# Check deployment status
+# Check Keycloak status
+oc get keycloak keycloak -n keycloak
+
+# Check pods (operator will create the deployment)
 oc get pods -n keycloak
+
+# Check services (operator creates the service automatically)
 oc get svc -n keycloak
 ```
 
-### Step 6: Create OpenShift Route
+The Keycloak Operator will automatically:
+- Create the Keycloak deployment
+- Create the Keycloak service
+- Create an OpenShift Route (if hostname is configured)
+- Manage health checks and monitoring
+- Handle rolling updates
 
-This is the key step that solves your networking challenge:
+### Step 7: Verify Route Creation
+
+The operator may create a route automatically, or you can create one manually:
 
 ```bash
-# Create public route (accessible from internet)
+# Check if route was created automatically
+oc get route -n keycloak
+
+# If no route exists, create one manually:
+# Public route (accessible from internet)
 oc apply -f 05-route-public.yaml
 
-# OR create private route (internal only)
+# OR private route (internal only)
 # oc apply -f 05-route-private.yaml
 
 # Get the route URL
 oc get route keycloak -n keycloak
 ```
 
-The Route will automatically:
-- Create an AWS Load Balancer
-- Configure DNS (if using default OpenShift domain)
-- Handle TLS termination
-- Route traffic to your Keycloak service
+**Note**: If you configured a hostname in the Keycloak CR (`03-keycloak.yaml`), the operator may create the route automatically. Otherwise, create it manually using the route manifests.
 
-### Step 7: Verify Installation
+### Step 8: Verify Installation
 
 ```bash
 # Check all resources
 oc get all -n keycloak
+
+# Check Keycloak Custom Resource status
+oc get keycloak keycloak -n keycloak -o yaml
 
 # Check persistent volumes
 oc get pvc -n keycloak
 
 # Check route
 oc get route keycloak -n keycloak
+
+# Check operator pod
+oc get pods -n keycloak -l name=keycloak-operator
 
 # Test connectivity (replace with your route URL)
 curl -k https://keycloak-keycloak.apps.<your-cluster-domain>/health
@@ -385,8 +435,15 @@ The current setup includes:
 ### Scaling
 
 ```bash
-# Scale Keycloak horizontally
-oc scale deployment/keycloak --replicas=3 -n keycloak
+# Scale Keycloak horizontally (update the CR)
+oc patch keycloak keycloak -n keycloak --type=json \
+  -p='[{"op": "replace", "path": "/spec/instances", "value": 3}]'
+
+# Or edit the CR directly
+oc edit keycloak keycloak -n keycloak
+# Change: instances: 2 → instances: 3
+
+# The operator will automatically scale the deployment
 
 # Scale PostgreSQL (requires StatefulSet for proper scaling)
 # Consider using RDS or managed PostgreSQL for production
@@ -426,6 +483,13 @@ To use RDS instead of in-cluster PostgreSQL:
 ### Keycloak Pods Not Starting
 
 ```bash
+# Check Keycloak CR status
+oc get keycloak keycloak -n keycloak -o yaml
+oc describe keycloak keycloak -n keycloak
+
+# Check operator logs
+oc logs -l name=keycloak-operator -n keycloak
+
 # Check pod logs
 oc logs -l app=keycloak -n keycloak
 
@@ -433,9 +497,10 @@ oc logs -l app=keycloak -n keycloak
 oc describe pod <keycloak-pod-name> -n keycloak
 
 # Common issues:
-# - Database connection failures: Check PostgreSQL is running
-# - Memory issues: Check resource limits
+# - Database connection failures: Check PostgreSQL is running and secret is correct
+# - Memory issues: Check resource limits in Keycloak CR
 # - Volume mount issues: Check PVC status
+# - Operator not ready: Check operator pod status
 ```
 
 ### Database Connection Issues

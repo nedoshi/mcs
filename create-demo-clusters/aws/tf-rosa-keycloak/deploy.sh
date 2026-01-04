@@ -37,15 +37,25 @@ oc apply -f 01-namespace.yaml
 echo "✅ Namespace created"
 echo ""
 
-# Step 2: Create secrets
-echo "Step 2: Creating secrets..."
+# Step 2: Install Keycloak Operator
+echo "Step 2: Installing Keycloak Operator..."
+oc apply -f 00-operator-subscription.yaml
+echo "Waiting for operator to be installed (this may take 2-5 minutes)..."
+oc wait --for=condition=AtLatestKnown installplan -l operators.coreos.com/keycloak-operator.keycloak= -n $NAMESPACE --timeout=600s || {
+    echo "⚠️  Operator installation may still be in progress. Continuing..."
+}
+echo "✅ Keycloak Operator installed"
+echo ""
+
+# Step 3: Create secrets
+echo "Step 3: Creating secrets..."
 echo "⚠️  WARNING: Using default passwords. Please change them in production!"
 oc apply -f 04-secrets.yaml
 echo "✅ Secrets created"
 echo ""
 
-# Step 3: Deploy PostgreSQL
-echo "Step 3: Deploying PostgreSQL..."
+# Step 4: Deploy PostgreSQL
+echo "Step 4: Deploying PostgreSQL..."
 oc apply -f 02-postgresql.yaml
 echo "Waiting for PostgreSQL to be ready..."
 oc wait --for=condition=ready pod -l app=postgresql -n $NAMESPACE --timeout=300s || {
@@ -54,31 +64,38 @@ oc wait --for=condition=ready pod -l app=postgresql -n $NAMESPACE --timeout=300s
 echo "✅ PostgreSQL deployed"
 echo ""
 
-# Step 4: Setup database
-echo "Step 4: Setting up database..."
+# Step 5: Setup database
+echo "Step 5: Setting up database..."
 chmod +x setup-database.sh
 ./setup-database.sh
 echo "✅ Database setup complete"
 echo ""
 
-# Step 5: Deploy Keycloak
-echo "Step 5: Deploying Keycloak..."
+# Step 6: Deploy Keycloak (via operator)
+echo "Step 6: Deploying Keycloak (via operator)..."
 oc apply -f 03-keycloak.yaml
-echo "Waiting for Keycloak to be ready (this may take a few minutes)..."
-oc wait --for=condition=ready pod -l app=keycloak -n $NAMESPACE --timeout=600s || {
-    echo "⚠️  Keycloak pods not ready yet. They will continue starting in the background."
+echo "Waiting for Keycloak to be ready (this may take 5-10 minutes)..."
+oc wait --for=condition=ready keycloak/keycloak -n $NAMESPACE --timeout=900s || {
+    echo "⚠️  Keycloak CR not ready yet. It will continue starting in the background."
+    echo "   Check status with: oc get keycloak keycloak -n $NAMESPACE"
 }
 echo "✅ Keycloak deployed"
 echo ""
 
-# Step 6: Create route
-echo "Step 6: Creating route ($ROUTE_TYPE)..."
-if [ "$ROUTE_TYPE" == "private" ]; then
-    oc apply -f 05-route-private.yaml
-    echo "✅ Private route created"
+# Step 7: Check/Create route
+echo "Step 7: Checking route..."
+ROUTE_EXISTS=$(oc get route keycloak -n $NAMESPACE 2>/dev/null || echo "")
+if [ -z "$ROUTE_EXISTS" ]; then
+    echo "No route found. Creating route ($ROUTE_TYPE)..."
+    if [ "$ROUTE_TYPE" == "private" ]; then
+        oc apply -f 05-route-private.yaml
+        echo "✅ Private route created"
+    else
+        oc apply -f 05-route-public.yaml
+        echo "✅ Public route created"
+    fi
 else
-    oc apply -f 05-route-public.yaml
-    echo "✅ Public route created"
+    echo "✅ Route already exists (may have been created by operator)"
 fi
 echo ""
 
@@ -88,6 +105,12 @@ echo "Deployment Summary"
 echo "=========================================="
 echo ""
 echo "Namespace: $NAMESPACE"
+echo ""
+echo "Keycloak CR:"
+oc get keycloak -n $NAMESPACE
+echo ""
+echo "Operator Pod:"
+oc get pods -n $NAMESPACE -l name=keycloak-operator
 echo ""
 echo "Pods:"
 oc get pods -n $NAMESPACE
@@ -118,6 +141,10 @@ if [ "$KEYCLOAK_URL" != "Not available yet" ]; then
     echo "   - Update postgresql-secret"
     echo "   - Update keycloak-db-secret"
     echo "   - Restart deployments after updating secrets"
+    echo ""
+    echo "📝 Note: Keycloak is managed by the Keycloak Operator"
+    echo "   - Check status: oc get keycloak keycloak -n $NAMESPACE"
+    echo "   - View operator logs: oc logs -l name=keycloak-operator -n $NAMESPACE"
     echo "=========================================="
 else
     echo "⚠️  Route not ready yet. Check status with: oc get route -n $NAMESPACE"

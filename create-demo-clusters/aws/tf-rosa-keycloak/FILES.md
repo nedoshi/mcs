@@ -35,6 +35,12 @@ This document explains the purpose of each file in this Keycloak setup.
 
 ## Deployment Manifests
 
+### 00-operator-subscription.yaml
+Keycloak Operator installation:
+- OperatorGroup for the keycloak namespace
+- Subscription to install Keycloak Operator from community-operators catalog
+- Automatically manages Keycloak lifecycle
+
 ### 01-namespace.yaml
 Creates the `keycloak` namespace for all Keycloak resources.
 
@@ -46,12 +52,12 @@ PostgreSQL database deployment:
 - Health checks and resource limits
 
 ### 03-keycloak.yaml
-Keycloak deployment:
-- Keycloak Deployment (2 replicas, production-ready)
-- Keycloak Service (ClusterIP with session affinity)
-- Resource limits and security context
-- Health checks
+Keycloak Custom Resource (CR):
+- Managed by Keycloak Operator
+- Keycloak CR specification (2 instances, production-ready)
 - Database connection configuration
+- Resource limits and security context
+- The operator automatically creates Deployment, Service, and optionally Routes
 
 ### 04-secrets.yaml
 Kubernetes secrets:
@@ -77,10 +83,11 @@ OpenShift Route with **internal** load balancer:
 ### deploy.sh
 **Automated deployment script** - Deploys everything:
 - Creates namespace
+- Installs Keycloak Operator
 - Deploys PostgreSQL
 - Sets up database
-- Deploys Keycloak
-- Creates route (public or private)
+- Deploys Keycloak (via operator)
+- Creates route (public or private, if not created by operator)
 - Shows deployment summary
 
 Usage:
@@ -134,11 +141,12 @@ Git ignore file for:
 For manual deployment, follow this order:
 
 1. `01-namespace.yaml` - Create namespace
-2. `04-secrets.yaml` - Create secrets (change passwords!)
-3. `02-postgresql.yaml` - Deploy PostgreSQL
-4. `setup-database.sh` - Initialize database
-5. `03-keycloak.yaml` - Deploy Keycloak
-6. `05-route-public.yaml` OR `05-route-private.yaml` - Create route
+2. `00-operator-subscription.yaml` - Install Keycloak Operator (wait 2-5 minutes)
+3. `04-secrets.yaml` - Create secrets (change passwords!)
+4. `02-postgresql.yaml` - Deploy PostgreSQL
+5. `setup-database.sh` - Initialize database
+6. `03-keycloak.yaml` - Deploy Keycloak Custom Resource (operator manages deployment)
+7. `05-route-public.yaml` OR `05-route-private.yaml` - Create route (if not created by operator)
 
 Or use `deploy.sh` to automate all steps.
 
@@ -150,6 +158,7 @@ Or use `deploy.sh` to automate all steps.
 | QUICKSTART.md | Quick deployment | Fast deployment reference |
 | NETWORKING.md | Networking details | Understanding VPC networking solution |
 | deploy.sh | Automated deployment | Easiest way to deploy everything |
+| 00-operator-subscription.yaml | Operator installation | Required first step |
 | 01-05-*.yaml | Kubernetes manifests | Manual deployment or customization |
 | *.sh scripts | Helper scripts | Database setup, backups, restores |
 
