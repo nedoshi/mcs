@@ -1,2 +1,8 @@
 # Local clone used to sync from upstream (not committed)
 .upstream-cache/
+
+# Ignore Terraform variable files
+*.tfvars
+
+# Ignore htpasswd files
+htpasswd

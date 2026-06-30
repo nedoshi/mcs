@@ -52,3 +52,9 @@ scripts/path/
 
 # Local cleanup artifacts
 .removed-nested-mcs-*
+
+# Ignore Terraform variable files
+*.tfvars
+
+# Ignore htpasswd files
+htpasswd
