@@ -1,0 +1,89 @@
+---
+# Keycloak Custom Resource
+# This is managed by the Keycloak Operator
+# 
+# NOTE: The API version and spec structure may vary depending on the Keycloak Operator version.
+# If this CR doesn't work, check the operator's CRD:
+#   oc get crd keycloaks.keycloak.org -o yaml
+#   oc explain keycloak.spec
+#
+# Common API versions:
+# - keycloak.org/v1alpha1 (older versions)
+# - k8s.keycloak.org/v1alpha1 (newer versions)
+apiVersion: keycloak.org/v1alpha1
+kind: Keycloak
+metadata:
+  name: keycloak
+  namespace: keycloak
+  labels:
+    app: keycloak
+spec:
+  instances: 2
+  # External access configuration
+  externalAccess:
+    enabled: true
+    # The operator will create a Route automatically if enabled
+    # You can also create a route manually using 05-route-public.yaml or 05-route-private.yaml
+  # Database configuration
+  db:
+    vendor: postgres
+    host: postgresql
+    port: 5432
+    database: keycloak
+    usernameSecret:
+      name: keycloak-db-secret
+      key: username
+    passwordSecret:
+      name: keycloak-db-secret
+      key: password
+  # HTTP configuration
+  http:
+    httpEnabled: true
+  # Keycloak deployment specification
+  keycloakDeploymentSpec:
+    image: quay.io/keycloak/keycloak:25.0.1
+    resources:
+      requests:
+        memory: "1.5Gi"
+        cpu: "500m"
+      limits:
+        memory: "3Gi"
+        cpu: "2000m"
+    # Experimental features
+    experimental:
+      # Enable health checks
+      health:
+        enabled: true
+      # Enable metrics
+      metrics:
+        enabled: true
+  # Unsupported configuration (for advanced use cases)
+  # These settings are passed through to the Keycloak deployment
+  # Note: This section may not be available in all operator versions
+  unsupported:
+    podTemplate:
+      spec:
+        containers:
+        - name: keycloak
+          env:
+          - name: KC_PROXY
+            value: "edge"
+          - name: KC_HOSTNAME_STRICT
+            value: "false"
+          - name: KC_HOSTNAME_STRICT_HTTPS
+            value: "false"
+          - name: JAVA_OPTS_APPEND
+            value: >-
+              -Xms1024m
+              -Xmx2048m
+              -XX:MetaspaceSize=256m
+              -XX:MaxMetaspaceSize=512m
+              -Djava.awt.headless=true
+              -Djava.security.egd=file:/dev/./urandom
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop:
+              - ALL

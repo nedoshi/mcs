@@ -1,0 +1,76 @@
+schemaVersion: 2.2.2
+metadata:
+  name: llm-coding-workspace
+  version: 1.0.0
+  displayName: LLM Coding Workspace (Cline + Continue)
+  description: VS Code workspace pre-configured with Cline and Continue extensions connected to Qwen3-Coder on Inferentia2
+  tags:
+    - llm
+    - vscode
+    - inferentia
+attributes:
+  che-editor.yaml: |
+    id: che-incubator/che-code/latest
+components:
+  - name: dev-tools
+    container:
+      image: registry.redhat.io/devspaces/udi-rhel8:latest
+      memoryLimit: 4Gi
+      memoryRequest: 512Mi
+      cpuLimit: "2"
+      cpuRequest: 250m
+      mountSources: true
+      env:
+        - name: VLLM_ENDPOINT
+          value: "https://qwen3-coder-neuron-llm-serving.apps.rosa.<CLUSTER_NAME>.<CLUSTER_HASH>.openshiftapps.com"
+        - name: VLLM_MODEL_ID
+          value: "qwen3-coder"
+commands:
+  - id: configure-llm-extensions
+    exec:
+      component: dev-tools
+      commandLine: |
+        #!/bin/bash
+        SETTINGS_DIR="${HOME}/.che/user/settings"
+        mkdir -p "${SETTINGS_DIR}"
+
+        cat > "${SETTINGS_DIR}/settings.json" <<SETTINGS
+        {
+          "cline.enableTab": false,
+          "cline.apiProvider": "openai-compatible",
+          "cline.openaiBaseUrl": "${VLLM_ENDPOINT}/v1",
+          "cline.openaiModelId": "${VLLM_MODEL_ID}",
+          "cline.openaiApiKey": "EMPTY"
+        }
+        SETTINGS
+
+        CONTINUE_DIR="${HOME}/.continue"
+        mkdir -p "${CONTINUE_DIR}"
+
+        cat > "${CONTINUE_DIR}/config.yaml" <<CONTINUECONF
+        models:
+          - name: Qwen3-Coder (Inferentia2)
+            provider: openai
+            model: ${VLLM_MODEL_ID}
+            apiBase: ${VLLM_ENDPOINT}/v1
+            apiKey: EMPTY
+        tabAutocompleteModel:
+          title: Qwen3-Coder Autocomplete
+          provider: openai
+          model: ${VLLM_MODEL_ID}
+          apiBase: ${VLLM_ENDPOINT}/v1
+          apiKey: EMPTY
+          debounceDelay: 500
+        CONTINUECONF
+
+        echo "LLM extensions configured for ${VLLM_ENDPOINT}"
+      label: Configure LLM Extensions (Cline + Continue)
+  - id: test-model-endpoint
+    exec:
+      component: dev-tools
+      commandLine: |
+        curl -sk "${VLLM_ENDPOINT}/v1/models" | python3 -m json.tool
+      label: Test Model Endpoint
+events:
+  postStart:
+    - configure-llm-extensions

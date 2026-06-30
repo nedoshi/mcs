@@ -1,0 +1,68 @@
+# Values for rh-mobb/operatorhub chart
+# Installs: OpenShift GitOps, OpenShift Pipelines, and Logging operators (cluster-logging + loki)
+#
+# Prerequisites: Create namespaces before install:
+#   oc create namespace openshift-gitops-operator
+#   oc create namespace openshift-logging
+#   oc create namespace openshift-operators-redhat
+#
+# Install:
+#   helm repo add mobb https://rh-mobb.github.io/helm-charts/
+#   helm repo update
+#   helm upgrade --install operators mobb/operatorhub -n openshift-operators -f operatorhub-operators.yaml --create-namespace
+#
+# Reference: https://github.com/rh-mobb/helm-charts
+
+subscriptions:
+  # OpenShift GitOps (Argo CD) - install first for GitOps workflows
+  - name: openshift-gitops-operator
+    namespace: openshift-gitops-operator
+    channel: latest
+    installPlanApproval: Automatic
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+
+  # OpenShift Pipelines (Tekton)
+  - name: openshift-pipelines-operator
+    namespace: openshift-operators
+    channel: stable
+    installPlanApproval: Automatic
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+
+  # OpenShift Logging - cluster-logging operator
+  - name: cluster-logging
+    namespace: openshift-logging
+    channel: stable
+    installPlanApproval: Automatic
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+
+  # Loki operator (required for LokiStack log storage)
+  - name: loki-operator
+    namespace: openshift-operators-redhat
+    channel: stable-5.8
+    installPlanApproval: Automatic
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+
+operatorGroups:
+  - name: openshift-gitops-operator
+    namespace: openshift-gitops-operator
+    targetNamespace: openshift-gitops-operator
+
+  - name: cluster-logging-og
+    namespace: openshift-logging
+    targetNamespace: openshift-logging
+
+  - name: loki-operator-og
+    namespace: openshift-operators-redhat
+    targetNamespace: all
+
+# Pipelines uses openshift-operators - typically has existing OperatorGroup
+# Add only if needed (e.g., fresh cluster)
+# - name: pipelines-og
+#   namespace: openshift-operators
+#   targetNamespace: openshift-operators
+
+catalogSources: []

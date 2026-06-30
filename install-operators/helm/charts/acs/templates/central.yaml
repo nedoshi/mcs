@@ -1,0 +1,46 @@
+{{- if .Values.central.enabled }}
+apiVersion: platform.stackrox.io/v1alpha1
+kind: Central
+metadata:
+  name: {{ .Values.central.name }}
+  namespace: {{ .Values.central.namespace | default .Values.namespace }}
+  labels:
+    app: stackrox-central
+    app.kubernetes.io/managed-by: {{ .Release.Service | default "Helm" }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+spec:
+  central:
+    exposure:
+      route:
+        enabled: {{ .Values.central.exposure.route.enabled }}
+    persistence:
+      persistentVolumeClaim:
+        claimName: {{ .Values.central.persistence.persistentVolumeClaim.claimName }}
+        size: {{ .Values.central.persistence.persistentVolumeClaim.size }}
+    resources:
+      requests:
+        memory: {{ .Values.central.resources.requests.memory }}
+        cpu: {{ .Values.central.resources.requests.cpu }}
+      limits:
+        memory: {{ .Values.central.resources.limits.memory }}
+        cpu: {{ .Values.central.resources.limits.cpu }}
+  egress:
+    connectivityPolicy: {{ .Values.central.egress.connectivityPolicy }}
+  scanner:
+    analyzer:
+      scaling:
+        autoScaling: {{ .Values.central.scanner.analyzer.scaling.autoScaling }}
+        maxReplicas: {{ .Values.central.scanner.analyzer.scaling.maxReplicas }}
+        minReplicas: {{ .Values.central.scanner.analyzer.scaling.minReplicas }}
+        replicas: {{ .Values.central.scanner.analyzer.scaling.replicas }}
+      resources:
+        requests:
+          memory: {{ .Values.central.scanner.analyzer.resources.requests.memory }}
+          cpu: {{ .Values.central.scanner.analyzer.resources.requests.cpu }}
+        limits:
+          memory: {{ .Values.central.scanner.analyzer.resources.limits.memory }}
+          cpu: {{ .Values.central.scanner.analyzer.resources.limits.cpu }}
+{{- end }}
+

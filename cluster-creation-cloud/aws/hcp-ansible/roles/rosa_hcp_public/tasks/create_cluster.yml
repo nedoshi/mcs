@@ -1,0 +1,49 @@
+---
+- name: Check if cluster already exists
+  ansible.builtin.shell: rosa describe cluster -c {{ cluster_name }}
+  register: cluster_check
+  changed_when: false
+  failed_when: false
+
+- name: Create OIDC configuration
+  ansible.builtin.shell: rosa create oidc-config --mode auto --yes
+  register: oidc_config
+  changed_when: true
+  when: cluster_check.rc != 0
+
+- name: Extract OIDC Config ID
+  ansible.builtin.set_fact:
+    oidc_config_id: "{{ oidc_config.stdout | regex_search('ID:\\s+(\\S+)', '\\1') | first }}"
+  when: 
+    - cluster_check.rc != 0
+    - oidc_config.stdout is defined
+
+- name: Create ROSA HCP cluster
+  ansible.builtin.shell: |
+    rosa create cluster \
+      --cluster-name {{ cluster_name }} \
+      --region {{ aws_region }} \
+      --version {{ rosa_version }} \
+      --compute-machine-type {{ compute_machine_type }} \
+      --replicas {{ replicas }} \
+      --subnet-ids {{ (private_subnet_ids + public_subnet_ids) | join(',') }} \
+      --hosted-cp \
+      --oidc-config-id {{ oidc_config_id }} \
+      --mode auto \
+      --yes
+  register: cluster_creation
+  when: cluster_check.rc != 0
+  async: 3600
+  poll: 30
+
+- name: Wait for cluster to be ready
+  ansible.builtin.shell: rosa describe cluster -c {{ cluster_name }} -o json | jq -r '.state'
+  register: cluster_state
+  until: cluster_state.stdout == 'ready'
+  retries: 60
+  delay: 30
+  when: cluster_check.rc != 0
+
+- name: Set cluster created fact
+  ansible.builtin.set_fact:
+    cluster_created: true

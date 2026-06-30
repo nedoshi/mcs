@@ -1,0 +1,7 @@
+**.tfstate*
+/*.json
+.terraform*
+*.plan
+terraform.tfvars
+sshuttle.pid
+**/pull-secret.txt

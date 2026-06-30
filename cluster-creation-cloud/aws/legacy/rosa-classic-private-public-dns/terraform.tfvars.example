@@ -1,0 +1,60 @@
+# ROSA Private Cluster with Public Zone Configuration Example
+# Copy this file to terraform.tfvars and fill in your values
+
+# RHCS Authentication (use token OR client_id/client_secret)
+# Option 1: OCM Token (or set RHCS_TOKEN environment variable)
+token = "your-ocm-token"
+
+# Option 2: Client credentials (alternative to token)
+# client_id     = "your-rhcs-client-id"
+# client_secret = "your-rhcs-client-secret"
+
+# AWS Configuration
+aws_region = "us-east-2"
+
+# Optional: Cluster name (auto-generated if not provided)
+# cluster_name = "my-rosa-private-cluster"
+
+# OpenShift version
+openshift_version = "4.14.20"
+
+# Required: Cluster configuration
+private_cluster = true   # Must be true for this configuration
+create_vpc      = true   # Set to false to use existing subnets
+
+# High availability
+multi_az = true
+
+# Worker node configuration
+# worker_node_replicas = 3  # Auto-calculated based on multi_az if not set
+machine_type = "m5.xlarge"
+
+# Autoscaling (optional)
+# autoscaling_enabled = "true"
+# min_replicas        = 3
+# max_replicas        = 6
+
+# Admin credentials
+admin_username = "cluster-admin"
+admin_password = "YourAdminPassword123!"
+
+# VPC Configuration (if create_vpc = true)
+vpc_name         = "rosa-private-vpc"
+vpc_cidr_block   = "10.0.0.0/16"
+private_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+public_subnet_cidrs  = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+
+# OR use existing subnets (if create_vpc = false)
+# aws_subnet_ids = ["subnet-xxx", "subnet-yyy", "subnet-zzz"]
+
+# Additional tags
+additional_tags = {
+  Terraform   = "true"
+  Environment = "dev"
+  Owner       = "your-email@example.com"
+}
+
+# Default AWS tags (applied to all resources)
+default_aws_tags = {
+  Project = "rosa-private-cluster"
+}

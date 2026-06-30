@@ -1,0 +1,70 @@
+namespace: rhacs-operator
+subscription:
+  name: rhacs-operator
+  channel: stable
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+
+# Central Custom Resource
+# After the operator is installed and CSV is in Succeeded phase,
+# enable this to create the Central instance
+central:
+  enabled: false
+  name: stackrox-central-services
+  # Namespace for Central (defaults to operator namespace if not specified)
+  namespace: stackrox
+  exposure:
+    route:
+      enabled: true
+  persistence:
+    persistentVolumeClaim:
+      claimName: stackrox-db
+      size: 20Gi
+  # Resource requirements (defaults match Red Hat documentation)
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: 500m
+    limits:
+      memory: 4Gi
+      cpu: 2000m
+  egress:
+    connectivityPolicy: Online
+  scanner:
+    analyzer:
+      scaling:
+        autoScaling: Disabled
+        maxReplicas: 2
+        minReplicas: 1
+        replicas: 1
+      resources:
+        requests:
+          memory: 1Gi
+          cpu: 500m
+      limits:
+        memory: 2Gi
+        cpu: 1000m
+
+# SecuredCluster Custom Resource
+# After Central is deployed, enable this to connect the cluster to Central
+securedcluster:
+  enabled: false
+  name: secured-cluster
+  # Namespace for SecuredCluster (defaults to operator namespace if not specified)
+  namespace: rhacs-operator
+  admissionControl:
+    listenOnCreates: true
+    listenOnEvents: true
+    listenOnUpdates: true
+    dynamic:
+      enforceOnCreates: false
+      enforceOnUpdates: false
+  # Central endpoint - adjust if Central is in different namespace
+  centralEndpoint: central.stackrox.svc:443
+  clusterName: openshift-cluster
+  perNode:
+    collector:
+      collectionMethod: KernelModule
+    taintToleration: None
+

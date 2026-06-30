@@ -1,0 +1,32 @@
+---
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSetBinding
+metadata:
+  name: rosa-clusters
+  namespace: openshift-gitops
+spec:
+  clusterSet: rosa-clusters
+---
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSetBinding
+metadata:
+  name: aro-clusters
+  namespace: openshift-gitops
+spec:
+  clusterSet: aro-clusters
+---
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSetBinding
+metadata:
+  name: production-clusters
+  namespace: openshift-gitops
+spec:
+  clusterSet: production-clusters
+---
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSetBinding
+metadata:
+  name: eu-clusters
+  namespace: openshift-gitops
+spec:
+  clusterSet: eu-clusters

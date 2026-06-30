@@ -1,0 +1,33 @@
+{{- if .Values.identityProvider.enabled }}
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+    - name: {{ .Values.identityProvider.name }}
+      mappingMethod: claim
+      type: {{ .Values.identityProvider.type }}
+      openID:
+        clientID: {{ required "identityProvider.clientID is required when identityProvider.enabled is true" .Values.identityProvider.clientID }}
+        clientSecret:
+          name: {{ .Values.identityProvider.secretName }}
+        issuer: {{ required "identityProvider.issuer is required when identityProvider.enabled is true" .Values.identityProvider.issuer }}
+        claims:
+          preferred_username:
+            {{- range .Values.identityProvider.claims.preferredUsername }}
+            - {{ . }}
+            {{- end }}
+          name:
+            {{- range .Values.identityProvider.claims.name }}
+            - {{ . }}
+            {{- end }}
+          email:
+            {{- range .Values.identityProvider.claims.email }}
+            - {{ . }}
+            {{- end }}
+          groups:
+            {{- range .Values.identityProvider.claims.groups }}
+            - {{ . }}
+            {{- end }}
+{{- end }}

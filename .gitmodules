@@ -1,0 +1,10 @@
+[submodule "cluster-creation-cloud/azure/terraform-aro"]
+	path = cluster-creation-cloud/azure/terraform-aro
+	url = https://github.com/nedoshi/terraform-aro.git
+[submodule "cluster-creation-cloud/gcp/tf-osd-gcp"]
+	path = cluster-creation-cloud/gcp/tf-osd-gcp
+	url = https://github.com/rh-mobb/tf-osd-gcp.git
+[submodule "cluster-creation-cloud/azure/aro-terra-gitactions"]
+	path = cluster-creation-cloud/azure/aro-terra-gitactions
+	url = https://github.com/nedoshi/aro-terra-gitactions.git
+

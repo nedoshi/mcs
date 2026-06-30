@@ -1,0 +1,60 @@
+name: 'Terraform-UnitTests'
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  terraform-unit-tests:
+    name: 'Terraform-UnitTests'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: "1.6.0"
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      run: terraform init -backend=false
+
+    # Validate terraform files
+    - name: Terraform Validate
+      run: terraform validate -no-color
+
+    # Checks that all Terraform configuration files adhere to a canonical format
+    - name: Terraform Format Check
+      run: terraform fmt -check -recursive -diff
+    
+    # Perform a security scan of the terraform code using checkov
+    - name: Run Checkov Security Scan
+      id: checkov
+      uses: bridgecrewio/checkov-action@master
+      with: 
+        framework: terraform
+        soft_fail: true
+        output_format: sarif
+        output_file_path: results.sarif
+
+    # Upload results to GitHub Advanced Security
+    - name: Upload SARIF file
+      if: always()
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: results.sarif
+        category: checkov
+      continue-on-error: true

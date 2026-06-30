@@ -1,0 +1,54 @@
+# Secrets — never commit
+*pull-secret.json
+*pull-secret.txt
+!**/*pull-secret*.example*
+!**/*pull-secret*.example.yml
+*.credentials.txt
+*-sp-credentials.txt
+**/terraform.tfvars
+!**/terraform.tfvars.example
+*.tfstate
+*.tfstate.*
+.env
+.env.*
+*.pem
+**/ex-htpasswd
+helper_vars.sh
+!**/helper_vars.sh.example
+secret-scan-report-*.txt
+**/merge-pull-secret.json
+
+# Local credential / secret manifests (keep local copies only)
+examples/yaml/credentials-velero
+examples/yaml/secret-argocd-secret.yaml
+examples/yaml/redhattraining-cs22x-secret.yml
+examples/yaml/argocd.yaml
+examples/yaml/configmap-argocd-cm.yaml
+
+# Local-only backups (secrets moved here during cleanup)
+_local-secrets-backup/
+
+# Terraform / tooling
+**/.terraform/
+**/.terraform.lock.hcl
+*.plan
+*.tfplan
+.terraform.tfstate.*
+sshuttle.pid
+
+# Python
+**/__pycache__/
+**/*.pyc
+**/venv/
+scripts/path/
+
+# OS / editor
+.DS_Store
+**/.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Local cleanup artifacts
+.removed-nested-mcs-*

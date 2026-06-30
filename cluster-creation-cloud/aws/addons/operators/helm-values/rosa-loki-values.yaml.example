@@ -1,0 +1,33 @@
+# Values for rh-mobb/rosa-loki chart
+# Deploys LokiStack + ClusterLogging with S3 backend
+#
+# Prerequisites:
+#   1. Operators installed (use operatorhub-operators.yaml first)
+#   2. S3 bucket created
+#   3. IAM user with S3 access (see rosa-loki README)
+#
+# Install:
+#   helm upgrade --install cluster-logging mobb/rosa-loki -n cluster-logging \
+#     --set "aws_access_key_id=${AWS_ACCESS_KEY_ID}" \
+#     --set "aws_access_key_secret=${AWS_SECRET_ACCESS_KEY}" \
+#     --set "aws_region=${AWS_REGION}" \
+#     --set "aws_s3_bucket_name=rosa-${CLUSTER_NAME}-loki" \
+#     -f rosa-loki-values.yaml
+#
+# Reference: https://github.com/rh-mobb/helm-charts/tree/main/charts/rosa-loki
+
+aws_access_key_id: ""      # Set via --set
+aws_access_key_secret: ""  # Set via --set
+aws_region: us-east-1
+aws_s3_bucket_name: ""    # e.g., rosa-my-cluster-loki
+
+loki_size: 1x.extra-small
+loki_storage_class: gp3
+
+forward_infrastructure: true
+forward_application: true
+forward_debug: false
+
+grafana-cr:
+  basicAuthUsername: "admin"
+  basicAuthPassword: ""   # Set a secure password

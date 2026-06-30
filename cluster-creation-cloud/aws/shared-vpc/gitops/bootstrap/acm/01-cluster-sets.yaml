@@ -1,0 +1,32 @@
+---
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSet
+metadata:
+  name: rosa-clusters
+  labels:
+    platform: rosa
+spec: {}
+---
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSet
+metadata:
+  name: aro-clusters
+  labels:
+    platform: aro
+spec: {}
+---
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSet
+metadata:
+  name: production-clusters
+  labels:
+    env: production
+spec: {}
+---
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSet
+metadata:
+  name: eu-clusters
+  labels:
+    data-sovereignty: eu
+spec: {}

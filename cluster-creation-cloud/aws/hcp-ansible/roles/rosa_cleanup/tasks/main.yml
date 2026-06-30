@@ -1,0 +1,32 @@
+---
+- name: Check if cluster exists
+  ansible.builtin.shell: rosa describe cluster -c {{ cluster_name }}
+  register: cluster_exists
+  changed_when: false
+  failed_when: false
+
+- name: Fail if cluster does not exist
+  ansible.builtin.fail:
+    msg: "Cluster {{ cluster_name }} does not exist"
+  when: cluster_exists.rc != 0
+
+- name: Delete ROSA cluster
+  ansible.builtin.shell: rosa delete cluster -c {{ cluster_name }} --yes
+  register: cluster_deletion
+  changed_when: true
+
+- name: Set deletion started fact
+  ansible.builtin.set_fact:
+    cluster_deletion_started: true
+
+- name: Wait for cluster deletion
+  ansible.builtin.shell: rosa describe cluster -c {{ cluster_name }}
+  register: cluster_status
+  until: cluster_status.rc != 0
+  retries: 60
+  delay: 30
+  failed_when: false
+
+- name: Display completion message
+  ansible.builtin.debug:
+    msg: "Cluster deletion completed"

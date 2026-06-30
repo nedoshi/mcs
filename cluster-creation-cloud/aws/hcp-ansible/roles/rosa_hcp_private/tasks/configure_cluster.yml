@@ -1,0 +1,6 @@
+---
+- name: Display private cluster info
+  ansible.builtin.debug:
+    msg:
+      - "Private cluster created"
+      - "Access requires VPN/Direct Connect to VPC"

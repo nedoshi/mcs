@@ -1,0 +1,26 @@
+# Multi-AZ ROSA HCP with autoscaling
+# Auth: TF_VAR_client_id + TF_VAR_client_secret (recommended) or TF_VAR_token (optional)
+# make plan TFVARS=examples/multi-az.tfvars.example
+
+# replicas must be a multiple of AZ count (3); max_replicas is per subnet
+
+cluster_name = "mobb-maz-rosa"
+region       = "us-east-1"
+
+tags = {
+  app-code      = "MOBB-001"
+  service-phase = "lab"
+  cost-center   = "468"
+  owner         = "nedoshi_mobb"
+}
+
+private      = false
+multi_az     = true
+replicas     = 3
+max_replicas = 6
+
+compute_machine_type = "m5.xlarge"
+create_account_roles = true
+
+# admin_password     = "ChangeMe-Admin1!"
+# developer_password = "ChangeMe-Dev1!"

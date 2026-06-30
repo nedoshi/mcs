@@ -1,0 +1,191 @@
+# Default values for openshift-operators
+# This is a YAML-formatted file.
+
+# Global settings
+global:
+  # Default channel for operators
+  channel: stable
+  # Default source for operators
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  # Install plan approval strategy
+  installPlanApproval: Automatic
+
+# Pipelines Operator
+pipelines:
+  enabled: true
+  namespace: openshift-operators
+  subscription:
+    name: openshift-pipelines-operator
+    channel: stable
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Automatic
+
+# RHTAS Operator
+rhtas:
+  enabled: true
+  namespace: openshift-operators
+  subscription:
+    name: trusted-artifact-signer-operator
+    channel: stable
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Automatic
+
+# ACS (Advanced Cluster Security) Operator
+acs:
+  enabled: true
+  namespace: rhacs-operator
+  subscription:
+    name: rhacs-operator
+    channel: stable
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Automatic
+  # Central Custom Resource
+  # Enable after operator is installed and CSV is Succeeded
+  central:
+    enabled: false
+    name: stackrox-central-services
+    # Namespace for Central (defaults to operator namespace if not specified)
+    namespace: stackrox
+  # SecuredCluster Custom Resource
+  # Enable after Central is deployed to connect cluster to Central
+  securedcluster:
+    enabled: false
+    name: secured-cluster
+    namespace: rhacs-operator
+    admissionControl:
+      listenOnCreates: true
+      listenOnEvents: true
+      listenOnUpdates: true
+      dynamic:
+        enforceOnCreates: false
+        enforceOnUpdates: false
+    centralEndpoint: central.stackrox.svc:443
+    clusterName: openshift-cluster
+    perNode:
+      collector:
+        collectionMethod: KernelModule
+      taintToleration: None
+    exposure:
+      route:
+        enabled: true
+    persistence:
+      persistentVolumeClaim:
+        claimName: stackrox-db
+        size: 20Gi
+    # Resource requirements (defaults match Red Hat documentation)
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: 500m
+      limits:
+        memory: 4Gi
+        cpu: 2000m
+    egress:
+      connectivityPolicy: Online
+    scanner:
+      analyzer:
+        scaling:
+          autoScaling: Disabled
+          maxReplicas: 2
+          minReplicas: 1
+          replicas: 1
+        resources:
+          requests:
+            memory: 1Gi
+            cpu: 500m
+          limits:
+            memory: 2Gi
+            cpu: 1000m
+
+# AI (OpenShift AI / Data Science) Operator
+ai:
+  enabled: true
+  namespace: redhat-ods-operator
+  subscription:
+    name: rhods-operator
+    channel: stable
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Automatic
+  # DataScienceCluster Custom Resource
+  # Enable after operator is installed and CSV is Succeeded
+  datasciencecluster:
+    enabled: false
+    name: default-dsc
+    # Optional: Customize DataScienceCluster spec
+    # spec:
+    #   components:
+    #     dashboard:
+    #       managementState: Managed
+    #     workbenches:
+    #       managementState: Managed
+
+# Virtualization Operator
+virtualization:
+  enabled: true
+  namespace: openshift-cnv
+  subscription:
+    name: kubevirt-hyperconverged
+    channel: stable
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Automatic
+  # HyperConverged Custom Resource
+  # Enable after operator is installed and CSV is Succeeded
+  hyperconverged:
+    enabled: false
+    name: kubevirt-hyperconverged
+    # Optional: Customize HyperConverged spec
+    # spec:
+    #   localStorageClassName: ""
+    #   scratchSpaceStorageClass: ""
+
+# Developer Hub (Backstage) Operator
+developer-hub:
+  enabled: true
+  namespace: rhdh-operator
+  subscription:
+    name: rhdh
+    channel: fast
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Automatic
+  # Backstage Custom Resource
+  # Enable after operator is installed and CSV is Succeeded
+  backstage:
+    enabled: false
+    name: developer-hub
+    namespace: rhdh-operator
+    application:
+      route:
+        enabled: true
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 1Gi
+    database:
+      enableLocalDb: true
+    postgres:
+      enabled: true
+      size: 10Gi
+    custom:
+      enabled: false
+
+# GitOps Operator
+gitops:
+  enabled: true
+  namespace: openshift-gitops-operator
+  subscription:
+    name: openshift-gitops-operator
+    channel: latest
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Automatic
+

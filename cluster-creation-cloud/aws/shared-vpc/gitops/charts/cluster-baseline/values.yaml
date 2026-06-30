@@ -1,0 +1,28 @@
+clusterName: ""
+
+rbac:
+  enabled: true
+  adminGroups:
+    - cluster-admins
+    - platform-admins
+
+monitoring:
+  enabled: true
+
+networking:
+  enabled: true
+  defaultDenyAll: true
+
+security:
+  enabled: true
+  podSecurityPatchNamespaces:
+    - default
+
+namespaces:
+  enabled: true
+  list:
+    - shared-services
+    - monitoring-custom
+    - logging
+    - security
+    - platform

@@ -1,0 +1,63 @@
+# Production environment values
+# Use stable channels and manual approvals for production
+
+global:
+  channel: stable
+  installPlanApproval: Manual
+
+pipelines:
+  enabled: true
+  subscription:
+    channel: stable
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Manual
+
+rhtas:
+  enabled: true
+  subscription:
+    channel: stable
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Manual
+
+acs:
+  enabled: true
+  subscription:
+    channel: stable
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Manual
+
+ai:
+  enabled: true
+  subscription:
+    channel: stable
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Manual
+
+virtualization:
+  enabled: true
+  subscription:
+    channel: stable
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Manual
+
+developer-hub:
+  enabled: true
+  subscription:
+    channel: stable  # Use stable in prod instead of fast
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Manual
+
+gitops:
+  enabled: true
+  subscription:
+    channel: stable  # Use stable in prod instead of latest
+    source: redhat-operators
+    sourceNamespace: openshift-marketplace
+    installPlanApproval: Manual
+

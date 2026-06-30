@@ -1,0 +1,31 @@
+---
+- name: Create VPC for private ROSA cluster
+  amazon.aws.ec2_vpc_net:
+    name: "{{ cluster_name }}-vpc"
+    cidr_block: "{{ vpc_cidr }}"
+    region: "{{ aws_region }}"
+    tags: "{{ common_tags | combine({'Name': cluster_name + '-vpc'}) }}"
+    state: present
+  register: vpc_result
+
+- name: Set VPC ID fact
+  ansible.builtin.set_fact:
+    vpc_id: "{{ vpc_result.vpc.id }}"
+
+- name: Create private subnets
+  amazon.aws.ec2_vpc_subnet:
+    vpc_id: "{{ vpc_id }}"
+    cidr: "{{ item.cidr }}"
+    az: "{{ aws_region }}{{ item.az }}"
+    region: "{{ aws_region }}"
+    map_public: false
+    tags: "{{ common_tags | combine({'Name': cluster_name + '-private-' + item.az}) }}"
+    state: present
+  loop:
+    - { cidr: "{{ private_subnet_cidrs[0] }}", az: "a" }
+    - { cidr: "{{ private_subnet_cidrs[1] }}", az: "b" }
+  register: private_subnets_result
+
+- name: Store subnet IDs
+  ansible.builtin.set_fact:
+    private_subnet_ids: "{{ private_subnets_result.results | map(attribute='subnet.id') | list }}"

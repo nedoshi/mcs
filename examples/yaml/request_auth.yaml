@@ -1,0 +1,12 @@
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: entraid-jwt
+  namespace: istio-system
+spec:
+  jwtRules:
+  - issuer: "https://login.microsoftonline.com/64dc69e4-d083-49fc-9569-ebece1dd1408/v2.0"
+    jwksUri: "https://login.microsoftonline.com/64dc69e4-d083-49fc-9569-ebece1dd1408/discovery/v2.0/keys"
+    audiences:
+    - "b9e1efb4-4f85-46f6-8ff1-2dc638065375"
+    forwardOriginalToken: true

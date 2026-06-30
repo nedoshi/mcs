@@ -1,0 +1,72 @@
+name: Cleanup ALL Resources
+on: [workflow_dispatch]
+
+jobs: 
+  cleanup_hub:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout code
+      uses: actions/checkout@v4
+
+    - name: azure login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AAD_APP_CLIENT_ID }}
+        tenant-id: ${{ secrets.TENANT_ID }}
+        subscription-id: ${{ vars.AZURE_SUBSCRIPTION }}
+
+    - name: hub cleanup
+      uses: azure/arm-deploy@v2
+      with:
+        scope: resourcegroup
+        subscriptionId: ${{ vars.AZURE_SUBSCRIPTION }}
+        resourceGroupName: ${{ vars.HUB_RG }}
+        template: ./modules/resource_group_cleanup.bicep
+        deploymentMode: Complete
+        deploymentName: hub-resource-cleanup-github
+
+  cleanup_spoke:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout code
+      uses: actions/checkout@v4
+
+    - name: azure login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AAD_APP_CLIENT_ID }}
+        tenant-id: ${{ secrets.TENANT_ID }}
+        subscription-id: ${{ vars.AZURE_SUBSCRIPTION }}
+
+    - name: spoke cleanup
+      uses: azure/arm-deploy@v2
+      with:
+        scope: resourcegroup
+        subscriptionId: ${{ vars.AZURE_SUBSCRIPTION }}
+        resourceGroupName: ${{ vars.SPOKE_RG }}
+        template: ./modules/resource_group_cleanup.bicep
+        deploymentMode: Complete
+        deploymentName: spoke-resource-cleanup-github
+
+  cleanup_services:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout code
+      uses: actions/checkout@v4
+
+    - name: azure login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AAD_APP_CLIENT_ID }}
+        tenant-id: ${{ secrets.TENANT_ID }}
+        subscription-id: ${{ vars.AZURE_SUBSCRIPTION }}
+
+    - name: services cleanup
+      uses: azure/arm-deploy@v2
+      with:
+        scope: resourcegroup
+        subscriptionId: ${{ vars.AZURE_SUBSCRIPTION }}
+        resourceGroupName: ${{ vars.SERVICES_RG }}
+        template: ./modules/resource_group_cleanup.bicep
+        deploymentMode: Complete
+        deploymentName: services-resource-cleanup-github

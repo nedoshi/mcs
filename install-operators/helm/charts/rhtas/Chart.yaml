@@ -1,0 +1,7 @@
+apiVersion: v2
+name: rhtas
+description: A Helm chart for Red Hat Trusted Artifact Signer Operator
+type: application
+version: 1.0.0
+appVersion: "1.0"
+

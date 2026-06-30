@@ -1,0 +1,13 @@
+---
+- name: Include VPC creation tasks
+  ansible.builtin.include_tasks: create_vpc.yml
+  tags: ['vpc']
+
+- name: Include cluster creation tasks
+  ansible.builtin.include_tasks: create_cluster.yml
+  tags: ['cluster']
+
+- name: Include cluster configuration tasks
+  ansible.builtin.include_tasks: configure_cluster.yml
+  tags: ['configure']
+  when: cluster_created is defined and cluster_created

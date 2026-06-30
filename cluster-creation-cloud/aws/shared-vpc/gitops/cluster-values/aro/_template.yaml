@@ -1,0 +1,17 @@
+# Template: copy this file to <cluster-name>.yaml and fill in values.
+# The filename MUST match the ManagedCluster name in ACM.
+
+clusterName: ""
+
+storage:
+  enabled: true
+  resourceGroup: "<cluster-resource-group>"
+  className: managed-premium
+  isDefault: true
+  skuName: Premium_LRS
+
+identityProvider:
+  enabled: true
+  clientID: "<azure-ad-app-registration-client-id>"
+  issuer: "https://login.microsoftonline.com/<tenant-id>/v2.0"
+  secretName: aro-oidc-client-secret

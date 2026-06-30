@@ -1,0 +1,15 @@
+{
+  "cline.apiProvider": "openai-compatible",
+  "cline.openaiBaseUrl": "${VLLM_ENDPOINT}/v1",
+  "cline.openaiModelId": "qwen3-coder",
+  "cline.openaiApiKey": "EMPTY",
+  "cline.maxTokens": 4096,
+  "editor.fontSize": 14,
+  "editor.tabSize": 2,
+  "editor.wordWrap": "on",
+  "editor.formatOnSave": true,
+  "terminal.integrated.fontSize": 13,
+  "workbench.colorTheme": "Default Dark Modern",
+  "python.defaultInterpreterPath": "/usr/bin/python3",
+  "continue.enableTabAutocomplete": true
+}

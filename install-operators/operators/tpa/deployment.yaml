@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tpa-service
+  namespace: trustification
+  labels:
+    app: tpa-service
+    managed-by: kustomize
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tpa-service
+  template:
+    metadata:
+      labels:
+        app: tpa-service
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: tpa
+        image: quay.io/trustification/trust:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: SBOM_STORAGE_PATH
+          value: /data/sboms
+        - name: VEX_STORAGE_PATH
+          value: /data/vex
+        - name: ENABLE_ANALYSIS
+          value: "true"
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: sbom-storage
+          mountPath: /data/sboms
+        - name: vex-storage
+          mountPath: /data/vex
+        resources:
+          requests:
+            memory: 512Mi
+            cpu: 250m
+          limits:
+            memory: 1Gi
+            cpu: 500m
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: sbom-storage
+        persistentVolumeClaim:
+          claimName: tpa-sbom-pvc
+      - name: vex-storage
+        persistentVolumeClaim:
+          claimName: tpa-vex-pvc
+

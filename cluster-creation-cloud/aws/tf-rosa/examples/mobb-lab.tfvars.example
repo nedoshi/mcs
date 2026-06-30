@@ -1,0 +1,108 @@
+# MOBB lab ROSA HCP — full variable reference
+# Copy: cp examples/mobb-lab.tfvars.example terraform.tfvars
+#
+# Auth (pick one — via env, do not commit):
+#   export TF_VAR_client_id=... TF_VAR_client_secret=...   # recommended
+#   export TF_VAR_token=...                                # optional
+
+#------------------------------------------------------------------------------
+# Required
+#------------------------------------------------------------------------------
+
+cluster_name = "mobb-lab-rosa"
+region       = "us-east-1"
+
+#------------------------------------------------------------------------------
+# MOBB tagging (cost-center 468 also enforced in cost_notifier.tf;
+# expires-at +2d and delete-after +3d added automatically at apply time)
+#------------------------------------------------------------------------------
+
+tags = {
+  app-code      = "MOBB-001"
+  service-phase = "lab"
+  cost-center   = "468"
+  owner         = "nedoshi_mobb"
+}
+
+#------------------------------------------------------------------------------
+# RHCS / OCM authentication (exactly one method — prefer service account)
+#------------------------------------------------------------------------------
+
+# client_id     = "..."  # or TF_VAR_client_id (recommended)
+# client_secret = "..."  # or TF_VAR_client_secret (recommended)
+
+# token = "ocm_..."      # or TF_VAR_token (optional)
+
+#------------------------------------------------------------------------------
+# Cluster topology
+#------------------------------------------------------------------------------
+
+private  = false
+multi_az = false
+
+# ocp_version = "4.18.32"
+
+replicas     = 2
+# max_replicas = 4
+
+compute_machine_type = "m5.xlarge"
+
+#------------------------------------------------------------------------------
+# Networking
+#------------------------------------------------------------------------------
+
+vpc_cidr         = "10.10.0.0/16"
+subnet_cidr_size = 20
+pod_cidr         = "10.128.0.0/14"
+service_cidr     = "172.30.0.0/16"
+
+#------------------------------------------------------------------------------
+# IAM account roles
+#------------------------------------------------------------------------------
+
+create_account_roles = true
+# account_role_prefix = "ManagedOpenShift"
+
+# create_account_roles = false
+# installer_role_arn = "arn:aws:iam::ACCOUNT_ID:role/ManagedOpenShift-HCP-ROSA-Installer-Role"
+# support_role_arn   = "arn:aws:iam::ACCOUNT_ID:role/ManagedOpenShift-HCP-ROSA-Support-Role"
+# worker_role_arn    = "arn:aws:iam::ACCOUNT_ID:role/ManagedOpenShift-HCP-ROSA-Worker-Role"
+
+# aws_billing_account_id = null
+
+#------------------------------------------------------------------------------
+# HTPasswd users (omit to skip IDP creation)
+#------------------------------------------------------------------------------
+
+# admin_password     = "ChangeMe-Admin1!"
+# developer_password = "ChangeMe-Dev1!"
+
+#------------------------------------------------------------------------------
+# Customer-managed KMS
+#------------------------------------------------------------------------------
+
+cluster_kms_mode = "provider_managed"
+# cluster_kms_key_arn = "arn:aws:kms:us-east-1:ACCOUNT_ID:key/..."
+# etcd_encryption     = true
+
+#------------------------------------------------------------------------------
+# External authentication (irreversible) — see docs/ENTRA-ID-SETUP.md
+#------------------------------------------------------------------------------
+
+external_auth_providers_enabled = false
+# create_break_glass_credential = true
+# break_glass_username          = "emergency-admin"
+# break_glass_expiration        = "24h"
+
+#------------------------------------------------------------------------------
+# Private cluster bastion
+#------------------------------------------------------------------------------
+
+# bastion_public_ssh_key = "~/.ssh/id_rsa.pub"
+# bastion_public_ip      = false
+
+#------------------------------------------------------------------------------
+# Advanced
+#------------------------------------------------------------------------------
+
+# zero_egress = false

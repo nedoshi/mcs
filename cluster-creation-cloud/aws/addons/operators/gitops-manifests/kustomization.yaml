@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # 1. GitOps operator (install first)
+  - gitops/namespace.yaml
+  - gitops/operatorgroup.yaml
+  - gitops/subscription.yaml
+  # 2. Pipelines operator
+  - pipelines/operatorgroup.yaml
+  - pipelines/subscription.yaml
+  # 3. Logging operators
+  - logging/00-namespace-operators-redhat.yaml
+  - logging/01-loki-operatorgroup.yaml
+  - logging/02-loki-subscription.yaml
+  - logging/03-logging-namespace.yaml
+  - logging/04-logging-operatorgroup.yaml
+  - logging/05-logging-subscription.yaml
+# Optional - uncomment when object storage is configured:
+# - logging/06-lokistack.yaml
+# - logging/07-clusterlogging.yaml

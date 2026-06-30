@@ -1,0 +1,55 @@
+apiVersion: machine.openshift.io/v1beta1
+kind: MachineSet
+metadata:
+  labels:
+    machine.openshift.io/cluster-api-cluster: ${infrastructure_name}
+  name: ${infrastructure_name}-worker-${availability_zone}
+  namespace: openshift-machine-api
+spec:
+  replicas: ${worker_replicas}
+  selector:
+    matchLabels:
+      machine.openshift.io/cluster-api-cluster: ${infrastructure_name}
+      machine.openshift.io/cluster-api-machineset: ${infrastructure_name}-worker-${availability_zone}
+  template:
+    metadata:
+      labels:
+        machine.openshift.io/cluster-api-cluster: ${infrastructure_name}
+        machine.openshift.io/cluster-api-machine-role: worker
+        machine.openshift.io/cluster-api-machine-type: worker
+        machine.openshift.io/cluster-api-machineset: ${infrastructure_name}-worker-${availability_zone}
+    spec:
+      providerSpec:
+        value:
+          ami:
+            id: ${rhcos_ami}
+          apiVersion: machine.openshift.io/v1beta1
+          blockDevices:
+          - ebs:
+              volumeSize: ${worker_disk_gb}
+              volumeType: gp3
+          credentialsSecret:
+            name: aws-cloud-credentials
+          deviceIndex: 0
+          iamInstanceProfile:
+            id: ${worker_instance_profile}
+          instanceType: ${worker_instance_type}
+          kind: AWSMachineProviderConfig
+          placement:
+            availabilityZone: ${availability_zone}
+            region: ${region}
+          securityGroups:
+          - filters:
+            - name: tag:Name
+              values:
+              - ${infrastructure_name}-worker
+          subnet:
+            filters:
+            - name: subnet-id
+              values:
+              - ${worker_subnet_id}
+          tags:
+          - name: kubernetes.io/cluster/${infrastructure_name}
+            value: owned
+          userDataSecret:
+            name: worker-user-data

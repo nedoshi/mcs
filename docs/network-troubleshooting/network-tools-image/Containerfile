@@ -1,0 +1,32 @@
+# Use a lightweight, stable base image
+FROM alpine:latest
+
+# Set a working directory
+WORKDIR /app
+
+# Install the necessary network utilities.
+# iputils includes ping and traceroute.
+# bind-tools includes dig and nslookup.
+# The separate arping package is removed to resolve the conflict.
+RUN apk add --no-cache \
+    curl \
+    wget \
+    iputils \
+    net-tools \
+    tcpdump \
+    tshark \
+    bind-tools \
+    nmap \
+    mtr \
+    iperf3 \
+    openssh-client \
+    procps \
+    ncdu \
+    ethtool \
+    lsof
+
+# Expose a port for services like iperf3
+EXPOSE 5201
+
+# Set the default command to start a shell
+CMD ["/bin/sh"]

@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif">
+  <defs>
+    <marker id="a1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#546E7A"/>
+    </marker>
+    <marker id="a1o" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#FF9900"/>
+    </marker>
+    <filter id="s1" x="-1%" y="-1%" width="102%" height="104%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" fill="#fff"/>
+
+  <!-- ================================================================ -->
+  <!-- CUSTOMER PREMISES (left side) -->
+  <!-- ================================================================ -->
+  <rect x="20" y="60" width="240" height="340" rx="10" fill="#ECEFF1" stroke="#455A64" stroke-width="2"/>
+  <rect x="28" y="60" width="160" height="26" rx="4" fill="#455A64"/>
+  <text x="108" y="78" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">Customer Premises</text>
+
+  <!-- Developers -->
+  <rect x="40" y="100" width="200" height="70" rx="6" fill="#37474F" filter="url(#s1)"/>
+  <text x="140" y="126" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">Developers</text>
+  <text x="140" y="144" text-anchor="middle" fill="#B0BEC5" font-size="8.5">VS Code / Browser / CLI</text>
+  <text x="140" y="158" text-anchor="middle" fill="#90A4AE" font-size="8">AI code assistant users</text>
+
+  <!-- Customer router -->
+  <rect x="60" y="186" width="160" height="42" rx="5" fill="#546E7A" filter="url(#s1)"/>
+  <text x="140" y="206" text-anchor="middle" fill="#fff" font-size="9" font-weight="600">Customer Edge Router</text>
+  <text x="140" y="220" text-anchor="middle" fill="#B0BEC5" font-size="7.5">BGP peering &#8594; Direct Connect</text>
+
+  <!-- DX cross-connect -->
+  <rect x="60" y="244" width="160" height="42" rx="5" fill="#1565C0" filter="url(#s1)"/>
+  <text x="140" y="262" text-anchor="middle" fill="#fff" font-size="9" font-weight="600">Cross-Connect</text>
+  <text x="140" y="278" text-anchor="middle" fill="#BBDEFB" font-size="7.5">Colocation / DX location</text>
+
+  <!-- Label: private network -->
+  <rect x="50" y="302" width="190" height="30" rx="4" fill="#E3F2FD" stroke="#42A5F5" stroke-width="0.5"/>
+  <text x="145" y="322" text-anchor="middle" fill="#0D47A1" font-size="8" font-weight="600">Private network &#8212; no internet path</text>
+
+  <text x="140" y="380" text-anchor="middle" fill="#607D8B" font-size="7.5">All traffic stays on private circuits</text>
+
+  <!-- Arrow: Customer to DX -->
+  <line x1="140" y1="170" x2="140" y2="186" stroke="#546E7A" stroke-width="1.5" marker-end="url(#a1)"/>
+
+  <!-- ================================================================ -->
+  <!-- AWS DIRECT CONNECT -->
+  <!-- ================================================================ -->
+  <line x1="260" y1="265" x2="310" y2="265" stroke="#FF9900" stroke-width="3" marker-end="url(#a1o)"/>
+  <text x="285" y="256" text-anchor="middle" fill="#FF9900" font-size="7" font-weight="700">DX</text>
+
+  <rect x="314" y="230" width="160" height="70" rx="8" fill="#232F3E" filter="url(#s1)"/>
+  <rect x="322" y="230" width="100" height="22" rx="4" fill="#FF9900"/>
+  <text x="372" y="247" text-anchor="middle" fill="#232F3E" font-size="9" font-weight="700">Direct Connect</text>
+  <text x="394" y="272" text-anchor="middle" fill="#B0BEC5" font-size="8">Dedicated 1/10 Gbps</text>
+  <text x="394" y="286" text-anchor="middle" fill="#78909C" font-size="7.5">Private VIF &#8594; Transit GW</text>
+  <text x="394" y="296" text-anchor="middle" fill="#78909C" font-size="7">us-east-2 DX location</text>
+
+  <!-- Arrow: DX to Transit GW -->
+  <line x1="474" y1="265" x2="520" y2="265" stroke="#FF9900" stroke-width="2" marker-end="url(#a1o)"/>
+  <text x="497" y="256" text-anchor="middle" fill="#78909C" font-size="7">Private VIF</text>
+
+  <!-- ================================================================ -->
+  <!-- AWS CLOUD BOUNDARY -->
+  <!-- ================================================================ -->
+  <rect x="520" y="30" width="1060" height="856" rx="10" fill="#FAFAFA" stroke="#232F3E" stroke-width="2"/>
+  <rect x="528" y="30" width="140" height="26" rx="4" fill="#232F3E"/>
+  <text x="598" y="48" text-anchor="middle" fill="#FF9900" font-size="11" font-weight="700">AWS Cloud</text>
+
+  <!-- ================================================================ -->
+  <!-- AWS REGION -->
+  <!-- ================================================================ -->
+  <rect x="540" y="66" width="1024" height="808" rx="8" fill="#F5F5F5" stroke="#1976D2" stroke-width="1.5" stroke-dasharray="6 3"/>
+  <rect x="548" y="66" width="180" height="24" rx="4" fill="#1976D2"/>
+  <text x="638" y="83" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">Region: us-east-2 (Ohio)</text>
+
+  <!-- ================================================================ -->
+  <!-- TRANSIT GATEWAY -->
+  <!-- ================================================================ -->
+  <rect x="560" y="240" width="170" height="66" rx="8" fill="#232F3E" filter="url(#s1)"/>
+  <rect x="568" y="240" width="110" height="22" rx="4" fill="#FF9900"/>
+  <text x="623" y="256" text-anchor="middle" fill="#232F3E" font-size="9" font-weight="700">Transit Gateway</text>
+  <text x="645" y="280" text-anchor="middle" fill="#B0BEC5" font-size="8">Hub for VPC connectivity</text>
+  <text x="645" y="294" text-anchor="middle" fill="#78909C" font-size="7.5">Routes DX traffic to ROSA VPC</text>
+
+  <!-- Arrow: Transit GW to VPC -->
+  <line x1="730" y1="273" x2="780" y2="273" stroke="#FF9900" stroke-width="2" marker-end="url(#a1o)"/>
+  <text x="755" y="264" text-anchor="middle" fill="#78909C" font-size="7">TGW attach</text>
+
+  <!-- PrivateLink callout -->
+  <rect x="560" y="100" width="170" height="56" rx="6" fill="#E8EAF6" stroke="#5C6BC0" stroke-width="1" filter="url(#s1)"/>
+  <text x="645" y="118" text-anchor="middle" fill="#1A237E" font-size="9" font-weight="700">AWS PrivateLink</text>
+  <text x="645" y="134" text-anchor="middle" fill="#283593" font-size="7.5">ROSA HCP API endpoint</text>
+  <text x="645" y="148" text-anchor="middle" fill="#3949AB" font-size="7">K8s API over private network</text>
+
+  <line x1="645" y1="156" x2="645" y2="240" stroke="#5C6BC0" stroke-width="1" stroke-dasharray="4 2"/>
+
+  <!-- ================================================================ -->
+  <!-- VPC (ROSA) -->
+  <!-- ================================================================ -->
+  <rect x="784" y="100" width="764" height="762" rx="8" fill="#FAFAFA" stroke="#232F3E" stroke-width="1.5"/>
+  <rect x="792" y="100" width="230" height="24" rx="4" fill="#232F3E"/>
+  <text x="907" y="117" text-anchor="middle" fill="#B0BEC5" font-size="10" font-weight="600">ROSA VPC: 10.0.0.0/16</text>
+
+  <!-- NLB (internal) -->
+  <rect x="940" y="136" width="240" height="44" rx="5" fill="#ED7100" filter="url(#s1)"/>
+  <text x="1060" y="156" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">Internal Network Load Balancer</text>
+  <text x="1060" y="170" text-anchor="middle" fill="#FFF3E0" font-size="8">Private &#183; HTTPS :443 &#183; K8s API :6443</text>
+
+  <!-- Arrow: NLB to subnets -->
+  <line x1="980" y1="180" x2="900" y2="220" stroke="#546E7A" stroke-width="1" marker-end="url(#a1)"/>
+  <line x1="1060" y1="180" x2="1060" y2="220" stroke="#546E7A" stroke-width="1" marker-end="url(#a1)"/>
+  <line x1="1140" y1="180" x2="1330" y2="220" stroke="#546E7A" stroke-width="1" marker-end="url(#a1)"/>
+
+  <!-- ================================================================ -->
+  <!-- AZ-a (us-east-2a) -->
+  <!-- ================================================================ -->
+  <rect x="800" y="224" width="290" height="626" rx="6" fill="none" stroke="#90A4AE" stroke-width="1" stroke-dasharray="4 2"/>
+  <text x="945" y="244" text-anchor="middle" fill="#455A64" font-size="10" font-weight="700">AZ: us-east-2a</text>
+
+  <!-- Private subnet -->
+  <rect x="812" y="256" width="266" height="582" rx="4" fill="#E3F2FD" stroke="#42A5F5" stroke-width="1"/>
+  <text x="945" y="274" text-anchor="middle" fill="#1565C0" font-size="8.5" font-weight="600">Private Subnet (10.0.0.0/20)</text>
+
+  <!-- NVIDIA Worker -->
+  <rect x="822" y="288" width="246" height="160" rx="6" fill="#fff" stroke="#76B900" stroke-width="1.5" filter="url(#s1)"/>
+  <rect x="822" y="288" width="246" height="24" rx="6" fill="#76B900"/>
+  <rect x="822" y="306" width="246" height="6" fill="#76B900"/>
+  <text x="945" y="306" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">g6e.2xlarge (NVIDIA L40S)</text>
+  <text x="834" y="330" fill="#33691E" font-size="8" font-weight="600">L40S GPU &#183; 48 GB VRAM &#183; CUDA 12</text>
+  <text x="834" y="344" fill="#558B2F" font-size="7.5">8 vCPU &#183; 32 GB RAM &#183; $2.24/hr</text>
+  <rect x="834" y="354" width="222" height="34" rx="3" fill="#E8F5E9" stroke="#A5D6A7" stroke-width="0.5"/>
+  <text x="945" y="370" text-anchor="middle" fill="#2E7D32" font-size="8" font-weight="600">vLLM (CUDA) &#8212; FP8</text>
+  <text x="945" y="382" text-anchor="middle" fill="#388E3C" font-size="7">Qwen3-Coder-30B &#183; TP=1 &#183; 32k ctx</text>
+  <rect x="834" y="396" width="222" height="30" rx="3" fill="#E3F2FD" stroke="#90CAF9" stroke-width="0.5"/>
+  <text x="945" y="410" text-anchor="middle" fill="#1565C0" font-size="7.5" font-weight="600">System: Dev Spaces &#183; llm-d EPP &#183; Gateway</text>
+  <text x="945" y="422" text-anchor="middle" fill="#42A5F5" font-size="7">Operators &#183; Monitoring &#183; Ingress</text>
+  <rect x="834" y="432" width="222" height="14" rx="2" fill="#E0E0E0"/>
+  <text x="945" y="442" text-anchor="middle" fill="#424242" font-size="6.5">EBS gp3 &#183; 300 GB root + PVC</text>
+
+  <!-- Inferentia Worker -->
+  <rect x="822" y="460" width="246" height="130" rx="6" fill="#fff" stroke="#FF8F00" stroke-width="1.5" filter="url(#s1)"/>
+  <rect x="822" y="460" width="246" height="24" rx="6" fill="#FF8F00"/>
+  <rect x="822" y="478" width="246" height="6" fill="#FF8F00"/>
+  <text x="945" y="478" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">inf2.24xlarge (Inferentia2)</text>
+  <text x="834" y="502" fill="#E65100" font-size="8" font-weight="600">6&#215; Inferentia2 &#183; 12 NeuronCores &#183; 192 GB HBM</text>
+  <text x="834" y="516" fill="#EF6C00" font-size="7.5">96 vCPU &#183; 384 GB RAM &#183; $6.49/hr</text>
+  <rect x="834" y="526" width="222" height="34" rx="3" fill="#FFF3E0" stroke="#FFB74D" stroke-width="0.5"/>
+  <text x="945" y="540" text-anchor="middle" fill="#E65100" font-size="8" font-weight="600">vLLM (Neuron) &#8212; BF16</text>
+  <text x="945" y="554" text-anchor="middle" fill="#EF6C00" font-size="7">Qwen3-Coder-30B &#183; TP=8 &#183; 4k ctx</text>
+  <rect x="834" y="566" width="222" height="14" rx="2" fill="#E0E0E0"/>
+  <text x="945" y="576" text-anchor="middle" fill="#424242" font-size="6.5">EBS gp3 &#183; 300 GB root + NEFF PVC</text>
+
+  <!-- General worker -->
+  <rect x="822" y="604" width="246" height="72" rx="6" fill="#fff" stroke="#78909C" stroke-width="1" filter="url(#s1)"/>
+  <rect x="822" y="604" width="246" height="22" rx="6" fill="#607D8B"/>
+  <rect x="822" y="620" width="246" height="6" fill="#607D8B"/>
+  <text x="945" y="620" text-anchor="middle" fill="#fff" font-size="9" font-weight="600">m5.xlarge (workers-0)</text>
+  <text x="834" y="644" fill="#37474F" font-size="7.5">4 vCPU &#183; 16 GB RAM &#183; 3 replicas</text>
+  <text x="834" y="658" fill="#546E7A" font-size="7">General workloads &#183; EBS gp3 300 GB</text>
+  <text x="834" y="670" fill="#607D8B" font-size="7">Non-accelerator pods</text>
+
+  <!-- ================================================================ -->
+  <!-- AZ-b (us-east-2b) -->
+  <!-- ================================================================ -->
+  <rect x="1100" y="224" width="210" height="296" rx="6" fill="none" stroke="#90A4AE" stroke-width="1" stroke-dasharray="4 2"/>
+  <text x="1205" y="244" text-anchor="middle" fill="#455A64" font-size="10" font-weight="700">AZ: us-east-2b</text>
+
+  <!-- Private subnet -->
+  <rect x="1112" y="256" width="186" height="252" rx="4" fill="#E3F2FD" stroke="#42A5F5" stroke-width="1"/>
+  <text x="1205" y="274" text-anchor="middle" fill="#1565C0" font-size="8.5" font-weight="600">Private Subnet</text>
+
+  <!-- General worker b -->
+  <rect x="1122" y="290" width="166" height="72" rx="6" fill="#fff" stroke="#78909C" stroke-width="1" filter="url(#s1)"/>
+  <rect x="1122" y="290" width="166" height="22" rx="6" fill="#607D8B"/>
+  <rect x="1122" y="306" width="166" height="6" fill="#607D8B"/>
+  <text x="1205" y="306" text-anchor="middle" fill="#fff" font-size="9" font-weight="600">m5.xlarge (workers-1)</text>
+  <text x="1134" y="330" fill="#37474F" font-size="7.5">4 vCPU &#183; 16 GB &#183; 3 replicas</text>
+  <text x="1134" y="344" fill="#546E7A" font-size="7">General workloads</text>
+  <text x="1134" y="356" fill="#607D8B" font-size="7">EBS gp3 &#183; 300 GB</text>
+
+  <!-- Additional info box -->
+  <rect x="1122" y="376" width="166" height="120" rx="5" fill="#F5F5F5" stroke="#E0E0E0" stroke-width="0.5"/>
+  <text x="1205" y="394" text-anchor="middle" fill="#37474F" font-size="8" font-weight="700">ROSA Machine Pools</text>
+  <text x="1134" y="414" fill="#546E7A" font-size="7">&#8226; gpu-l40s (us-east-2a)</text>
+  <text x="1134" y="428" fill="#546E7A" font-size="7">&#8226; inf2-24xl (us-east-2a)</text>
+  <text x="1134" y="442" fill="#546E7A" font-size="7">&#8226; trn1-32xl (us-east-2c)</text>
+  <text x="1134" y="456" fill="#546E7A" font-size="7">&#8226; workers-0 (us-east-2a)</text>
+  <text x="1134" y="470" fill="#546E7A" font-size="7">&#8226; workers-1 (us-east-2b)</text>
+  <text x="1134" y="486" fill="#78909C" font-size="6.5">Scaled 0-N per pool via ROSA CLI</text>
+
+  <!-- ================================================================ -->
+  <!-- AZ-c (us-east-2c) -->
+  <!-- ================================================================ -->
+  <rect x="1320" y="224" width="216" height="426" rx="6" fill="none" stroke="#90A4AE" stroke-width="1" stroke-dasharray="4 2"/>
+  <text x="1428" y="244" text-anchor="middle" fill="#455A64" font-size="10" font-weight="700">AZ: us-east-2c</text>
+
+  <!-- Private subnet -->
+  <rect x="1332" y="256" width="192" height="382" rx="4" fill="#E3F2FD" stroke="#42A5F5" stroke-width="1"/>
+  <text x="1428" y="274" text-anchor="middle" fill="#1565C0" font-size="8.5" font-weight="600">Private Subnet</text>
+
+  <!-- Trainium Worker -->
+  <rect x="1342" y="290" width="172" height="210" rx="6" fill="#fff" stroke="#BF360C" stroke-width="1.5" filter="url(#s1)"/>
+  <rect x="1342" y="290" width="172" height="24" rx="6" fill="#BF360C"/>
+  <rect x="1342" y="308" width="172" height="6" fill="#BF360C"/>
+  <text x="1428" y="308" text-anchor="middle" fill="#fff" font-size="8.5" font-weight="700">trn1.32xlarge (Trainium)</text>
+  <text x="1354" y="332" fill="#BF360C" font-size="7.5" font-weight="600">16&#215; Trainium &#183; 32 NeuronCores</text>
+  <text x="1354" y="346" fill="#D84315" font-size="7">512 GB HBM &#183; NeuronLink v2</text>
+  <text x="1354" y="360" fill="#E64A19" font-size="7">128 vCPU &#183; 512 GB &#183; $21.50/hr</text>
+  <rect x="1354" y="372" width="148" height="30" rx="3" fill="#FBE9E7" stroke="#FFAB91" stroke-width="0.5"/>
+  <text x="1428" y="386" text-anchor="middle" fill="#BF360C" font-size="7.5" font-weight="600">vLLM (Neuron DRA)</text>
+  <text x="1428" y="398" text-anchor="middle" fill="#D84315" font-size="6.5">Qwen3-Coder-30B &#183; TP=8-16</text>
+  <rect x="1354" y="408" width="148" height="24" rx="2" fill="#455A64"/>
+  <text x="1428" y="420" text-anchor="middle" fill="#fff" font-size="7" font-weight="600">4&#215; NVMe (7.6 TB)</text>
+  <text x="1428" y="430" text-anchor="middle" fill="#CFD8DC" font-size="6">NEFF compilation scratch</text>
+  <rect x="1354" y="438" width="148" height="20" rx="2" fill="#EDE7F6" stroke="#7C4DFF" stroke-width="0.5"/>
+  <text x="1428" y="452" text-anchor="middle" fill="#311B92" font-size="7">DRA &#183; ResourceClaimTemplate</text>
+  <rect x="1354" y="464" width="148" height="14" rx="2" fill="#E0E0E0"/>
+  <text x="1428" y="474" text-anchor="middle" fill="#424242" font-size="6">EBS gp3 &#183; 300 GB + NEFF PVC</text>
+  <rect x="1354" y="484" width="148" height="14" rx="2" fill="#E8F5E9"/>
+  <text x="1428" y="494" text-anchor="middle" fill="#2E7D32" font-size="6">Neuron SDK 2.28 &#183; vLLM 0.13</text>
+
+  <!-- Network flow annotation -->
+  <rect x="560" y="720" width="440" height="140" rx="8" fill="#263238" opacity="0.95"/>
+  <text x="780" y="744" text-anchor="middle" fill="#4DD0E1" font-size="10" font-weight="700">Private Connectivity Flow</text>
+  <text x="580" y="768" fill="#B0BEC5" font-size="8.5">1. Developer traffic originates on customer premises</text>
+  <text x="580" y="786" fill="#B0BEC5" font-size="8.5">2. Routed over AWS Direct Connect (dedicated circuit)</text>
+  <text x="580" y="804" fill="#B0BEC5" font-size="8.5">3. Transit Gateway routes to ROSA VPC via attachment</text>
+  <text x="580" y="822" fill="#B0BEC5" font-size="8.5">4. Internal NLB forwards to ROSA worker nodes</text>
+  <text x="580" y="840" fill="#B0BEC5" font-size="8.5">5. K8s API accessible via PrivateLink endpoint</text>
+
+  <!-- Key differentiators -->
+  <rect x="1020" y="720" width="310" height="140" rx="8" fill="#263238" opacity="0.95"/>
+  <text x="1175" y="744" text-anchor="middle" fill="#FF9900" font-size="10" font-weight="700">Enterprise Network Design</text>
+  <text x="1040" y="768" fill="#B0BEC5" font-size="8.5">&#8226; No Internet Gateway &#8212; zero public exposure</text>
+  <text x="1040" y="786" fill="#B0BEC5" font-size="8.5">&#8226; Direct Connect: dedicated, low-latency circuit</text>
+  <text x="1040" y="804" fill="#B0BEC5" font-size="8.5">&#8226; Transit Gateway: centralized routing hub</text>
+  <text x="1040" y="822" fill="#B0BEC5" font-size="8.5">&#8226; PrivateLink: K8s API on private network</text>
+  <text x="1040" y="840" fill="#B0BEC5" font-size="8.5">&#8226; Source code never traverses public internet</text>
+
+  <!-- Legend -->
+  <rect x="540" y="876" width="1024" height="22" rx="4" fill="#232F3E"/>
+  <text x="560" y="892" fill="#FF9900" font-size="8.5" font-weight="600">AWS Architectural View &#8212; Private Code Assistant</text>
+  <rect x="800" y="881" width="10" height="10" rx="2" fill="#76B900"/>
+  <text x="814" y="891" fill="#B0BEC5" font-size="7.5">NVIDIA L40S</text>
+  <rect x="880" y="881" width="10" height="10" rx="2" fill="#FF8F00"/>
+  <text x="894" y="891" fill="#B0BEC5" font-size="7.5">Inferentia2</text>
+  <rect x="960" y="881" width="10" height="10" rx="2" fill="#BF360C"/>
+  <text x="974" y="891" fill="#B0BEC5" font-size="7.5">Trainium</text>
+  <rect x="1040" y="881" width="10" height="10" rx="2" fill="#607D8B"/>
+  <text x="1054" y="891" fill="#B0BEC5" font-size="7.5">General</text>
+  <text x="1540" y="892" text-anchor="end" fill="#78909C" font-size="7.5">ROSA HCP 4.21 &#183; Multi-AZ &#183; Private connectivity</text>
+</svg>

@@ -1,0 +1,342 @@
+﻿apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  annotations:
+    kubevirt.io/latest-observed-api-version: v1
+    kubevirt.io/storage-observed-api-version: v1
+    vm.kubevirt.io/validations: |
+      [
+        {
+          "name": "minimal-required-memory",
+          "path": "jsonpath::.spec.domain.memory.guest",
+          "rule": "integer",
+          "message": "This VM requires more memory.",
+          "min": 536870912
+        }, {
+          "name": "windows-virtio-bus",
+          "path": "jsonpath::.spec.domain.devices.disks[*].disk.bus",
+          "valid": "jsonpath::.spec.domain.devices.disks[*].disk.bus",
+          "rule": "enum",
+          "message": "virtio disk bus type has better performance, install virtio drivers in VM and change bus type",
+          "values": ["virtio"],
+          "justWarning": true
+        }, {
+          "name": "windows-disk-bus",
+          "path": "jsonpath::.spec.domain.devices.disks[*].disk.bus",
+          "valid": "jsonpath::.spec.domain.devices.disks[*].disk.bus",
+          "rule": "enum",
+          "message": "disk bus has to be either virtio or sata or scsi",
+          "values": ["virtio", "sata", "scsi"]
+        }, {
+          "name": "windows-cd-bus",
+          "path": "jsonpath::.spec.domain.devices.disks[*].cdrom.bus",
+          "valid": "jsonpath::.spec.domain.devices.disks[*].cdrom.bus",
+          "rule": "enum",
+          "message": "cd bus has to be sata",
+          "values": ["sata"]
+        }
+      ]
+  resourceVersion: '17706805'
+  name: rosa2003-vm
+  uid: eb0b8ccf-6b50-49c4-8676-ef05730ea44d
+  creationTimestamp: '2025-04-16T19:14:27Z'
+  generation: 1
+  managedFields:
+    - apiVersion: kubevirt.io/v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:spec':
+          'f:template':
+            'f:spec':
+              'f:domain':
+                'f:firmware':
+                  'f:bootloader':
+                    'f:efi':
+                      .: {}
+                      'f:secureBoot': {}
+      manager: kubectl-create
+      operation: Update
+      time: '2025-04-16T19:14:16Z'
+    - apiVersion: kubevirt.io/v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            .: {}
+            'f:kubemacpool.io/transaction-timestamp': {}
+            'f:vm.kubevirt.io/validations': {}
+          'f:labels':
+            .: {}
+            'f:app': {}
+            'f:vm.kubevirt.io/template': {}
+            'f:vm.kubevirt.io/template.namespace': {}
+            'f:vm.kubevirt.io/template.revision': {}
+            'f:vm.kubevirt.io/template.version': {}
+        'f:spec':
+          .: {}
+          'f:dataVolumeTemplates': {}
+          'f:runStrategy': {}
+          'f:template':
+            .: {}
+            'f:metadata':
+              .: {}
+              'f:annotations':
+                .: {}
+                'f:vm.kubevirt.io/flavor': {}
+                'f:vm.kubevirt.io/os': {}
+                'f:vm.kubevirt.io/workload': {}
+              'f:creationTimestamp': {}
+              'f:labels':
+                .: {}
+                'f:kubevirt.io/domain': {}
+                'f:kubevirt.io/size': {}
+                'f:network.kubevirt.io/headlessService': {}
+            'f:spec':
+              .: {}
+              'f:architecture': {}
+              'f:domain':
+                'f:devices':
+                  .: {}
+                  'f:disks': {}
+                  'f:inputs': {}
+                  'f:interfaces': {}
+                  'f:logSerialConsole': {}
+                .: {}
+                'f:firmware':
+                  .: {}
+                  'f:bootloader':
+                    .: {}
+                    'f:bios': {}
+                'f:resources': {}
+                'f:features':
+                  .: {}
+                  'f:acpi': {}
+                  'f:apic': {}
+                  'f:hyperv':
+                    'f:runtime': {}
+                    'f:vpindex': {}
+                    'f:frequencies': {}
+                    'f:vapic': {}
+                    'f:reenlightenment': {}
+                    .: {}
+                    'f:tlbflush': {}
+                    'f:synic': {}
+                    'f:ipi': {}
+                    'f:spinlocks':
+                      .: {}
+                      'f:spinlocks': {}
+                    'f:synictimer':
+                      .: {}
+                      'f:direct': {}
+                    'f:relaxed': {}
+                    'f:reset': {}
+                  'f:smm':
+                    .: {}
+                    'f:enabled': {}
+                'f:machine':
+                  .: {}
+                  'f:type': {}
+                'f:cpu':
+                  .: {}
+                  'f:cores': {}
+                  'f:sockets': {}
+                  'f:threads': {}
+                'f:memory':
+                  .: {}
+                  'f:guest': {}
+                'f:clock':
+                  .: {}
+                  'f:timer':
+                    .: {}
+                    'f:hpet':
+                      .: {}
+                      'f:present': {}
+                    'f:hyperv': {}
+                    'f:pit':
+                      .: {}
+                      'f:tickPolicy': {}
+                    'f:rtc':
+                      .: {}
+                      'f:tickPolicy': {}
+                  'f:utc': {}
+              'f:networks': {}
+              'f:terminationGracePeriodSeconds': {}
+              'f:volumes': {}
+      manager: Mozilla
+      operation: Update
+      time: '2025-04-16T19:14:27Z'
+    - apiVersion: kubevirt.io/v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            'f:kubevirt.io/latest-observed-api-version': {}
+            'f:kubevirt.io/storage-observed-api-version': {}
+          'f:finalizers':
+            .: {}
+            'v:"kubevirt.io/virtualMachineControllerFinalize"': {}
+      manager: virt-controller
+      operation: Update
+      time: '2025-04-16T19:14:27Z'
+    - apiVersion: kubevirt.io/v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:status':
+          'f:printableStatus': {}
+          'f:runStrategy': {}
+          'f:conditions': {}
+          .: {}
+          'f:ready': {}
+          'f:volumeSnapshotStatuses': {}
+          'f:observedGeneration': {}
+          'f:created': {}
+          'f:desiredGeneration': {}
+      manager: virt-controller
+      operation: Update
+      subresource: status
+      time: '2025-04-28T13:15:25Z'
+  namespace: default
+  finalizers:
+    - kubevirt.io/virtualMachineControllerFinalize
+  labels:
+    app: win2k16-plum-dolphin-19
+    vm.kubevirt.io/template: windows2k16-server-medium
+    vm.kubevirt.io/template.namespace: openshift
+    vm.kubevirt.io/template.revision: '1'
+    vm.kubevirt.io/template.version: v0.32.2
+spec:
+  dataVolumeTemplates:
+    - apiVersion: cdi.kubevirt.io/v1beta1
+      kind: DataVolume
+      metadata:
+        creationTimestamp: null
+        name: win2k16-plum-dolphin-19
+      spec:
+        source:
+          pvc:
+            name: rosa2003-pvc
+            namespace: default
+        storage:
+          resources:
+            requests:
+              storage: '42949672960'
+  runStrategy: RerunOnFailure
+  template:
+    metadata:
+      annotations:
+        vm.kubevirt.io/flavor: medium
+        vm.kubevirt.io/os: windows2k16
+        vm.kubevirt.io/workload: server
+      creationTimestamp: null
+      labels:
+        kubevirt.io/domain: win2k16-plum-dolphin-19
+        kubevirt.io/size: medium
+        network.kubevirt.io/headlessService: headless
+    spec:
+      architecture: amd64
+      domain:
+        clock:
+          timer:
+            hpet:
+              present: false
+            hyperv: {}
+            pit:
+              tickPolicy: delay
+            rtc:
+              tickPolicy: catchup
+          utc: {}
+        cpu:
+          cores: 1
+          sockets: 1
+          threads: 1
+        devices:
+          disks:
+            - disk:
+                bus: sata
+              name: rootdisk
+            - cdrom:
+                bus: sata
+              name: windows-drivers-disk
+          inputs:
+            - bus: usb
+              name: tablet
+              type: tablet
+          interfaces:
+            - macAddress: '02:f4:82:00:00:15'
+              masquerade: {}
+              model: e1000e
+              name: default
+          logSerialConsole: false
+        features:
+          acpi: {}
+          apic: {}
+          hyperv:
+            reenlightenment: {}
+            ipi: {}
+            synic: {}
+            synictimer:
+              direct: {}
+            spinlocks:
+              spinlocks: 8191
+            reset: {}
+            relaxed: {}
+            vpindex: {}
+            runtime: {}
+            tlbflush: {}
+            frequencies: {}
+            vapic: {}
+          smm:
+            enabled: true
+        firmware:
+          bootloader:
+            bios: {}
+        machine:
+          type: pc-q35-rhel9.4.0
+        memory:
+          guest: 4Gi
+        resources: {}
+      networks:
+        - name: default
+          pod: {}
+      terminationGracePeriodSeconds: 3600
+      volumes:
+        - dataVolume:
+            name: win2k16-plum-dolphin-19
+          name: rootdisk
+        - containerDisk:
+            image: 'registry.redhat.io/container-native-virtualization/virtio-win-rhel9@sha256:07dbdd6c8893619bbda5fd6a9224e0a50555c126fae3d82c83041ad146cecf0b'
+          name: windows-drivers-disk
+status:
+  conditions:
+    - lastProbeTime: null
+      lastTransitionTime: '2025-04-28T13:15:22Z'
+      status: 'True'
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: null
+      message: All of the VMI's DVs are bound and not running
+      reason: AllDVsReady
+      status: 'True'
+      type: DataVolumesReady
+    - lastProbeTime: null
+      lastTransitionTime: null
+      message: 'cannot migrate VMI: PVC win2k16-plum-dolphin-19 is not shared, live migration requires that all PVCs must be shared (using ReadWriteMany access mode)'
+      reason: DisksNotLiveMigratable
+      status: 'False'
+      type: LiveMigratable
+    - lastProbeTime: null
+      lastTransitionTime: null
+      status: 'True'
+      type: StorageLiveMigratable
+  created: true
+  desiredGeneration: 1
+  observedGeneration: 1
+  printableStatus: Running
+  ready: true
+  runStrategy: RerunOnFailure
+  volumeSnapshotStatuses:
+    - enabled: true
+      name: rootdisk
+    - enabled: false
+      name: windows-drivers-disk
+      reason: 'Snapshot is not supported for this volumeSource type [windows-drivers-disk]'

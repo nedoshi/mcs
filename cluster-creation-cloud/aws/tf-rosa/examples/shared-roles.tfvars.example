@@ -1,0 +1,26 @@
+# ROSA HCP using pre-created shared account roles
+# Auth: TF_VAR_client_id + TF_VAR_client_secret (recommended) or TF_VAR_token (optional)
+# rosa create account-roles --hosted-cp --mode auto --prefix ManagedOpenShift
+# make plan TFVARS=examples/shared-roles.tfvars.example
+
+cluster_name = "mobb-prod-rosa"
+region       = "us-east-1"
+
+tags = {
+  app-code      = "MOBB-001"
+  service-phase = "lab"
+  cost-center   = "468"
+  owner         = "nedoshi_mobb"
+}
+
+private  = false
+multi_az = true
+replicas = 3
+
+compute_machine_type = "m5.xlarge"
+
+create_account_roles = false
+account_role_prefix  = "ManagedOpenShift"
+installer_role_arn   = "arn:aws:iam::ACCOUNT_ID:role/ManagedOpenShift-HCP-ROSA-Installer-Role"
+support_role_arn     = "arn:aws:iam::ACCOUNT_ID:role/ManagedOpenShift-HCP-ROSA-Support-Role"
+worker_role_arn      = "arn:aws:iam::ACCOUNT_ID:role/ManagedOpenShift-HCP-ROSA-Worker-Role"

@@ -1,0 +1,27 @@
+# LokiStack - REQUIRES object storage secret: logging-loki-s3
+# Create the secret first with your S3/ODF credentials, then apply this file.
+#
+# Example secret creation (AWS S3):
+# oc create secret generic logging-loki-s3 -n openshift-logging \
+#   --from-literal=access_key_id=YOUR_ACCESS_KEY \
+#   --from-literal=access_key_secret=YOUR_SECRET_KEY \
+#   --from-literal=bucketnames=your-bucket-name \
+#   --from-literal=endpoint=https://s3.amazonaws.com \
+#   --from-literal=region=us-east-1
+#
+# Rename to 06-lokistack.yaml after configuring
+---
+apiVersion: loki.grafana.com/v1
+kind: LokiStack
+metadata:
+  name: logging-loki
+  namespace: openshift-logging
+spec:
+  size: 1x.extra-small
+  storage:
+    secret:
+      name: logging-loki-s3
+    type: s3
+  storageClassName: gp3-csi
+  tenants:
+    mode: openshift-logging

@@ -1,0 +1,20 @@
+# Template: copy this file to <cluster-name>.yaml and fill in values.
+# Per-cluster overrides for the cluster-baseline chart.
+# Only include values that differ from charts/cluster-baseline/values.yaml defaults.
+
+clusterName: ""
+
+# rbac:
+#   adminGroups:
+#     - cluster-admins
+#     - platform-admins
+#     - <additional-group>
+
+# namespaces:
+#   list:
+#     - shared-services
+#     - monitoring-custom
+#     - logging
+#     - security
+#     - platform
+#     - <additional-namespace>

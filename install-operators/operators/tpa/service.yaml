@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tpa-service
+  namespace: trustification
+  labels:
+    app: tpa-service
+    managed-by: kustomize
+spec:
+  selector:
+    app: tpa-service
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+

@@ -1,0 +1,19 @@
+{{- if .Values.hyperconverged.enabled }}
+apiVersion: hco.kubevirt.io/v1beta1
+kind: HyperConverged
+metadata:
+  name: {{ .Values.hyperconverged.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service | default "Helm" }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+spec:
+{{- if .Values.hyperconverged.spec }}
+{{- toYaml .Values.hyperconverged.spec | nindent 2 }}
+{{- else }}
+  # Default empty spec - operator will use defaults
+{{- end }}
+{{- end }}
+

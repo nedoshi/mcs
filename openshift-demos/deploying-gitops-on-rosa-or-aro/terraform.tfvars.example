@@ -1,0 +1,21 @@
+# OpenShift Cluster Admin Credentials
+# These will be used to create the admin user and for GitOps installation
+admin_username = "admin"
+admin_password = "your-secure-password-here"  # CHANGE THIS - Use a strong password
+
+# Cluster Configuration
+cluster_name = "my-rosa-gitops-cluster"  # Name for your ROSA/ARO cluster
+
+# AWS Configuration
+aws_region = "us-east-1"  # AWS region where the cluster will be deployed
+
+# Default AWS Tags
+# These tags will be applied to all AWS resources created by Terraform
+default_aws_tags = {
+  Environment = "dev"
+  Owner       = "your-email@example.com"
+  Project     = "gitops-demo"
+  CostCenter  = "468"
+  ManagedBy   = "terraform"
+}
+

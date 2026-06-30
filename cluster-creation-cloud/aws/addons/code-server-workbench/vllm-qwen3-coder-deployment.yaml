@@ -1,0 +1,347 @@
+# =============================================================================
+# vLLM Qwen3-Coder-30B-A3B-Instruct on AWS Inferentia2
+# =============================================================================
+#
+# Target instance: inf2.24xlarge (12 NeuronCores, 192 GB HBM, 96 vCPUs, 384 GB RAM)
+#   - Minimum viable instance for this model (30.5B params / ~61 GB BF16 weights)
+#   - Alternative: inf2.48xlarge (24 NeuronCores, 384 GB HBM) for larger context / more KV headroom
+#
+# Qwen3-Coder-30B-A3B-Instruct specs:
+#   - Architecture: qwen3_moe (Mixture-of-Experts)
+#   - Total parameters: 30.5B, Active per token: 3.3B
+#   - Experts: 128 total, 8 activated per token
+#   - Layers: 48, GQA: 32 Q-heads / 4 KV-heads
+#   - Hidden size: 2048 (constrains tp_degree to divisors of 2048: 1,2,4,8,16)
+#   - Native context: 256K tokens (deploy at 8K-16K initially)
+#   - Recommended sampling: temperature=0.7, top_p=0.8, top_k=20, repetition_penalty=1.05
+#
+# Neuron SDK requirements:
+#   - Neuron SDK >= 2.28.0
+#   - vLLM 0.13.0 with vLLM-Neuron plugin 0.4.1
+#   - VLLM_NEURON_FRAMEWORK=neuronx-distributed-inference
+#
+# CRITICAL: tp_degree must divide hidden_size (2048). inf2.24xlarge has 12 NeuronCores,
+# but 2048 is NOT divisible by 12. Use tp_degree=8 and NEURON_RT_VISIBLE_CORES=0-7
+# to use 8 of the 12 cores, while requesting all 12 for resource allocation.
+#
+# Known constraints:
+#   - Qwen3 MoE requires batch_size >= 16
+#   - Chunked prefill is NOT supported on Neuron
+#   - First startup compiles the model for NeuronCores (30-60+ min for MoE)
+#   - Use NEURON_COMPILE_CACHE_URL with persistent storage to cache compiled artifacts
+#
+# Performance results (inf2.24xlarge, tp_degree=8, max_model_len=8192):
+#   - Single request: ~21-23 tokens/sec (500 token generation)
+#   - Time to first token: ~1.2s
+#   - 4 concurrent requests: ~59 tokens/sec aggregate
+#   - 8 concurrent requests: ~62 tokens/sec aggregate
+#
+# =============================================================================
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: llm-serving
+
+---
+# PVC for model weights and Neuron compilation cache (EBS gp3)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qwen3-coder-model-pvc
+  namespace: llm-serving
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Gi
+  storageClassName: gp3-csi
+
+---
+# Job to download model weights from HuggingFace
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: download-qwen3-coder
+  namespace: llm-serving
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: downloader
+          image: python:3.11-slim
+          resources:
+            requests:
+              cpu: "4"
+              memory: "8Gi"
+            limits:
+              cpu: "8"
+              memory: "16Gi"
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              export HOME=/tmp
+              export PYTHONUSERBASE=/tmp/.local
+              export PATH=/tmp/.local/bin:$PATH
+
+              pip install --user huggingface_hub
+
+              echo "Downloading Qwen3-Coder-30B-A3B-Instruct..."
+              python3 -c "
+              from huggingface_hub import snapshot_download
+              snapshot_download(
+                  repo_id='Qwen/Qwen3-Coder-30B-A3B-Instruct',
+                  local_dir='/models/Qwen3-Coder-30B-A3B-Instruct',
+                  ignore_patterns=['*.gguf', '*.md', '.gitattributes']
+              )
+              print('Download complete.')
+              "
+
+              ls -lh /models/Qwen3-Coder-30B-A3B-Instruct/
+              echo "Model files downloaded successfully."
+      volumes:
+        - name: model-storage
+          persistentVolumeClaim:
+            claimName: qwen3-coder-model-pvc
+
+---
+# ConfigMap with Neuron override configuration for Qwen3 MoE
+# Adjust tp_degree and MoE parallelism to match your instance type:
+#   inf2.24xlarge: tp_degree=12, moe_tp_degree=1, moe_ep_degree=12
+#   inf2.48xlarge: tp_degree=24, moe_tp_degree=2, moe_ep_degree=12
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vllm-neuron-config
+  namespace: llm-serving
+data:
+  # inf2.24xlarge configuration (using 8 of 12 NeuronCores; 2048 % 8 = 0)
+  neuron-config-inf2-24xlarge.json: |
+    {
+      "override_neuron_config": {
+        "tp_degree": 8,
+        "moe_tp_degree": 1,
+        "moe_ep_degree": 8,
+        "batch_size": 16,
+        "ctx_batch_size": 1,
+        "max_context_length": 16384,
+        "seq_len": 16384,
+        "is_continuous_batching": true,
+        "fused_qkv": true,
+        "use_index_calc_kernel": true,
+        "moe_mask_padded_tokens": true,
+        "blockwise_matmul_config": {
+          "use_shard_on_intermediate_dynamic_while": true,
+          "skip_dma_token": true
+        },
+        "enable_bucketing": true,
+        "context_encoding_buckets": [4096, 8192, 16384],
+        "token_generation_buckets": [4096, 8192, 16384],
+        "flash_decoding_enabled": false,
+        "sequence_parallel_enabled": true,
+        "qkv_kernel_enabled": true,
+        "qkv_nki_kernel_enabled": true,
+        "qkv_cte_nki_kernel_fuse_rope": true,
+        "attn_kernel_enabled": true,
+        "async_mode": true,
+        "on_device_sampling_config": {
+          "do_sample": true,
+          "temperature": 0.7,
+          "top_k": 20,
+          "top_p": 0.8
+        }
+      }
+    }
+  # inf2.48xlarge configuration (24 NeuronCores)
+  neuron-config-inf2-48xlarge.json: |
+    {
+      "override_neuron_config": {
+        "tp_degree": 24,
+        "attention_dp_degree": 2,
+        "moe_tp_degree": 2,
+        "moe_ep_degree": 12,
+        "batch_size": 16,
+        "ctx_batch_size": 1,
+        "max_context_length": 32768,
+        "seq_len": 32768,
+        "is_continuous_batching": true,
+        "fused_qkv": true,
+        "use_index_calc_kernel": true,
+        "moe_mask_padded_tokens": true,
+        "blockwise_matmul_config": {
+          "use_shard_on_intermediate_dynamic_while": true,
+          "skip_dma_token": true
+        },
+        "enable_bucketing": true,
+        "context_encoding_buckets": [8192, 16384, 32768],
+        "token_generation_buckets": [8192, 16384, 32768],
+        "flash_decoding_enabled": false,
+        "sequence_parallel_enabled": true,
+        "qkv_kernel_enabled": true,
+        "qkv_nki_kernel_enabled": true,
+        "qkv_cte_nki_kernel_fuse_rope": true,
+        "attn_kernel_enabled": true,
+        "strided_context_parallel_kernel_enabled": true,
+        "async_mode": true,
+        "on_device_sampling_config": {
+          "do_sample": true,
+          "temperature": 0.7,
+          "top_k": 20,
+          "top_p": 0.8
+        }
+      }
+    }
+
+---
+# vLLM Deployment for Qwen3-Coder-30B-A3B on inf2.24xlarge
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-qwen3-coder
+  namespace: llm-serving
+  labels:
+    app: vllm-qwen3-coder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-qwen3-coder
+  template:
+    metadata:
+      labels:
+        app: vllm-qwen3-coder
+    spec:
+      schedulerName: neuron-scheduler
+      nodeSelector:
+        node.kubernetes.io/instance-type: inf2.24xlarge
+      tolerations:
+        - key: aws.amazon.com/neuron
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: vllm-neuron
+          image: public.ecr.aws/neuron/pytorch-inference-vllm-neuronx:0.13.0-neuronx-py312-sdk2.28.0-ubuntu24.04
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          env:
+            - name: VLLM_NEURON_FRAMEWORK
+              value: "neuronx-distributed-inference"
+            - name: NEURON_COMPILE_CACHE_URL
+              value: "/models/neuron-cache"
+            - name: NEURON_COMPILED_ARTIFACTS
+              value: "/models/neuron-cache/compiled"
+            - name: HF_HOME
+              value: "/tmp/hf-home"
+            - name: NEURON_RT_VISIBLE_CORES
+              value: "0-7"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              mkdir -p /models/neuron-cache/compiled /tmp/hf-home
+
+              NEURON_CONFIG=$(cat /config/neuron-config-inf2-24xlarge.json)
+
+              vllm serve \
+                --model="/models/Qwen3-Coder-30B-A3B-Instruct" \
+                --served-model-name="Qwen3-Coder-30B-A3B-Instruct" \
+                --tensor-parallel-size=8 \
+                --max-num-seqs=16 \
+                --max-model-len=8192 \
+                --block-size=32 \
+                --num-gpu-blocks-override=16 \
+                --additional-config="${NEURON_CONFIG}" \
+                --no-enable-chunked-prefill \
+                --no-enable-prefix-caching \
+                --port=8080
+          resources:
+            requests:
+              cpu: "64"
+              memory: "256Gi"
+              aws.amazon.com/neuroncore: "12"  # Request all 12, but use only 8 via NEURON_RT_VISIBLE_CORES
+            limits:
+              cpu: "96"
+              memory: "384Gi"
+              aws.amazon.com/neuroncore: "12"
+          securityContext:
+            capabilities:
+              add:
+                - IPC_LOCK
+                - SYS_ADMIN
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+            - name: neuron-config
+              mountPath: /config
+            - name: dshm
+              mountPath: /dev/shm
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: 8080
+            initialDelaySeconds: 1800
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 2400
+            periodSeconds: 60
+            timeoutSeconds: 10
+            failureThreshold: 10
+      volumes:
+        - name: model-storage
+          persistentVolumeClaim:
+            claimName: qwen3-coder-model-pvc
+        - name: neuron-config
+          configMap:
+            name: vllm-neuron-config
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 16Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-qwen3-coder
+  namespace: llm-serving
+spec:
+  selector:
+    app: vllm-qwen3-coder
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  type: ClusterIP
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: vllm-qwen3-coder
+  namespace: llm-serving
+spec:
+  to:
+    kind: Service
+    name: vllm-qwen3-coder
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

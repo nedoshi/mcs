@@ -1,0 +1,212 @@
+# =============================================================================
+# Code Server Workbench Deployment for Qwen3-Coder-30B-A3B-Instruct
+# =============================================================================
+#
+# Deploys a browser-based VSCode IDE (code-server) pre-configured with:
+#   - Continue extension: chat + tab autocomplete via vLLM endpoint
+#   - Cline extension: agentic coding via vLLM endpoint
+#   - Python, GitLens extensions
+#   - oc, aws, git, curl, jq CLI tools
+#
+# The initContainer dynamically injects the vLLM endpoint URL into
+# Continue and Cline configurations at pod startup.
+#
+# =============================================================================
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: llm-workbench
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: code-server-config
+  namespace: llm-workbench
+data:
+  settings.json: |
+    {
+      "cline.apiProvider": "openai-compatible",
+      "cline.openaiBaseUrl": "VLLM_ENDPOINT_PLACEHOLDER/v1",
+      "cline.openaiModelId": "qwen3-coder",
+      "cline.openaiApiKey": "EMPTY",
+      "cline.maxTokens": 4096,
+      "editor.fontSize": 14,
+      "editor.tabSize": 2,
+      "editor.wordWrap": "on",
+      "editor.formatOnSave": true,
+      "terminal.integrated.fontSize": 13,
+      "workbench.colorTheme": "Default Dark Modern",
+      "python.defaultInterpreterPath": "/usr/bin/python3",
+      "continue.enableTabAutocomplete": true
+    }
+  continue-config.json: |
+    {
+      "models": [
+        {
+          "title": "Qwen3-Coder-30B (Inferentia2)",
+          "provider": "openai",
+          "model": "qwen3-coder",
+          "apiBase": "VLLM_ENDPOINT_PLACEHOLDER/v1",
+          "apiKey": "EMPTY",
+          "contextLength": 8192,
+          "systemMessage": "You are an expert coding assistant powered by Qwen3-Coder. Write clear, correct, and idiomatic code. When editing existing code, produce minimal diffs. Explain your reasoning briefly when helpful.",
+          "completionOptions": {
+            "maxTokens": 4096,
+            "temperature": 0.7,
+            "topP": 0.8,
+            "topK": 20
+          },
+          "requestOptions": {
+            "extraBodyProperties": {
+              "repetition_penalty": 1.05
+            }
+          }
+        }
+      ],
+      "tabAutocompleteModel": {
+        "title": "Qwen3-Coder-30B (Autocomplete)",
+        "provider": "openai",
+          "model": "qwen3-coder",
+          "apiBase": "VLLM_ENDPOINT_PLACEHOLDER/v1",
+          "apiKey": "EMPTY",
+          "contextLength": 8192,
+          "completionOptions": {
+            "maxTokens": 256,
+          "temperature": 0.2,
+          "topP": 0.95
+        },
+        "requestOptions": {
+          "extraBodyProperties": {
+            "repetition_penalty": 1.05
+          }
+        }
+      },
+      "tabAutocompleteOptions": {
+        "debounceDelay": 500,
+        "maxPromptTokens": 2048,
+        "multilineCompletions": "auto",
+        "useCache": true
+      },
+      "allowAnonymousTelemetry": false
+    }
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: code-server-workbench
+  namespace: llm-workbench
+  labels:
+    app: code-server-workbench
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: code-server-workbench
+  template:
+    metadata:
+      labels:
+        app: code-server-workbench
+    spec:
+      initContainers:
+        - name: install-extensions
+          image: codercom/code-server:latest
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config
+            - name: user-data
+              mountPath: /home/coder/.local/share/code-server
+            - name: continue-data
+              mountPath: /home/coder/.continue
+          command:
+            - /bin/bash
+            - -c
+            - |
+              code-server --install-extension continue.continue || true
+              code-server --install-extension saoudrizwan.claude-dev || true
+              code-server --install-extension ms-python.python || true
+              code-server --install-extension eamodio.gitlens || true
+
+              mkdir -p /home/coder/.local/share/code-server/User
+              mkdir -p /home/coder/.continue
+
+              VLLM_ROUTE=$(cat /config/vllm-route 2>/dev/null || echo "https://vllm-qwen3-coder-llm-serving.apps.rosa.CLUSTER_DOMAIN")
+
+              sed "s|VLLM_ENDPOINT_PLACEHOLDER|${VLLM_ROUTE}|g" /config/settings.json \
+                > /home/coder/.local/share/code-server/User/settings.json
+
+              sed "s|VLLM_ENDPOINT_PLACEHOLDER|${VLLM_ROUTE}|g" /config/continue-config.json \
+                > /home/coder/.continue/config.json
+
+              echo "Extensions installed and configs applied with endpoint: ${VLLM_ROUTE}"
+      containers:
+        - name: code-server
+          image: codercom/code-server:latest
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: PASSWORD
+              value: "<CODE_SERVER_PASSWORD>"
+          args:
+            - --auth=password
+            - --bind-addr=0.0.0.0:8080
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+          volumeMounts:
+            - name: user-data
+              mountPath: /home/coder/.local/share/code-server
+            - name: continue-data
+              mountPath: /home/coder/.continue
+            - name: workspace
+              mountPath: /home/coder/workspace
+      volumes:
+        - name: config-volume
+          configMap:
+            name: code-server-config
+        - name: user-data
+          emptyDir: {}
+        - name: continue-data
+          emptyDir: {}
+        - name: workspace
+          emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-server-workbench
+  namespace: llm-workbench
+spec:
+  selector:
+    app: code-server-workbench
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  type: ClusterIP
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: code-server-workbench
+  namespace: llm-workbench
+spec:
+  to:
+    kind: Service
+    name: code-server-workbench
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

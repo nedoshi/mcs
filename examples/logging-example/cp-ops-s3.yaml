@@ -1,0 +1,15 @@
+# ROSA HCP control plane — Tier 2 operational logs → S3
+# rosa create log-forwarder -c ${CLUSTER_NAME} --log-fwd-config=cp-ops-s3.yaml -y
+#
+# S3 destination uses the shared cold-storage bucket from Step 1.
+# No customer IAM role is required for the S3 log forwarder (Red Hat managed).
+
+s3:
+  s3_config_bucket_name: "rosa-logs-cold-${AWS_ACCOUNT_ID}"
+  s3_config_bucket_prefix: "control-plane/"
+  groups:
+    - controller-manager
+    - scheduler
+    - cloud-controller-manager
+    - cluster-autoscaler
+    - ovn-kubernetes

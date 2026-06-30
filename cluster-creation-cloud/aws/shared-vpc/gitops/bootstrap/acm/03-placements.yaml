@@ -1,0 +1,75 @@
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: rosa-production
+  namespace: openshift-gitops
+spec:
+  clusterSets:
+    - rosa-clusters
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchLabels:
+            env: production
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: aro-production
+  namespace: openshift-gitops
+spec:
+  clusterSets:
+    - aro-clusters
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchLabels:
+            env: production
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: all-production
+  namespace: openshift-gitops
+spec:
+  clusterSets:
+    - production-clusters
+    - rosa-clusters
+    - aro-clusters
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchLabels:
+            env: production
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: rosa-eu
+  namespace: openshift-gitops
+spec:
+  clusterSets:
+    - rosa-clusters
+    - eu-clusters
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchLabels:
+            data-sovereignty: eu
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: all-managed-clusters
+  namespace: policies
+spec:
+  clusterSets:
+    - production-clusters
+    - rosa-clusters
+    - aro-clusters
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchLabels:
+            env: production

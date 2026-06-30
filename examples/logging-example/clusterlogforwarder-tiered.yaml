@@ -1,0 +1,144 @@
+# OpenShift Logging 6 — tiered data-plane routing (ClusterLogForwarder)
+# Substitute ${AWS_ACCOUNT_ID}, ${AWS_REGION}, ${CRIBL_HEC_URL} before apply.
+# Requires secrets: cribl-hec-secret, logging-s3-role (see tutorial Step 1).
+#
+# Optional: add lokistack-out output + pipeline for in-cluster troubleshooting
+# (see tutorial Prerequisites / Day 0).
+apiVersion: observability.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: instance
+  namespace: openshift-logging
+spec:
+  managementState: Managed
+  serviceAccount:
+    name: logging-collector
+
+  outputs:
+    - name: cribl-hec
+      type: http
+      http:
+        url: "${CRIBL_HEC_URL}"
+        format: ndjson
+        authentication:
+          token:
+            from: secret
+            secret:
+              name: cribl-hec-secret
+              key: token
+      rateLimit:
+        maxRecordsPerSecond: 5000
+
+    - name: s3-cold
+      type: s3
+      s3:
+        bucket: "rosa-logs-cold-${AWS_ACCOUNT_ID}"
+        region: "${AWS_REGION}"
+        keyPrefix: '{.log_type||"none"}/'
+        authentication:
+          type: iamRole
+          iamRole:
+            roleARN:
+              secretName: logging-s3-role
+              key: role_arn
+            token:
+              from: serviceAccount
+
+  inputs:
+    - name: audit-all
+      type: audit
+      audit:
+        sources:
+          - kubeAPI
+          - openshiftAPI
+
+    - name: infra-node
+      type: infrastructure
+      infrastructure:
+        sources:
+          - node
+
+    - name: infra-containers
+      type: infrastructure
+      infrastructure:
+        sources:
+          - container
+        tuning:
+          container:
+            rateLimitPerContainer:
+              maxRecordsPerSecond: 50
+
+    - name: apps-production
+      type: application
+      application:
+        includes:
+          - namespace: "prod-*"
+          - namespace: "staging-*"
+        excludes:
+          - namespace: "openshift-*"
+          - namespace: "kube-*"
+          - namespace: "openshift-operator-lifecycle-manager"
+          - namespace: "openshift-marketplace"
+          - namespace: "openshift-catalogd"
+        tuning:
+          rateLimitPerContainer:
+            maxRecordsPerSecond: 100
+          maxMessageSize: 256Ki
+
+  filters:
+    - name: audit-security-policy
+      type: kubeAPIAudit
+      kubeAPIAudit:
+        omitStages:
+          - RequestReceived
+        omitResponseCodes: [404, 409, 422, 429]
+        rules:
+          - level: None
+            users:
+              - "system:oauth-server"
+              - "system:serviceaccount:openshift-authentication:*"
+            verbs: ["get", "list", "watch"]
+            resources:
+              - group: "oauth.openshift.io"
+                resources: ["oauthaccesstokens", "oauthauthorizetokens"]
+          - level: None
+            users: ["system:kube-proxy"]
+            verbs: ["watch"]
+            resources:
+              - group: ""
+                resources: ["endpoints", "services"]
+          - level: None
+            resources:
+              - group: ""
+                resources: ["configmaps"]
+                resourceNames: ["controller-leader", "extension-apiserver-authentication"]
+          - level: Metadata
+            verbs: ["create", "update", "patch", "delete"]
+            resources:
+              - group: "rbac.authorization.k8s.io"
+                resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
+              - group: "security.openshift.io"
+                resources: ["*"]
+          - level: Metadata
+
+  pipelines:
+    - name: tier1-audit-filtered
+      inputRefs: [audit-all]
+      filterRefs: [audit-security-policy]
+      outputRefs: [cribl-hec]
+
+    - name: tier2-audit-raw
+      inputRefs: [audit-all]
+      outputRefs: [s3-cold]
+
+    - name: tier1-infra-node
+      inputRefs: [infra-node]
+      outputRefs: [cribl-hec]
+
+    - name: tier1-infra-containers
+      inputRefs: [infra-containers]
+      outputRefs: [cribl-hec]
+
+    - name: tier1-apps
+      inputRefs: [apps-production]
+      outputRefs: [cribl-hec]

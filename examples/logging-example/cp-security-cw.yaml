@@ -1,0 +1,11 @@
+# ROSA HCP control plane — Tier 1 security logs → CloudWatch
+# rosa create log-forwarder -c ${CLUSTER_NAME} --log-fwd-config=cp-security-cw.yaml -y
+#
+# Requires IAM role named CustomerLogDistribution-* (see tutorial Step 5.2).
+
+cloudwatch:
+  cloudwatch_log_role_arn: "arn:aws:iam::${AWS_ACCOUNT_ID}:role/CustomerLogDistribution-${CLUSTER_NAME}"
+  cloudwatch_log_group_name: "/rosa/${OCM_CLUSTER_ID}/security"
+  groups:
+    - api
+    - authentication

@@ -1,0 +1,208 @@
+variable "resource_prefix" {
+  description = "Specifies the name prefix for all the Azure resources. Must be lowercase alphanumeric and hyphens only, max 15 characters."
+  type        = string
+  default     = ""
+  validation {
+    condition     = var.resource_prefix == "" || (can(regex("^[a-z0-9-]{1,15}$", var.resource_prefix)) && !can(regex("^-|-$", var.resource_prefix)))
+    error_message = "Resource prefix must be lowercase alphanumeric and hyphens only, max 15 characters, and cannot start or end with a hyphen."
+  }
+}
+
+variable "location" {
+  description = "Specifies the Azure region where resources will be created (e.g., canadacentral, eastus, westeurope)."
+  type        = string
+  validation {
+    condition     = can(regex("^[a-z0-9]+$", var.location))
+    error_message = "Location must be a valid Azure region name (lowercase alphanumeric)."
+  }
+}
+
+variable "resource_group_name" {
+  description = "Specifies the name of the resource group."
+  type        = string
+}
+
+variable "domain" {
+  description = "Specifies the domain prefix of the Azure Red Hat OpenShift cluster. Must be lowercase alphanumeric and hyphens only, 1-15 characters."
+  type        = string
+  validation {
+    condition     = can(regex("^[a-z0-9-]{1,15}$", var.domain)) && !can(regex("^-|-$", var.domain))
+    error_message = "Domain must be lowercase alphanumeric and hyphens only, 1-15 characters, and cannot start or end with a hyphen."
+  }
+}
+
+variable "pull_secret" {
+  description = "Specifies the pull secret from cloud.redhat.com. The JSON should be provided as a string. Leave empty for public clusters."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "virtual_network_address_space" {
+  description = "Specifies the address space of the virtual network hosting the Azure Red Hat OpenShift cluster (e.g., [\"10.0.0.0/22\"])."
+  type        = list(string)
+  validation {
+    condition     = length(var.virtual_network_address_space) > 0 && length(var.virtual_network_address_space) <= 3
+    error_message = "Virtual network address space must contain 1-3 CIDR blocks."
+  }
+}
+
+variable "worker_subnet_name" {
+  description = "Specifies the name of the worker node subnet."
+  default     = "worker-subnet"
+  type        = string
+}
+
+variable "worker_subnet_address_space" {
+  description = "Specifies the address space of the worker node subnet (e.g., [\"10.0.2.0/23\"]). Must be within virtual_network_address_space."
+  type        = list(string)
+  validation {
+    condition     = length(var.worker_subnet_address_space) == 1
+    error_message = "Worker subnet address space must contain exactly one CIDR block."
+  }
+}
+
+variable "master_subnet_name" {
+  description = "Specifies the name of the master node subnet."
+  default     = "master-subnet"
+  type        = string
+}
+
+variable "master_subnet_address_space" {
+  description = "Specifies the address space of the master node subnet (e.g., [\"10.0.0.0/23\"]). Must be within virtual_network_address_space."
+  type        = list(string)
+  validation {
+    condition     = length(var.master_subnet_address_space) == 1
+    error_message = "Master subnet address space must contain exactly one CIDR block."
+  }
+}
+
+variable "worker_node_vm_size" {
+  description = "Specifies the VM size for worker nodes of the Azure Red Hat OpenShift cluster."
+  default     = "Standard_D4s_v3"
+  type        = string
+}
+
+variable "master_node_vm_size" {
+  description = "Specifies the VM size for master nodes of the Azure Red Hat OpenShift cluster."
+  default     = "Standard_D8s_v3"
+  type        = string
+}
+
+variable "worker_profile_name" {
+  description = "Specifies the name of the worker profile of the Azure Red Hat OpenShift cluster."
+  default     = "worker"
+  type        = string
+}
+
+variable "worker_node_vm_disk_size" {
+  description = "Specifies the VM disk size for worker nodes of the Azure Red Hat OpenShift cluster."
+  default     = 128
+  type        = number
+}
+
+variable "worker_node_count" {
+  description = "Specifies the number of worker nodes of the Azure Red Hat OpenShift cluster."
+  default     = 3
+  type        = number
+  validation {
+    condition     = var.worker_node_count >= 3 && var.worker_node_count <= 20
+    error_message = "Worker node count must be between 3 and 20."
+  }
+}
+
+variable "pod_cidr" {
+  description = "Specifies the CIDR for the pods."
+  default     = "10.128.0.0/14"
+  type        = string
+}
+
+variable "service_cidr" {
+  description = "Specifies the CIDR for the services."
+  default     = "172.30.0.0/16"
+  type        = string
+}
+
+variable "tags" {
+  description = "(Optional) Specifies tags for all the resources"
+  default = {
+    createdWith = "Terraform"
+    environment = "Development"
+    department  = "Ops"
+  }
+}
+
+variable "api_server_visibility" {
+  description = "Specifies the API Server visibility for the Azure Red Hat OpenShift cluster."
+  default     = "Public"
+  validation {
+    condition     = contains(["Private", "Public"], var.api_server_visibility)
+    error_message = "The value of the api_server_visibility parameter is invalid."
+  }
+}
+
+variable "ingress_profile_name" {
+  description = "Specifies the name of the ingress profile of the Azure Red Hat OpenShift cluster."
+  default     = "default"
+  type        = string
+}
+
+variable "ingress_visibility" {
+  description = "Specifies the ingress visibility for the Azure Red Hat OpenShift cluster."
+  default     = "Public"
+  validation {
+    condition     = contains(["Private", "Public"], var.ingress_visibility)
+    error_message = "The value of the ingress_visibility parameter is invalid."
+  }
+}
+
+variable "fips_validated_modules" {
+  description = "Specifies whether FIPS validated crypto modules are used."
+  default     = "Disabled"
+  validation {
+    condition     = contains(["Disabled", "Enabled"], var.fips_validated_modules)
+    error_message = "The value of the fips_validated_modules parameter is invalid."
+  }
+}
+
+variable "master_encryption_at_host" {
+  description = "Specifies whether master virtual machines are encrypted at host."
+  default     = "Disabled"
+  validation {
+    condition     = contains(["Disabled", "Enabled"], var.master_encryption_at_host)
+    error_message = "The value of the master_encryption_at_host parameter is invalid."
+  }
+}
+
+variable "worker_encryption_at_host" {
+  description = "Specifies whether worker virtual machines are encrypted at host."
+  default     = "Disabled"
+  validation {
+    condition     = contains(["Disabled", "Enabled"], var.worker_encryption_at_host)
+    error_message = "The value of the worker_encryption_at_host parameter must be either 'Disabled' or 'Enabled'."
+  }
+}
+
+variable "aro_cluster_aad_sp_client_id" {
+  description = "Specifies the client id of the service principal of the Azure Red Hat OpenShift cluster."
+  type        = string
+  sensitive   = true
+}
+
+variable "aro_cluster_aad_sp_client_secret" {
+  description = "Specifies the client secret of the service principal of the Azure Red Hat OpenShift cluster."
+  type        = string
+  sensitive   = true
+}
+
+variable "aro_cluster_aad_sp_object_id" {
+  description = "Specifies the object id of the service principal of the Azure Red Hat OpenShift cluster."
+  type        = string
+  sensitive   = true
+}
+
+variable "aro_rp_aad_sp_object_id" {
+  description = "Specifies the object id of the service principal of the ARO resource provider."
+  type        = string
+  sensitive   = true
+}

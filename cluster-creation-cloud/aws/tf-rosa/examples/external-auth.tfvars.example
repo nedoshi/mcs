@@ -1,0 +1,27 @@
+# ROSA HCP with external authentication (irreversible) + break-glass
+# Auth: TF_VAR_client_id + TF_VAR_client_secret (recommended) or TF_VAR_token (optional)
+# Configure IdP after install: rosa create external-auth-provider
+# See docs/ENTRA-ID-SETUP.md
+# make plan TFVARS=examples/external-auth.tfvars.example
+
+cluster_name = "mobb-ext-rosa"
+region       = "us-east-1"
+
+tags = {
+  app-code      = "MOBB-001"
+  service-phase = "lab"
+  cost-center   = "468"
+  owner         = "nedoshi_mobb"
+}
+
+private  = false
+multi_az = false
+replicas = 2
+
+compute_machine_type = "m5.xlarge"
+create_account_roles = true
+
+external_auth_providers_enabled = true
+create_break_glass_credential   = true
+break_glass_username            = "emergency-admin"
+break_glass_expiration          = "24h"

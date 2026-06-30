@@ -1,0 +1,139 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: platform-baseline-helm
+  namespace: openshift-gitops
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - clusterDecisionResource:
+        configMapRef: acm-placement
+        labelSelector:
+          matchLabels:
+            cluster.open-cluster-management.io/placement: all-production
+        requeueAfterSeconds: 180
+  template:
+    metadata:
+      name: '{{ .clusterName }}-baseline'
+      labels:
+        app.kubernetes.io/part-of: platform-baseline
+    spec:
+      project: platform
+      source:
+        repoURL: https://github.com/your-org/tf-rosa-shared-vpc.git
+        targetRevision: main
+        path: gitops/charts/cluster-baseline
+        helm:
+          valueFiles:
+            - ../../cluster-values/baseline/{{ .clusterName }}.yaml
+      destination:
+        server: '{{ .clusterServer }}'
+        name: '{{ .clusterName }}'
+        namespace: openshift-gitops
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: platform-rosa-overlay-helm
+  namespace: openshift-gitops
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - clusterDecisionResource:
+        configMapRef: acm-placement
+        labelSelector:
+          matchLabels:
+            cluster.open-cluster-management.io/placement: rosa-production
+        requeueAfterSeconds: 180
+  template:
+    metadata:
+      name: '{{ .clusterName }}-rosa-overlay'
+      labels:
+        app.kubernetes.io/part-of: platform-rosa
+    spec:
+      project: platform
+      source:
+        repoURL: https://github.com/your-org/tf-rosa-shared-vpc.git
+        targetRevision: main
+        path: gitops/charts/rosa-platform-config
+        helm:
+          valueFiles:
+            - ../../cluster-values/rosa/{{ .clusterName }}.yaml
+      destination:
+        server: '{{ .clusterServer }}'
+        name: '{{ .clusterName }}'
+        namespace: openshift-gitops
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - ServerSideApply=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: platform-aro-overlay-helm
+  namespace: openshift-gitops
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - clusterDecisionResource:
+        configMapRef: acm-placement
+        labelSelector:
+          matchLabels:
+            cluster.open-cluster-management.io/placement: aro-production
+        requeueAfterSeconds: 180
+  template:
+    metadata:
+      name: '{{ .clusterName }}-aro-overlay'
+      labels:
+        app.kubernetes.io/part-of: platform-aro
+    spec:
+      project: platform
+      source:
+        repoURL: https://github.com/your-org/tf-rosa-shared-vpc.git
+        targetRevision: main
+        path: gitops/charts/aro-platform-config
+        helm:
+          valueFiles:
+            - ../../cluster-values/aro/{{ .clusterName }}.yaml
+      destination:
+        server: '{{ .clusterServer }}'
+        name: '{{ .clusterName }}'
+        namespace: openshift-gitops
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - ServerSideApply=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m

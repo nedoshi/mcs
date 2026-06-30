@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-network-tools-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-network-tools
+  template:
+    metadata:
+      labels:
+        app: my-network-tools
+    spec:
+      containers:
+      - name: my-network-tools
+        image: localhost:5000/my-network-tools:latest
+        ports:
+        - containerPort: 8080
+

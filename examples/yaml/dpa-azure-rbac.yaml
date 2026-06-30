@@ -1,0 +1,52 @@
+# dpa-azure-rbac.yaml
+apiVersion: oadp.openshift.io/v1alpha1
+kind: DataProtectionApplication
+metadata:
+  name: dpa-azure
+  namespace: openshift-adp
+spec:
+  configuration:
+    velero:
+      defaultPlugins:
+      - azure
+      - openshift
+      - csi
+      resourceAllocations:
+        limits:
+          cpu: "1"
+          memory: 1Gi
+        requests:
+          cpu: 500m
+          memory: 256Mi
+    restic::wq!
+      enable: true
+      resourceAllocations:
+        limits:
+          cpu: "1"
+          memory: 1Gi
+        requests:
+          cpu: 500m
+          memory: 256Mi
+  backupLocations:
+  - velero:
+      config:
+        storageAccount: oadpbrstorage
+        resourceGroup: nerav-aro-rg
+        subscriptionId: c5545383-1a94-45fe-b501-7ebdf43e5d7a
+      credential:
+        key: cloud
+        name: cloud-credentials-azure
+      default: true
+      objectStorage:
+        bucket: oadp-backups
+      provider: azure
+  snapshotLocations:
+  - velero:
+      config:
+        resourceGroup: nerav-aro-rg
+        subscriptionId: c5545383-1a94-45fe-b501-7ebdf43e5d7a
+        incremental: "true"
+      credential:
+        key: cloud
+        name: cloud-credentials-azure
+      provider: azure

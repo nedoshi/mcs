@@ -1,0 +1,16 @@
+{{- if .Values.namespaces.enabled }}
+{{- range .Values.namespaces.list }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ . }}
+  labels:
+    {{- include "cluster-baseline.labels" $ | nindent 4 }}
+    {{- if $.Values.security.enabled }}
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+    {{- end }}
+{{- end }}
+{{- end }}

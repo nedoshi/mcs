@@ -1,0 +1,25 @@
+{{- if .Values.storageRetain.enabled }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ .Values.storageRetain.className }}
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+provisioner: {{ .Values.storage.provisioner }}
+volumeBindingMode: {{ .Values.storage.volumeBindingMode }}
+reclaimPolicy: {{ .Values.storageRetain.reclaimPolicy }}
+allowVolumeExpansion: {{ .Values.storage.allowVolumeExpansion }}
+parameters:
+  type: {{ .Values.storage.volumeType }}
+  encrypted: "{{ .Values.storage.encrypted }}"
+  {{- if .Values.storage.kmsKeyArn }}
+  kmsKeyId: {{ required "storage.kmsKeyArn is required when storageRetain.enabled is true" .Values.storage.kmsKeyArn }}
+  {{- end }}
+  fstype: {{ .Values.storage.fsType }}
+  {{- if .Values.storage.iops }}
+  iopsPerGB: "{{ .Values.storage.iops }}"
+  {{- end }}
+  {{- if .Values.storage.throughput }}
+  throughputPerGiB: "{{ .Values.storage.throughput }}"
+  {{- end }}
+{{- end }}

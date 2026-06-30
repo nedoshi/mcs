@@ -1,0 +1,12 @@
+clusterName: demo1
+
+storage:
+  enabled: true
+  kmsKeyArn: arn:aws:kms:us-east-1:808393674160:key/REPLACE-WITH-ACTUAL-KEY-ID
+  className: gp3-csi-kms
+  isDefault: true
+
+# Set to false if Terraform rosa-entra-idp module manages OAuth for this cluster.
+# Set to true only when GitOps is the sole OAuth owner.
+identityProvider:
+  enabled: false

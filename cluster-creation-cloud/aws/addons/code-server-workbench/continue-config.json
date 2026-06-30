@@ -1,0 +1,49 @@
+{
+  "models": [
+    {
+      "title": "Qwen3-Coder-30B (Inferentia2)",
+      "provider": "openai",
+      "model": "qwen3-coder",
+      "apiBase": "VLLM_ENDPOINT_PLACEHOLDER/v1",
+      "apiKey": "EMPTY",
+      "contextLength": 8192,
+      "systemMessage": "You are an expert coding assistant powered by Qwen3-Coder. Write clear, correct, and idiomatic code. When editing existing code, produce minimal diffs. Explain your reasoning briefly when helpful.",
+      "completionOptions": {
+        "maxTokens": 4096,
+        "temperature": 0.7,
+        "topP": 0.8,
+        "topK": 20
+      },
+      "requestOptions": {
+        "extraBodyProperties": {
+          "repetition_penalty": 1.05
+        }
+      }
+    }
+  ],
+  "tabAutocompleteModel": {
+    "title": "Qwen3-Coder-30B (Autocomplete)",
+    "provider": "openai",
+      "model": "qwen3-coder",
+      "apiBase": "VLLM_ENDPOINT_PLACEHOLDER/v1",
+      "apiKey": "EMPTY",
+      "contextLength": 8192,
+      "completionOptions": {
+        "maxTokens": 256,
+      "temperature": 0.2,
+      "topP": 0.95
+    },
+    "requestOptions": {
+      "extraBodyProperties": {
+        "repetition_penalty": 1.05
+      }
+    }
+  },
+  "tabAutocompleteOptions": {
+    "debounceDelay": 500,
+    "maxPromptTokens": 2048,
+    "multilineCompletions": "auto",
+    "useCache": true
+  },
+  "allowAnonymousTelemetry": false
+}

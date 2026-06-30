@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 920" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif">
+  <defs>
+    <marker id="a2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#546E7A"/>
+    </marker>
+    <marker id="a2r" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#EE0000"/>
+    </marker>
+    <filter id="s2" x="-1%" y="-1%" width="102%" height="104%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="920" fill="#FAFAFA"/>
+
+  <!-- Title bar (Red Hat branding) -->
+  <rect x="0" y="0" width="1600" height="50" fill="#EE0000"/>
+  <text x="40" y="32" fill="#fff" font-size="17" font-weight="700">Red Hat Components View &#8212; Private AI Code Assistant</text>
+  <text x="1560" y="32" text-anchor="end" fill="#FFCDD2" font-size="10">OpenShift-Centric Architecture</text>
+
+  <!-- ================================================================ -->
+  <!-- EXTERNAL: Users (left) -->
+  <!-- ================================================================ -->
+  <rect x="20" y="70" width="120" height="100" rx="8" fill="#37474F" filter="url(#s2)"/>
+  <circle cx="80" cy="98" r="12" fill="none" stroke="#B0BEC5" stroke-width="1.5"/>
+  <path d="M60 130 Q60 114 80 114 Q100 114 100 130" fill="none" stroke="#B0BEC5" stroke-width="1.5"/>
+  <text x="80" y="156" text-anchor="middle" fill="#ECEFF1" font-size="9" font-weight="600">Developers</text>
+
+  <!-- Arrow: User to NLB -->
+  <line x1="140" y1="120" x2="165" y2="120" stroke="#546E7A" stroke-width="1.5" marker-end="url(#a2)"/>
+  <text x="152" y="113" text-anchor="middle" fill="#78909C" font-size="6.5">HTTPS</text>
+
+  <!-- EXTERNAL: AWS NLB -->
+  <rect x="170" y="88" width="90" height="64" rx="6" fill="#FF9900" filter="url(#s2)"/>
+  <text x="215" y="112" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">AWS NLB</text>
+  <text x="215" y="126" text-anchor="middle" fill="#FFF3E0" font-size="7">HTTPS :443</text>
+  <text x="215" y="138" text-anchor="middle" fill="#FFF3E0" font-size="7">API :6443</text>
+
+  <!-- Arrow: NLB to OpenShift -->
+  <line x1="260" y1="120" x2="290" y2="120" stroke="#546E7A" stroke-width="1.5" marker-end="url(#a2)"/>
+
+  <!-- ================================================================ -->
+  <!-- EXTERNAL: EC2 Nodes (bottom-left) -->
+  <!-- ================================================================ -->
+  <rect x="20" y="680" width="268" height="224" rx="8" fill="#232F3E" filter="url(#s2)"/>
+  <rect x="28" y="680" width="160" height="22" rx="4" fill="#FF9900"/>
+  <text x="108" y="696" text-anchor="middle" fill="#232F3E" font-size="9" font-weight="700">AWS EC2 Worker Nodes</text>
+
+  <rect x="32" y="712" width="120" height="42" rx="4" fill="#E8F5E9" stroke="#76B900" stroke-width="1"/>
+  <text x="92" y="728" text-anchor="middle" fill="#33691E" font-size="7.5" font-weight="700">g6e.2xlarge</text>
+  <text x="92" y="742" text-anchor="middle" fill="#558B2F" font-size="6.5">NVIDIA L40S &#183; 48 GB</text>
+
+  <rect x="158" y="712" width="120" height="42" rx="4" fill="#FFF3E0" stroke="#FF8F00" stroke-width="1"/>
+  <text x="218" y="728" text-anchor="middle" fill="#E65100" font-size="7.5" font-weight="700">inf2.24xlarge</text>
+  <text x="218" y="742" text-anchor="middle" fill="#EF6C00" font-size="6.5">Inferentia2 &#183; 12 Cores</text>
+
+  <rect x="32" y="762" width="120" height="42" rx="4" fill="#FBE9E7" stroke="#BF360C" stroke-width="1"/>
+  <text x="92" y="778" text-anchor="middle" fill="#BF360C" font-size="7.5" font-weight="700">trn1.32xlarge</text>
+  <text x="92" y="792" text-anchor="middle" fill="#D84315" font-size="6.5">Trainium &#183; 32 Cores</text>
+
+  <rect x="158" y="762" width="120" height="42" rx="4" fill="#ECEFF1" stroke="#78909C" stroke-width="1"/>
+  <text x="218" y="778" text-anchor="middle" fill="#37474F" font-size="7.5" font-weight="700">m5.xlarge</text>
+  <text x="218" y="792" text-anchor="middle" fill="#546E7A" font-size="6.5">General workers</text>
+
+  <rect x="32" y="814" width="246" height="38" rx="4" fill="#E0E0E0"/>
+  <text x="155" y="832" text-anchor="middle" fill="#212121" font-size="8" font-weight="600">Amazon EBS gp3 &#183; NVMe Instance Store</text>
+  <text x="155" y="846" text-anchor="middle" fill="#424242" font-size="7">PVCs: model weights, NEFF cache, HF cache</text>
+
+  <text x="155" y="876" text-anchor="middle" fill="#B0BEC5" font-size="7">Taints + tolerations isolate accelerator workloads</text>
+  <text x="155" y="890" text-anchor="middle" fill="#78909C" font-size="7">ROSA machine pools &#183; autoscaling ready</text>
+
+  <!-- Arrow: EC2 to cluster (provides compute for) -->
+  <line x1="288" y1="750" x2="308" y2="750" stroke="#78909C" stroke-width="1" stroke-dasharray="3 2"/>
+  <text x="298" y="742" text-anchor="middle" fill="#78909C" font-size="6" transform="rotate(-90, 298, 742)">compute</text>
+
+  <!-- ================================================================ -->
+  <!-- OPENSHIFT CLUSTER BOUNDARY -->
+  <!-- ================================================================ -->
+  <rect x="295" y="62" width="1286" height="844" rx="12" fill="#fff" stroke="#EE0000" stroke-width="3" filter="url(#s2)"/>
+  <rect x="303" y="62" width="420" height="28" rx="6" fill="#EE0000"/>
+  <text x="513" y="82" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">Red Hat OpenShift Container Platform (ROSA HCP 4.21)</text>
+
+  <!-- ================================================================ -->
+  <!-- NAMESPACE: openshift-devspaces -->
+  <!-- ================================================================ -->
+  <rect x="315" y="102" width="440" height="190" rx="8" fill="#E3F2FD" stroke="#1565C0" stroke-width="1.5"/>
+  <rect x="323" y="102" width="200" height="22" rx="4" fill="#1565C0"/>
+  <text x="423" y="118" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">ns: openshift-devspaces</text>
+
+  <!-- Dev Spaces Operator -->
+  <rect x="327" y="134" width="180" height="50" rx="5" fill="#BBDEFB" stroke="#42A5F5" stroke-width="0.5"/>
+  <text x="417" y="152" text-anchor="middle" fill="#0D47A1" font-size="9" font-weight="700">Dev Spaces Operator 3.27</text>
+  <text x="417" y="166" text-anchor="middle" fill="#1565C0" font-size="7.5">DevWorkspace Controller v0.40</text>
+  <text x="417" y="178" text-anchor="middle" fill="#1976D2" font-size="7">Dashboard (Web UI)</text>
+
+  <!-- Workspace pods -->
+  <rect x="520" y="134" width="220" height="50" rx="5" fill="#BBDEFB" stroke="#42A5F5" stroke-width="0.5"/>
+  <text x="630" y="152" text-anchor="middle" fill="#0D47A1" font-size="9" font-weight="700">Workspace Pods</text>
+  <text x="630" y="166" text-anchor="middle" fill="#1565C0" font-size="7.5">VS Code (che-code) per developer</text>
+  <text x="630" y="178" text-anchor="middle" fill="#1976D2" font-size="7">Continue &#183; Cline &#183; Roo Code extensions</text>
+
+  <!-- Remote SSH label -->
+  <rect x="327" y="196" width="420" height="24" rx="3" fill="#E1F5FE" stroke="#29B6F6" stroke-width="0.5"/>
+  <text x="537" y="212" text-anchor="middle" fill="#0277BD" font-size="7.5">Remote SSH (port 2022) &#183; OpenAI-compatible API calls to llm-d &#8594;</text>
+
+  <!-- Arrow: Dev Spaces to Service Mesh -->
+  <line x1="537" y1="236" x2="537" y2="252" stroke="#546E7A" stroke-width="1" marker-end="url(#a2)"/>
+
+  <!-- ================================================================ -->
+  <!-- NAMESPACE: openshift-ingress (Service Mesh Gateway) -->
+  <!-- ================================================================ -->
+  <rect x="315" y="256" width="440" height="90" rx="8" fill="#EDE7F6" stroke="#7C4DFF" stroke-width="1.5"/>
+  <rect x="323" y="256" width="200" height="22" rx="4" fill="#7C4DFF"/>
+  <text x="423" y="272" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">ns: openshift-ingress</text>
+
+  <rect x="327" y="288" width="200" height="48" rx="5" fill="#D1C4E9" stroke="#9575CD" stroke-width="0.5"/>
+  <text x="427" y="306" text-anchor="middle" fill="#311B92" font-size="9" font-weight="700">Service Mesh 3 (Istio)</text>
+  <text x="427" y="320" text-anchor="middle" fill="#4527A0" font-size="7.5">Gateway API &#183; data-science-gateway</text>
+  <text x="427" y="332" text-anchor="middle" fill="#5E35B1" font-size="7">ext_proc filter &#8594; llm-d EPP</text>
+
+  <rect x="540" y="288" width="200" height="48" rx="5" fill="#D1C4E9" stroke="#9575CD" stroke-width="0.5"/>
+  <text x="640" y="306" text-anchor="middle" fill="#311B92" font-size="9" font-weight="700">HTTPRoute</text>
+  <text x="640" y="320" text-anchor="middle" fill="#4527A0" font-size="7.5">qwen3-coder-fp8-kserve-route</text>
+  <text x="640" y="332" text-anchor="middle" fill="#5E35B1" font-size="7">TLS passthrough to vLLM pods</text>
+
+  <!-- Arrow: Gateway to llm-d namespace -->
+  <line x1="537" y1="346" x2="537" y2="362" stroke="#546E7A" stroke-width="1" marker-end="url(#a2)"/>
+
+  <!-- ================================================================ -->
+  <!-- NAMESPACE: llm-d-multi-gpu -->
+  <!-- ================================================================ -->
+  <rect x="315" y="366" width="960" height="290" rx="8" fill="#E1F5FE" stroke="#0288D1" stroke-width="1.5"/>
+  <rect x="323" y="366" width="200" height="22" rx="4" fill="#0288D1"/>
+  <text x="423" y="382" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">ns: llm-d-multi-gpu</text>
+
+  <!-- llm-d EPP -->
+  <rect x="327" y="398" width="200" height="64" rx="5" fill="#B3E5FC" stroke="#29B6F6" stroke-width="0.5"/>
+  <text x="427" y="416" text-anchor="middle" fill="#01579B" font-size="9" font-weight="700">llm-d Endpoint Picker (EPP)</text>
+  <text x="427" y="432" text-anchor="middle" fill="#0277BD" font-size="7.5">InferencePool Controller</text>
+  <text x="427" y="446" text-anchor="middle" fill="#0288D1" font-size="7">prefix &#215; 0.4 + kv &#215; 0.3 + queue &#215; 0.3</text>
+  <text x="427" y="458" text-anchor="middle" fill="#039BE5" font-size="6.5">Router-Scheduler Deployment</text>
+
+  <!-- LLMInferenceService -->
+  <rect x="327" y="472" width="200" height="44" rx="5" fill="#B3E5FC" stroke="#29B6F6" stroke-width="0.5"/>
+  <text x="427" y="490" text-anchor="middle" fill="#01579B" font-size="9" font-weight="700">LLMInferenceService</text>
+  <text x="427" y="504" text-anchor="middle" fill="#0277BD" font-size="7.5">qwen3-coder-fp8 (KServe CR)</text>
+  <text x="427" y="512" text-anchor="middle" fill="#039BE5" font-size="6.5">Manages vLLM pods + self-signed TLS</text>
+
+  <!-- Arrow: EPP to vLLM pods -->
+  <line x1="527" y1="430" x2="555" y2="430" stroke="#546E7A" stroke-width="1.5" marker-end="url(#a2)"/>
+  <text x="541" y="423" text-anchor="middle" fill="#78909C" font-size="6.5">route</text>
+
+  <!-- vLLM Pod NVIDIA -->
+  <rect x="560" y="398" width="230" height="58" rx="5" fill="#E8F5E9" stroke="#76B900" stroke-width="1.2"/>
+  <rect x="560" y="398" width="4" height="58" rx="2" fill="#76B900"/>
+  <text x="578" y="416" fill="#33691E" font-size="8.5" font-weight="700">vLLM Pod (CUDA) &#8212; g6e.2xlarge</text>
+  <text x="578" y="430" fill="#558B2F" font-size="7.5">Qwen3-Coder-30B FP8 &#183; TP=1 &#183; 32k ctx</text>
+  <text x="578" y="444" fill="#689F38" font-size="7">NVIDIA L40S &#183; prefix caching ON</text>
+
+  <!-- vLLM Pod Inferentia -->
+  <rect x="560" y="464" width="230" height="58" rx="5" fill="#FFF3E0" stroke="#FF8F00" stroke-width="1.2"/>
+  <rect x="560" y="464" width="4" height="58" rx="2" fill="#FF8F00"/>
+  <text x="578" y="482" fill="#E65100" font-size="8.5" font-weight="700">vLLM Pod (Neuron) &#8212; inf2.24xlarge</text>
+  <text x="578" y="496" fill="#EF6C00" font-size="7.5">Qwen3-Coder-30B BF16 &#183; TP=8 &#183; 4k ctx</text>
+  <text x="578" y="510" fill="#F57C00" font-size="7">Inferentia2 &#183; Neuron SDK 2.28</text>
+
+  <!-- vLLM Pod Trainium -->
+  <rect x="560" y="530" width="230" height="58" rx="5" fill="#FBE9E7" stroke="#BF360C" stroke-width="1.2"/>
+  <rect x="560" y="530" width="4" height="58" rx="2" fill="#BF360C"/>
+  <text x="578" y="548" fill="#BF360C" font-size="8.5" font-weight="700">vLLM Pod (Neuron DRA) &#8212; trn1.32xl</text>
+  <text x="578" y="562" fill="#D84315" font-size="7.5">Qwen3-Coder-30B BF16 &#183; TP=8-16 &#183; 8-16k ctx</text>
+  <text x="578" y="576" fill="#E64A19" font-size="7">Trainium &#183; ResourceClaimTemplate &#183; NVMe scratch</text>
+
+  <!-- Services & CRDs -->
+  <rect x="560" y="596" width="230" height="48" rx="5" fill="#F5F5F5" stroke="#BDBDBD" stroke-width="0.5"/>
+  <text x="675" y="612" text-anchor="middle" fill="#37474F" font-size="8" font-weight="600">Kubernetes Services</text>
+  <text x="675" y="626" text-anchor="middle" fill="#546E7A" font-size="7">qwen3-coder-fp8 (ClusterIP)</text>
+  <text x="675" y="638" text-anchor="middle" fill="#607D8B" font-size="7">Self-signed TLS certs (Secret)</text>
+
+  <!-- Unified model callout -->
+  <rect x="808" y="398" width="200" height="44" rx="5" fill="#263238" opacity="0.92"/>
+  <text x="908" y="416" text-anchor="middle" fill="#B2EBF2" font-size="8" font-weight="600">All pods serve:</text>
+  <text x="908" y="432" text-anchor="middle" fill="#4DD0E1" font-size="7.5">Qwen/Qwen3-Coder-30B-A3B-Instruct-FP8</text>
+
+  <!-- ResourceClaimTemplate -->
+  <rect x="808" y="454" width="200" height="40" rx="5" fill="#EDE7F6" stroke="#7C4DFF" stroke-width="0.5"/>
+  <text x="908" y="470" text-anchor="middle" fill="#311B92" font-size="8" font-weight="600">ResourceClaimTemplates</text>
+  <text x="908" y="484" text-anchor="middle" fill="#4527A0" font-size="7">trainium-4-devices (4 NeuronDevices)</text>
+
+  <!-- PVCs -->
+  <rect x="808" y="504" width="200" height="56" rx="5" fill="#E0E0E0" stroke="#9E9E9E" stroke-width="0.5"/>
+  <text x="908" y="520" text-anchor="middle" fill="#212121" font-size="8" font-weight="600">PersistentVolumeClaims</text>
+  <text x="908" y="534" text-anchor="middle" fill="#424242" font-size="7">nvidia-model-cache (EBS gp3)</text>
+  <text x="908" y="548" text-anchor="middle" fill="#424242" font-size="7">trainium-model-cache (EBS gp3)</text>
+
+  <!-- Model info -->
+  <rect x="808" y="570" width="200" height="74" rx="5" fill="#F5F5F5" stroke="#E0E0E0" stroke-width="0.5"/>
+  <text x="908" y="586" text-anchor="middle" fill="#37474F" font-size="8" font-weight="600">Model: Qwen3-Coder-30B-A3B</text>
+  <text x="908" y="600" text-anchor="middle" fill="#546E7A" font-size="7">30.5B params (3.3B active MoE)</text>
+  <text x="908" y="614" text-anchor="middle" fill="#546E7A" font-size="7">128K native context &#183; Apache 2.0</text>
+  <text x="908" y="628" text-anchor="middle" fill="#546E7A" font-size="7">FP8 on NVIDIA &#183; BF16 on Neuron</text>
+  <text x="908" y="640" text-anchor="middle" fill="#78909C" font-size="6.5">Coding-specialized MoE model</text>
+
+  <!-- ================================================================ -->
+  <!-- OPERATOR NAMESPACE AREA -->
+  <!-- ================================================================ -->
+  <rect x="315" y="670" width="960" height="222" rx="8" fill="#FFF8E1" stroke="#FF8F00" stroke-width="1.5"/>
+  <rect x="323" y="670" width="300" height="22" rx="4" fill="#FF8F00"/>
+  <text x="473" y="686" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">Operators (OLM &#183; various namespaces)</text>
+
+  <!-- Row 1 -->
+  <rect x="327" y="702" width="150" height="44" rx="4" fill="#E8F5E9" stroke="#76B900" stroke-width="1"/>
+  <text x="402" y="720" text-anchor="middle" fill="#33691E" font-size="8" font-weight="700">NVIDIA GPU Operator</text>
+  <text x="402" y="734" text-anchor="middle" fill="#558B2F" font-size="7">v25.3.4 &#183; Device Plugin</text>
+  <text x="402" y="744" text-anchor="middle" fill="#689F38" font-size="6.5">DCGM &#183; Driver Manager</text>
+
+  <rect x="485" y="702" width="150" height="44" rx="4" fill="#FFF3E0" stroke="#FF8F00" stroke-width="1"/>
+  <text x="560" y="720" text-anchor="middle" fill="#E65100" font-size="8" font-weight="700">Neuron Operator</text>
+  <text x="560" y="734" text-anchor="middle" fill="#EF6C00" font-size="7">v1.1.2 &#183; Device Plugin</text>
+  <text x="560" y="744" text-anchor="middle" fill="#F57C00" font-size="6.5">Scheduler &#183; Monitor</text>
+
+  <rect x="643" y="702" width="150" height="44" rx="4" fill="#FBE9E7" stroke="#BF360C" stroke-width="1"/>
+  <text x="718" y="720" text-anchor="middle" fill="#BF360C" font-size="8" font-weight="700">Neuron DRA Driver</text>
+  <text x="718" y="734" text-anchor="middle" fill="#D84315" font-size="7">v1.0.0 &#183; CDI injection</text>
+  <text x="718" y="744" text-anchor="middle" fill="#E64A19" font-size="6.5">ResourceClaimTemplate</text>
+
+  <rect x="801" y="702" width="150" height="44" rx="4" fill="#EDE7F6" stroke="#7C4DFF" stroke-width="1"/>
+  <text x="876" y="720" text-anchor="middle" fill="#311B92" font-size="8" font-weight="700">Red Hat OpenShift AI</text>
+  <text x="876" y="734" text-anchor="middle" fill="#4527A0" font-size="7">RHOAI 3.3</text>
+  <text x="876" y="744" text-anchor="middle" fill="#5E35B1" font-size="6.5">KServe &#183; LLMInferenceService</text>
+
+  <rect x="959" y="702" width="150" height="44" rx="4" fill="#EDE7F6" stroke="#9575CD" stroke-width="1"/>
+  <text x="1034" y="720" text-anchor="middle" fill="#311B92" font-size="8" font-weight="700">Service Mesh Operator</text>
+  <text x="1034" y="734" text-anchor="middle" fill="#4527A0" font-size="7">v3.3.1 (Istio-based)</text>
+  <text x="1034" y="744" text-anchor="middle" fill="#5E35B1" font-size="6.5">Gateway API CRDs</text>
+
+  <rect x="1117" y="702" width="150" height="44" rx="4" fill="#ECEFF1" stroke="#78909C" stroke-width="1"/>
+  <text x="1192" y="720" text-anchor="middle" fill="#37474F" font-size="8" font-weight="700">NFD Operator</text>
+  <text x="1192" y="734" text-anchor="middle" fill="#546E7A" font-size="7">v4.21</text>
+  <text x="1192" y="744" text-anchor="middle" fill="#607D8B" font-size="6.5">PCI &#183; accelerator labels</text>
+
+  <!-- Row 2 -->
+  <rect x="327" y="754" width="150" height="44" rx="4" fill="#E8EAF6" stroke="#5C6BC0" stroke-width="1"/>
+  <text x="402" y="772" text-anchor="middle" fill="#1A237E" font-size="8" font-weight="700">cert-manager</text>
+  <text x="402" y="786" text-anchor="middle" fill="#283593" font-size="7">v1.18.1</text>
+  <text x="402" y="796" text-anchor="middle" fill="#3949AB" font-size="6.5">TLS cert lifecycle</text>
+
+  <rect x="485" y="754" width="150" height="44" rx="4" fill="#FCE4EC" stroke="#C62828" stroke-width="1"/>
+  <text x="560" y="772" text-anchor="middle" fill="#B71C1C" font-size="8" font-weight="700">KMM</text>
+  <text x="560" y="786" text-anchor="middle" fill="#C62828" font-size="7">v2.6.0 &#183; Kernel Module Mgmt</text>
+  <text x="560" y="796" text-anchor="middle" fill="#D32F2F" font-size="6.5">neuron.ko &#183; SELinux fix</text>
+
+  <rect x="643" y="754" width="150" height="44" rx="4" fill="#E3F2FD" stroke="#42A5F5" stroke-width="1"/>
+  <text x="718" y="772" text-anchor="middle" fill="#0D47A1" font-size="8" font-weight="700">Dev Spaces Operator</text>
+  <text x="718" y="786" text-anchor="middle" fill="#1565C0" font-size="7">v3.27.0</text>
+  <text x="718" y="796" text-anchor="middle" fill="#1976D2" font-size="6.5">DevWorkspace Operator v0.40</text>
+
+  <rect x="801" y="754" width="150" height="44" rx="4" fill="#F3E5F5" stroke="#AB47BC" stroke-width="1"/>
+  <text x="876" y="772" text-anchor="middle" fill="#6A1B9A" font-size="8" font-weight="700">LeaderWorkerSet</text>
+  <text x="876" y="786" text-anchor="middle" fill="#7B1FA2" font-size="7">v1.0.0</text>
+  <text x="876" y="796" text-anchor="middle" fill="#8E24AA" font-size="6.5">Multi-worker orchestration</text>
+
+  <rect x="959" y="754" width="150" height="44" rx="4" fill="#EFEBE9" stroke="#795548" stroke-width="1"/>
+  <text x="1034" y="772" text-anchor="middle" fill="#3E2723" font-size="8" font-weight="700">Deployment Validation</text>
+  <text x="1034" y="786" text-anchor="middle" fill="#4E342E" font-size="7">v0.1.568</text>
+  <text x="1034" y="796" text-anchor="middle" fill="#5D4037" font-size="6.5">Policy enforcement</text>
+
+  <!-- Operator count -->
+  <rect x="1117" y="754" width="150" height="44" rx="4" fill="#F5F5F5" stroke="#E0E0E0" stroke-width="0.5"/>
+  <text x="1192" y="770" text-anchor="middle" fill="#37474F" font-size="8" font-weight="700">11 Operators</text>
+  <text x="1192" y="784" text-anchor="middle" fill="#546E7A" font-size="7">Installed via OLM</text>
+  <text x="1192" y="796" text-anchor="middle" fill="#78909C" font-size="6.5">OperatorHub catalog</text>
+
+  <!-- ================================================================ -->
+  <!-- PLATFORM COMPONENTS (right side, inside cluster) -->
+  <!-- ================================================================ -->
+  <rect x="1035" y="102" width="240" height="258" rx="8" fill="#FFEBEE" stroke="#EF5350" stroke-width="1.5"/>
+  <rect x="1043" y="102" width="180" height="22" rx="4" fill="#EF5350"/>
+  <text x="1133" y="118" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">Platform Components</text>
+
+  <rect x="1047" y="134" width="216" height="28" rx="3" fill="#FFCDD2" stroke="#EF9A9A" stroke-width="0.5"/>
+  <text x="1155" y="152" text-anchor="middle" fill="#B71C1C" font-size="8" font-weight="600">ROSA HCP Control Plane (AWS-managed)</text>
+
+  <rect x="1047" y="170" width="104" height="28" rx="3" fill="#FFCDD2" stroke="#EF9A9A" stroke-width="0.5"/>
+  <text x="1099" y="188" text-anchor="middle" fill="#B71C1C" font-size="8" font-weight="600">OVN-Kubernetes</text>
+
+  <rect x="1157" y="170" width="104" height="28" rx="3" fill="#FFCDD2" stroke="#EF9A9A" stroke-width="0.5"/>
+  <text x="1209" y="188" text-anchor="middle" fill="#B71C1C" font-size="8" font-weight="600">Ingress (HAProxy)</text>
+
+  <rect x="1047" y="206" width="104" height="28" rx="3" fill="#FFCDD2" stroke="#EF9A9A" stroke-width="0.5"/>
+  <text x="1099" y="224" text-anchor="middle" fill="#B71C1C" font-size="8" font-weight="600">RBAC / OAuth</text>
+
+  <rect x="1157" y="206" width="104" height="28" rx="3" fill="#FFCDD2" stroke="#EF9A9A" stroke-width="0.5"/>
+  <text x="1209" y="224" text-anchor="middle" fill="#B71C1C" font-size="8" font-weight="600">Monitoring</text>
+
+  <rect x="1047" y="242" width="104" height="28" rx="3" fill="#FFCDD2" stroke="#EF9A9A" stroke-width="0.5"/>
+  <text x="1099" y="260" text-anchor="middle" fill="#B71C1C" font-size="8" font-weight="600">OLM / OperatorHub</text>
+
+  <rect x="1157" y="242" width="104" height="28" rx="3" fill="#FFCDD2" stroke="#EF9A9A" stroke-width="0.5"/>
+  <text x="1209" y="260" text-anchor="middle" fill="#B71C1C" font-size="8" font-weight="600">CSI (EBS gp3)</text>
+
+  <rect x="1047" y="278" width="216" height="28" rx="3" fill="#FFCDD2" stroke="#EF9A9A" stroke-width="0.5"/>
+  <text x="1155" y="296" text-anchor="middle" fill="#B71C1C" font-size="8" font-weight="600">Prometheus &#183; Grafana &#183; GPU/Neuron metrics</text>
+
+  <rect x="1047" y="314" width="216" height="28" rx="3" fill="#FFCDD2" stroke="#EF9A9A" stroke-width="0.5"/>
+  <text x="1155" y="332" text-anchor="middle" fill="#B71C1C" font-size="8" font-weight="600">Image Registry &#183; Logging &#183; Audit</text>
+
+  <!-- Footer -->
+  <rect x="0" y="904" width="1600" height="16" fill="#EE0000"/>
+  <text x="40" y="914" fill="#fff" font-size="7.5">Red Hat Components View &#183; Private AI Code Assistant &#183; ROSA HCP 4.21 &#183; 11 operators &#183; Multi-accelerator inference</text>
+  <text x="1560" y="914" text-anchor="end" fill="#FFCDD2" font-size="7.5">OpenShift-Centric &#183; All software inside cluster boundary</text>
+</svg>

@@ -1,0 +1,11 @@
+---
+- name: Get cluster console URL
+  ansible.builtin.shell: rosa describe cluster -c {{ cluster_name }} -o json | jq -r '.console.url'
+  register: console_url
+  changed_when: false
+
+- name: Display cluster access information
+  ansible.builtin.debug:
+    msg:
+      - "Console URL: {{ console_url.stdout }}"
+      - "To create admin: rosa create admin -c {{ cluster_name }}"

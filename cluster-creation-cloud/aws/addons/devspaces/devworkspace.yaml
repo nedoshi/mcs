@@ -1,0 +1,175 @@
+apiVersion: workspace.devfile.io/v1alpha2
+kind: DevWorkspace
+metadata:
+  name: llm-coding-workspace
+  labels:
+    che.eclipse.org/devworkspace: "true"
+spec:
+  started: false
+  routingClass: che
+  template:
+    components:
+      - name: dev-tools
+        container:
+          image: registry.redhat.io/devspaces/udi-rhel8:latest
+          memoryLimit: 4Gi
+          memoryRequest: 512Mi
+          cpuLimit: "2"
+          cpuRequest: 250m
+          mountSources: true
+          env:
+            - name: VLLM_ENDPOINT
+              value: "https://qwen3-coder-neuron-llm-serving.apps.rosa.<CLUSTER_NAME>.<CLUSTER_HASH>.openshiftapps.com"
+            - name: VLLM_MODEL_ID
+              value: "qwen3-coder"
+    commands:
+      - id: install-and-configure-extensions
+        exec:
+          component: dev-tools
+          commandLine: |
+            #!/bin/bash
+            set -e
+            export LD_LIBRARY_PATH="/checode/checode-linux-libc/ubi8/ld_libs:/usr/lib64"
+            NODE="/checode/checode-linux-libc/ubi8/node"
+            CODE_DIR="/checode/checode-linux-libc/ubi8"
+
+            # Create kubeconfig from in-cluster service account (required by Continue extension)
+            if [ -f /var/run/secrets/kubernetes.io/serviceaccount/token ]; then
+              mkdir -p ~/.kube
+              SA_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+              SA_CA=$(cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt | base64 -w0)
+              SA_NS=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+              cat > ~/.kube/config <<KUBEEOF
+            apiVersion: v1
+            kind: Config
+            clusters:
+            - cluster:
+                certificate-authority-data: ${SA_CA}
+                server: https://kubernetes.default.svc
+              name: in-cluster
+            contexts:
+            - context:
+                cluster: in-cluster
+                namespace: ${SA_NS}
+                user: default
+              name: in-cluster
+            current-context: in-cluster
+            users:
+            - name: default
+              user:
+                token: ${SA_TOKEN}
+            KUBEEOF
+              echo "kubeconfig created from service account"
+            fi
+
+            VSIX_CACHE="/projects/.vsix-cache"
+            CLINE_VSIX="${VSIX_CACHE}/saoudrizwan.claude-dev-3.76.0.vsix"
+            CONTINUE_VSIX="${VSIX_CACHE}/Continue.continue-1.1.80-linux-x64.vsix"
+
+            if ! cd "$CODE_DIR" 2>/dev/null || ! [ -x "$NODE" ]; then
+              echo "Waiting for che-code injection..."
+              for attempt in $(seq 1 30); do
+                sleep 2
+                [ -x "$NODE" ] && cd "$CODE_DIR" && break
+              done
+            fi
+
+            mkdir -p "${VSIX_CACHE}"
+
+            if [ ! -f "${CLINE_VSIX}" ]; then
+              echo "Downloading Cline extension (first start, caching to PVC)..."
+              curl -sLo "${CLINE_VSIX}" "https://open-vsx.org/api/saoudrizwan/claude-dev/3.76.0/file/saoudrizwan.claude-dev-3.76.0.vsix"
+            else
+              echo "Cline extension found in PVC cache"
+            fi
+            cd "$CODE_DIR" && $NODE out/server-main.js --extensions-dir /checode/remote/extensions --install-extension "${CLINE_VSIX}" --force 2>&1 || true
+
+            if [ ! -f "${CONTINUE_VSIX}" ]; then
+              echo "Downloading Continue extension (first start, caching to PVC)..."
+              curl -sLo "${CONTINUE_VSIX}" "https://open-vsx.org/api/Continue/continue/linux-x64/1.1.80/file/Continue.continue-1.1.80@linux-x64.vsix"
+            else
+              echo "Continue extension found in PVC cache"
+            fi
+            cd "$CODE_DIR" && $NODE out/server-main.js --extensions-dir /checode/remote/extensions --install-extension "${CONTINUE_VSIX}" --force 2>&1 || true
+
+            echo "Configuring Continue (v1.1.x config.json)..."
+            mkdir -p ~/.continue
+            python3 -c "
+            import json, os
+            endpoint = os.environ['VLLM_ENDPOINT']
+            model_id = os.environ['VLLM_MODEL_ID']
+            config = {
+                'models': [{
+                    'title': 'Qwen3-Coder (Inferentia2)',
+                    'provider': 'openai',
+                    'model': model_id,
+                    'apiBase': endpoint + '/v1',
+                    'apiKey': 'EMPTY'
+                }],
+                'tabAutocompleteModel': {
+                    'title': 'Qwen3-Coder Autocomplete',
+                    'provider': 'openai',
+                    'model': model_id,
+                    'apiBase': endpoint + '/v1',
+                    'apiKey': 'EMPTY'
+                },
+                'allowAnonymousTelemetry': False
+            }
+            with open(os.path.expanduser('~/.continue/config.json'), 'w') as f:
+                json.dump(config, f, indent=2)
+            print('Continue config.json written')
+            "
+
+            echo "Configuring Cline (VS Code Machine settings)..."
+            MACHINE_SETTINGS="/checode/remote/data/Machine/settings.json"
+            if [ -f "${MACHINE_SETTINGS}" ]; then
+              python3 -c "
+            import json
+            with open('${MACHINE_SETTINGS}') as f:
+                s = json.load(f)
+            s['cline.apiProvider'] = 'openai-compatible'
+            s['cline.openaiBaseUrl'] = '${VLLM_ENDPOINT}/v1'
+            s['cline.openaiModelId'] = '${VLLM_MODEL_ID}'
+            s['cline.openaiApiKey'] = 'EMPTY'
+            with open('${MACHINE_SETTINGS}','w') as f:
+                json.dump(s, f, indent=2)
+            " 2>/dev/null || cat > "${MACHINE_SETTINGS}" <<SETEOF
+            {
+              "git.defaultCloneDirectory": "/projects/",
+              "chat.commandCenter.enabled": false,
+              "cline.apiProvider": "openai-compatible",
+              "cline.openaiBaseUrl": "${VLLM_ENDPOINT}/v1",
+              "cline.openaiModelId": "${VLLM_MODEL_ID}",
+              "cline.openaiApiKey": "EMPTY"
+            }
+            SETEOF
+            else
+              mkdir -p "$(dirname ${MACHINE_SETTINGS})"
+              cat > "${MACHINE_SETTINGS}" <<SETEOF
+            {
+              "git.defaultCloneDirectory": "/projects/",
+              "chat.commandCenter.enabled": false,
+              "cline.apiProvider": "openai-compatible",
+              "cline.openaiBaseUrl": "${VLLM_ENDPOINT}/v1",
+              "cline.openaiModelId": "${VLLM_MODEL_ID}",
+              "cline.openaiApiKey": "EMPTY"
+            }
+            SETEOF
+            fi
+
+            echo "All extensions installed and configured."
+          label: Install & Configure LLM Extensions
+      - id: test-model
+        exec:
+          component: dev-tools
+          commandLine: |
+            curl -sk "${VLLM_ENDPOINT}/v1/chat/completions" \
+              -H "Content-Type: application/json" \
+              -d '{"model":"'"${VLLM_MODEL_ID}"'","messages":[{"role":"user","content":"Write a Python hello world"}],"max_tokens":100}' | python3 -m json.tool
+          label: Test Model Inference
+    events:
+      postStart:
+        - install-and-configure-extensions
+  contributions:
+    - name: editor
+      uri: "https://eclipse-che.github.io/che-plugin-registry/main/v3/plugins/che-incubator/che-code/latest/devfile.yaml"

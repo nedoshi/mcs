@@ -1,0 +1,10 @@
+# Environment-specific patches for dev
+# Example: Override channel to fast for faster updates in dev
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: openshift-pipelines-operator
+  namespace: openshift-operators
+spec:
+  channel: fast

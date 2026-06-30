@@ -1,0 +1,10 @@
+clusterName: demo2
+
+storage:
+  enabled: true
+  kmsKeyArn: arn:aws:kms:us-east-2:808393674160:key/REPLACE-WITH-ACTUAL-KEY-ID
+  className: gp3-csi-kms
+  isDefault: true
+
+identityProvider:
+  enabled: false

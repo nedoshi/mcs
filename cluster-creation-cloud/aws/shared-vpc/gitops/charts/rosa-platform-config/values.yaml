@@ -1,0 +1,43 @@
+clusterName: ""
+
+cloudProvider: aws
+
+storage:
+  enabled: true
+  className: gp3-csi-kms
+  isDefault: true
+  provisioner: ebs.csi.aws.com
+  volumeType: gp3
+  encrypted: true
+  kmsKeyArn: ""
+  reclaimPolicy: Delete
+  volumeBindingMode: WaitForFirstConsumer
+  allowVolumeExpansion: true
+  fsType: ext4
+  iops: ""
+  throughput: ""
+
+storageRetain:
+  enabled: true
+  className: gp3-csi-kms-retain
+  reclaimPolicy: Retain
+
+identityProvider:
+  enabled: true
+  name: azure-ad
+  type: OpenID
+  clientID: ""
+  secretName: rosa-oidc-client-secret
+  issuer: ""
+  claims:
+    preferredUsername: ["email", "upn"]
+    name: ["name"]
+    email: ["email"]
+    groups: ["groups"]
+
+machineConfig:
+  journald:
+    enabled: true
+    systemMaxUse: 2G
+    systemKeepFree: 1G
+    maxRetentionSec: 604800

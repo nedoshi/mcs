@@ -1,0 +1,30 @@
+apiVersion: v1
+items:
+- apiVersion: config.openshift.io/v1
+  kind: OAuth
+  metadata:
+    annotations:
+      include.release.openshift.io/ibm-cloud-managed: "true"
+      include.release.openshift.io/self-managed-high-availability: "true"
+      release.openshift.io/create-only: "true"
+    creationTimestamp: "2026-06-25T16:08:20Z"
+    generation: 1
+    name: cluster
+    ownerReferences:
+    - apiVersion: config.openshift.io/v1
+      kind: ClusterVersion
+      name: version
+      uid: 0fc665ae-0902-4b3b-9939-b0ef28bcc9fc
+    resourceVersion: "1360"
+    uid: 2af274d4-5022-4433-b088-a6c851e35351
+  spec:
+    identityProviders:
+    - htpasswd:
+        fileData:
+          name: ex280-idp-secret
+      mappingMethod: claim
+      name: ex-htpasswd
+      type: HTPasswd
+kind: List
+metadata:
+  resourceVersion: ""

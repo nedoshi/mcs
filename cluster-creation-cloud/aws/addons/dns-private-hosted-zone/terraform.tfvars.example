@@ -1,0 +1,8 @@
+region        = "us-east-1"
+cluster_name  = "my-rosa-cluster"
+vpc_id        = "vpc-xxxxxxxx"
+custom_domain = "apps.internal.example.com"
+
+tags = {
+  environment = "dev"
+}

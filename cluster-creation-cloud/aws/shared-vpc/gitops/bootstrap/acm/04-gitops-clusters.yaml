@@ -1,0 +1,45 @@
+---
+apiVersion: apps.open-cluster-management.io/v1beta1
+kind: GitOpsCluster
+metadata:
+  name: argo-acm-clusters
+  namespace: openshift-gitops
+spec:
+  argoServer:
+    argoNamespace: openshift-gitops
+    cluster: local-cluster
+  placementRef:
+    apiVersion: cluster.open-cluster-management.io/v1beta1
+    kind: Placement
+    name: all-production
+    namespace: openshift-gitops
+---
+apiVersion: apps.open-cluster-management.io/v1beta1
+kind: GitOpsCluster
+metadata:
+  name: argo-acm-rosa
+  namespace: openshift-gitops
+spec:
+  argoServer:
+    argoNamespace: openshift-gitops
+    cluster: local-cluster
+  placementRef:
+    apiVersion: cluster.open-cluster-management.io/v1beta1
+    kind: Placement
+    name: rosa-production
+    namespace: openshift-gitops
+---
+apiVersion: apps.open-cluster-management.io/v1beta1
+kind: GitOpsCluster
+metadata:
+  name: argo-acm-aro
+  namespace: openshift-gitops
+spec:
+  argoServer:
+    argoNamespace: openshift-gitops
+    cluster: local-cluster
+  placementRef:
+    apiVersion: cluster.open-cluster-management.io/v1beta1
+    kind: Placement
+    name: aro-production
+    namespace: openshift-gitops

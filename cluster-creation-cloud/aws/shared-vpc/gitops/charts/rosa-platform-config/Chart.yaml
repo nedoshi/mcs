@@ -1,0 +1,14 @@
+apiVersion: v2
+name: rosa-platform-config
+description: ROSA HCP platform configuration (StorageClass, IdP, MachineConfig)
+type: application
+version: 1.0.0
+appVersion: "4.18"
+keywords:
+  - rosa
+  - aws
+  - openshift
+  - hcp
+maintainers:
+  - name: Platform Team
+    email: platform-team@example.com

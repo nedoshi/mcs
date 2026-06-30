@@ -1,0 +1,39 @@
+---
+- name: Delete ROSA Hosted Control Plane Cluster
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  
+  vars:
+    cluster_name: "{{ cluster_name | default('rosa-hcp-cluster') }}"
+    force_delete: "{{ force_delete | default(false) }}"
+
+  pre_tasks:
+    - name: Validate cluster name
+      ansible.builtin.assert:
+        that:
+          - cluster_name is defined
+          - cluster_name | length > 0
+        fail_msg: "Cluster name must be provided"
+
+    - name: Confirm deletion
+      ansible.builtin.pause:
+        prompt: "Delete cluster '{{ cluster_name }}'? (yes/no)"
+      register: delete_confirmation
+      when: not force_delete
+
+    - name: Abort if not confirmed
+      ansible.builtin.fail:
+        msg: "Cluster deletion aborted"
+      when: 
+        - not force_delete
+        - delete_confirmation.user_input | lower != 'yes'
+
+  roles:
+    - role: rosa_cleanup
+      tags: ['cleanup']
+
+  post_tasks:
+    - name: Display completion message
+      ansible.builtin.debug:
+        msg: "ROSA HCP Cluster deletion initiated!"

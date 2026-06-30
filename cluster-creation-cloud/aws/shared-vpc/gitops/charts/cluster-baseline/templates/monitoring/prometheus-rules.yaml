@@ -1,0 +1,30 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "cluster-baseline.fullname" . }}-disk-pressure
+  namespace: openshift-monitoring
+  labels:
+    {{- include "cluster-baseline.labels" . | nindent 4 }}
+    prometheus: k8s
+spec:
+  groups:
+    - name: cluster-baseline-disk-pressure
+      rules:
+        - alert: NodeDiskPressureWarning
+          expr: kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes > 0.8
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Disk usage above 80% on node"
+            description: "Volume {{ `{{ $labels.persistentvolumeclaim }}` }} in namespace {{ `{{ $labels.namespace }}` }} is above 80% capacity."
+        - alert: NodeDiskPressureCritical
+          expr: kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes > 0.9
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Disk usage above 90% on node"
+            description: "Volume {{ `{{ $labels.persistentvolumeclaim }}` }} in namespace {{ `{{ $labels.namespace }}` }} is above 90% capacity."
+{{- end }}

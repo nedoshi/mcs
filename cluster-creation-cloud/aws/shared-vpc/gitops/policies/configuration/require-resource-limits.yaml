@@ -1,0 +1,51 @@
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: require-resource-limits
+  namespace: policies
+  annotations:
+    policy.open-cluster-management.io/standards: NIST SP 800-53
+    policy.open-cluster-management.io/categories: AC Access Control
+    policy.open-cluster-management.io/controls: AC-4 Information Flow Enforcement
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: require-resource-limits
+        spec:
+          remediationAction: enforce
+          severity: high
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: templates.gatekeeper.sh/v1
+                kind: ConstraintTemplate
+                metadata:
+                  name: k8srequiredresourcelimits
+                spec:
+                  crd:
+                    spec:
+                      names:
+                        kind: K8sRequiredResourceLimits
+                      validation:
+                        openAPIV3Schema:
+                          type: object
+                          properties:
+                            limits:
+                              type: boolean
+                            requests:
+                              type: boolean
+                  targets:
+                    - target: admission.k8s.gatekeeper.sh
+                      rego: |
+                        package k8srequiredresourcelimits
+                        violation[{"msg": msg}] {
+                          container := input_containers[_]
+                          not container.resources.limits
+                          msg := sprintf("Container %v has no resource limits", [container.name])
+                        }

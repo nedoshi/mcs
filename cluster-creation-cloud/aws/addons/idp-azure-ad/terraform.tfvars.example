@@ -1,0 +1,55 @@
+# Example Terraform Variables File
+# Copy this file to terraform.tfvars and update with your actual values
+# terraform.tfvars is ignored by git to protect sensitive information
+
+# ==============================================================================
+# Cluster Configuration
+# ==============================================================================
+# Get cluster_id from:
+# - Terraform Cloud workspace outputs (where cluster was created)
+# - ROSA CLI: rosa describe cluster <cluster-name>
+# - OCM Console: https://console.redhat.com/openshift
+cluster_id = "your-cluster-id-here"
+
+# ==============================================================================
+# Azure AD OIDC Configuration
+# ==============================================================================
+# Get these values from Azure Portal > Azure Active Directory > App registrations
+
+# Azure AD Tenant ID (Directory ID)
+# Found in: Azure Portal > Azure AD > Overview > Tenant ID
+azure_ad_tenant_id = "your-azure-tenant-id"
+
+# Azure AD Application (Client) ID
+# Found in: Azure Portal > App registrations > Your app > Overview > Application (client) ID
+azure_ad_client_id = "your-azure-client-id"
+
+# Azure AD Client Secret
+# Created in: Azure Portal > App registrations > Your app > Certificates & secrets
+# IMPORTANT: Copy the secret value immediately - it won't be shown again
+azure_ad_client_secret = "your-azure-client-secret"
+
+# Identity Provider Name (optional)
+# This will appear on the OpenShift login page
+idp_name = "azure-ad"
+
+# ==============================================================================
+# RHCS Authentication
+# ==============================================================================
+# Choose ONE of the following authentication methods:
+
+# Option 1: OCM Token (recommended for personal use)
+# Get your token from: https://console.redhat.com/openshift/token/rosa/show
+token = "your-ocm-token-here"
+
+# Option 2: Client ID and Secret (recommended for automation)
+# Uncomment and use these if you prefer client credentials:
+# client_id     = "your-rhcs-client-id"
+# client_secret = "your-rhcs-client-secret"
+
+# ==============================================================================
+# AWS Configuration
+# ==============================================================================
+# AWS region where your ROSA cluster is located
+region = "us-east-1"
+

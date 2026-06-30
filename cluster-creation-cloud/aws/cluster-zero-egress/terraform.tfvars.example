@@ -1,0 +1,31 @@
+# OCM Token - Get from https://console.redhat.com/openshift/token/rosa/show
+token = "your-ocm-token-here"
+
+# AWS Region
+region = "us-east-1"
+
+# Cluster Configuration
+cluster_name      = "my-rosa-hcp-zero-egress"
+openshift_version = "4.19.4"
+multi_az          = true
+private_cluster   = true
+
+# Worker Node Configuration
+worker_node_replicas = 3
+machine_type         = "m5.xlarge"
+
+# VPC Configuration
+vpc_cidr_block = "10.0.0.0/16"
+
+# Subnet Configuration (for multi-AZ, provide 3 CIDRs)
+private_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+public_subnet_cidrs  = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+
+# Additional Tags
+additional_tags = {
+  Environment = "dev"
+  Owner       = "your-email@example.com"
+  Project     = "zero-egress-demo"
+  CostCenter  = "468"
+}
+

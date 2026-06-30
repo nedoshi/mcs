@@ -1,0 +1,20 @@
+gcp_project = "mobb-demo"
+
+vpc_routing_mode = "REGIONAL"
+
+master_cidr_block = "10.0.0.0/17"
+
+worker_cidr_block = "10.0.128.0/17"
+
+gcp_extra_tags = {
+  "owner" = "mobb-team"
+}
+gcp_azs = [
+  "us-west-1a",
+  "us-west-1b",
+  "us-west-1c"
+]
+
+gcp_region = "us-west1"
+
+gcp_authentication_type = "workload_identity_federation"

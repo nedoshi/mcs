@@ -1,0 +1,14 @@
+clusterName: aro-prod-01
+
+storage:
+  enabled: true
+  resourceGroup: aro-prod-01-rg
+  className: managed-premium
+  isDefault: true
+  skuName: Premium_LRS
+
+identityProvider:
+  enabled: true
+  clientID: "00000000-0000-0000-0000-000000000004"
+  issuer: https://login.microsoftonline.com/00000000-0000-0000-0000-000000000002/v2.0
+  secretName: aro-oidc-client-secret

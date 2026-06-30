@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 720" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f1117"/>
+      <stop offset="100%" style="stop-color:#151822"/>
+    </linearGradient>
+    <linearGradient id="nvidiaGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#76B900"/>
+      <stop offset="100%" style="stop-color:#5A9200"/>
+    </linearGradient>
+    <linearGradient id="infGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FF9900"/>
+      <stop offset="100%" style="stop-color:#E88B00"/>
+    </linearGradient>
+    <filter id="glow">
+      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#FF9900" flood-opacity="0.4"/>
+    </filter>
+    <filter id="barShadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1100" height="720" rx="12" fill="url(#bgGrad)"/>
+  <rect x="0" y="0" width="1100" height="3" fill="#FF9900"/>
+
+  <!-- Title -->
+  <text x="550" y="40" text-anchor="middle" fill="#FFF" font-size="20" font-weight="700">Yearly Cost vs Performance: Llama 3.1 8B (BF16) Inference</text>
+  <text x="550" y="62" text-anchor="middle" fill="#888" font-size="12">AWS On-Demand Pricing (US East) · 24/7 Operation · 8,760 hrs/yr · vLLM Serving Runtime</text>
+
+  <!-- ==================== SECTION 1: YEARLY COST BAR CHART ==================== -->
+  <text x="60" y="105" fill="#AAA" font-size="14" font-weight="700" letter-spacing="0.5">ANNUAL COST (24/7 ON-DEMAND)</text>
+
+  <!-- Scale reference line -->
+  <line x1="250" y1="115" x2="250" y2="315" stroke="#333" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="250" y="328" text-anchor="middle" fill="#555" font-size="9">$0</text>
+  <line x1="470" y1="115" x2="470" y2="315" stroke="#333" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="470" y="328" text-anchor="middle" fill="#555" font-size="9">$10K</text>
+  <line x1="690" y1="115" x2="690" y2="315" stroke="#333" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="690" y="328" text-anchor="middle" fill="#555" font-size="9">$20K</text>
+  <line x1="910" y1="115" x2="910" y2="315" stroke="#333" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="910" y="328" text-anchor="middle" fill="#555" font-size="9">$30K</text>
+
+  <!-- Bar 1: p3.2xlarge (V100) — $26,806/yr -->
+  <text x="60" y="148" fill="#999" font-size="11" font-weight="500">p3.2xlarge</text>
+  <text x="60" y="163" fill="#666" font-size="9">V100 16GB · FP16*</text>
+  <rect x="250" y="137" width="590" height="32" rx="5" fill="url(#nvidiaGrad)" filter="url(#barShadow)" opacity="0.85"/>
+  <text x="848" y="158" fill="#fff" font-size="12" font-weight="700">$26,806/yr</text>
+  <text x="935" y="158" fill="#E57373" font-size="10" font-weight="500">$3.06/hr</text>
+
+  <!-- Bar 2: g6e.2xlarge (L40S) — $16,302/yr -->
+  <text x="60" y="203" fill="#999" font-size="11" font-weight="500">g6e.2xlarge</text>
+  <text x="60" y="218" fill="#666" font-size="9">L40S 48GB · BF16</text>
+  <rect x="250" y="192" width="358" height="32" rx="5" fill="url(#nvidiaGrad)" filter="url(#barShadow)" opacity="0.85"/>
+  <text x="616" y="213" fill="#fff" font-size="12" font-weight="700">$16,302/yr</text>
+  <text x="720" y="213" fill="#E57373" font-size="10" font-weight="500">$1.86/hr</text>
+
+  <!-- Bar 3: g5.xlarge (A10G) — $8,813/yr -->
+  <text x="60" y="258" fill="#999" font-size="11" font-weight="500">g5.xlarge</text>
+  <text x="60" y="273" fill="#666" font-size="9">A10G 24GB · BF16</text>
+  <rect x="250" y="247" width="194" height="32" rx="5" fill="url(#nvidiaGrad)" filter="url(#barShadow)" opacity="0.85"/>
+  <text x="452" y="268" fill="#fff" font-size="12" font-weight="700">$8,813/yr</text>
+  <text x="540" y="268" fill="#E57373" font-size="10" font-weight="500">$1.01/hr</text>
+
+  <!-- Bar 4: inf2.xlarge (Inferentia2) — $6,642/yr — HIGHLIGHTED -->
+  <text x="60" y="313" fill="#FFC" font-size="11" font-weight="700">inf2.xlarge</text>
+  <text x="60" y="328" fill="#998" font-size="9">Inferentia2 32GB · BF16</text>
+  <rect x="250" y="302" width="146" height="32" rx="5" fill="url(#infGrad)" filter="url(#glow)"/>
+  <text x="404" y="323" fill="#FF9900" font-size="12" font-weight="700">$6,642/yr</text>
+  <text x="492" y="323" fill="#4CAF50" font-size="10" font-weight="600">$0.76/hr · LOWEST</text>
+
+  <!-- Savings callout -->
+  <rect x="780" y="286" width="260" height="52" rx="8" fill="#1a2a15" stroke="#4CAF50" stroke-width="1.5"/>
+  <text x="910" y="306" text-anchor="middle" fill="#4CAF50" font-size="13" font-weight="700">75% cheaper than V100</text>
+  <text x="910" y="324" text-anchor="middle" fill="#6b9b5e" font-size="11">25% cheaper than A10G</text>
+
+  <!-- V100 footnote -->
+  <text x="60" y="352" fill="#E57373" font-size="9">* V100 does not support BF16 natively — requires FP16; 16GB VRAM limits context length for 8B models</text>
+
+  <!-- Divider -->
+  <line x1="40" y1="370" x2="1060" y2="370" stroke="#2a2a3a" stroke-width="1"/>
+
+  <!-- ==================== SECTION 2: SPECS &amp; PERFORMANCE TABLE ==================== -->
+  <text x="60" y="400" fill="#AAA" font-size="14" font-weight="700" letter-spacing="0.5">INSTANCE COMPARISON — LLAMA 3.1 8B INFERENCE</text>
+
+  <!-- Table Header -->
+  <rect x="60" y="415" width="980" height="32" rx="4" fill="#1a1f2e"/>
+  <text x="80" y="436" fill="#888" font-size="10" font-weight="700">INSTANCE</text>
+  <text x="220" y="436" fill="#888" font-size="10" font-weight="700">ACCELERATOR</text>
+  <text x="365" y="436" fill="#888" font-size="10" font-weight="700">VRAM</text>
+  <text x="440" y="436" fill="#888" font-size="10" font-weight="700">BF16 TFLOPS</text>
+  <text x="555" y="436" fill="#888" font-size="10" font-weight="700">PRECISION</text>
+  <text x="650" y="436" fill="#888" font-size="10" font-weight="700">~tok/s*</text>
+  <text x="730" y="436" fill="#888" font-size="10" font-weight="700">$/hr</text>
+  <text x="810" y="436" fill="#888" font-size="10" font-weight="700">$/yr (24/7)</text>
+  <text x="920" y="436" fill="#888" font-size="10" font-weight="700">$/1M tokens</text>
+
+  <!-- Row 1: p3.2xlarge -->
+  <rect x="60" y="450" width="980" height="36" rx="0" fill="#13161e"/>
+  <text x="80" y="473" fill="#ccc" font-size="11" font-weight="500">p3.2xlarge</text>
+  <text x="220" y="473" fill="#76B900" font-size="11">NVIDIA V100</text>
+  <text x="365" y="473" fill="#ccc" font-size="11">16 GB</text>
+  <text x="440" y="473" fill="#E57373" font-size="11">— (FP16 only)</text>
+  <text x="555" y="473" fill="#E57373" font-size="11">FP16</text>
+  <text x="650" y="473" fill="#ccc" font-size="11">~30</text>
+  <text x="730" y="473" fill="#ccc" font-size="11">$3.06</text>
+  <text x="810" y="473" fill="#ccc" font-size="11">$26,806</text>
+  <text x="920" y="473" fill="#E57373" font-size="11" font-weight="600">$28.33</text>
+
+  <!-- Row 2: g6e.2xlarge -->
+  <rect x="60" y="488" width="980" height="36" rx="0" fill="#0f1117"/>
+  <text x="80" y="511" fill="#ccc" font-size="11" font-weight="500">g6e.2xlarge</text>
+  <text x="220" y="511" fill="#76B900" font-size="11">NVIDIA L40S</text>
+  <text x="365" y="511" fill="#ccc" font-size="11">48 GB</text>
+  <text x="440" y="511" fill="#ccc" font-size="11">362</text>
+  <text x="555" y="511" fill="#4CAF50" font-size="11">BF16</text>
+  <text x="650" y="511" fill="#ccc" font-size="11">~90</text>
+  <text x="730" y="511" fill="#ccc" font-size="11">$1.86</text>
+  <text x="810" y="511" fill="#ccc" font-size="11">$16,302</text>
+  <text x="920" y="511" fill="#ccc" font-size="11">$5.74</text>
+
+  <!-- Row 3: g5.xlarge -->
+  <rect x="60" y="526" width="980" height="36" rx="0" fill="#13161e"/>
+  <text x="80" y="549" fill="#ccc" font-size="11" font-weight="500">g5.xlarge</text>
+  <text x="220" y="549" fill="#76B900" font-size="11">NVIDIA A10G</text>
+  <text x="365" y="549" fill="#ccc" font-size="11">24 GB</text>
+  <text x="440" y="549" fill="#ccc" font-size="11">125</text>
+  <text x="555" y="549" fill="#4CAF50" font-size="11">BF16</text>
+  <text x="650" y="549" fill="#ccc" font-size="11">~55</text>
+  <text x="730" y="549" fill="#ccc" font-size="11">$1.01</text>
+  <text x="810" y="549" fill="#ccc" font-size="11">$8,813</text>
+  <text x="920" y="549" fill="#ccc" font-size="11">$5.08</text>
+
+  <!-- Row 4: inf2.xlarge — Highlighted -->
+  <rect x="60" y="564" width="980" height="38" rx="0" fill="#1a2510" stroke="#FF9900" stroke-width="1"/>
+  <text x="80" y="588" fill="#FFC" font-size="11" font-weight="700">inf2.xlarge</text>
+  <text x="220" y="588" fill="#FF9900" font-size="11" font-weight="600">Inferentia2</text>
+  <text x="365" y="588" fill="#FFC" font-size="11" font-weight="600">32 GB</text>
+  <text x="440" y="588" fill="#FFC" font-size="11">190</text>
+  <text x="555" y="588" fill="#4CAF50" font-size="11" font-weight="600">BF16</text>
+  <text x="650" y="588" fill="#FFC" font-size="11" font-weight="600">~60</text>
+  <text x="730" y="588" fill="#FF9900" font-size="11" font-weight="700">$0.76</text>
+  <text x="810" y="588" fill="#FF9900" font-size="11" font-weight="700">$6,642</text>
+  <text x="920" y="588" fill="#4CAF50" font-size="11" font-weight="700">$3.51</text>
+
+  <!-- Performance note -->
+  <text x="60" y="625" fill="#666" font-size="9">* Approximate output tokens/sec for single-stream inference with vLLM. Actual throughput varies by context length, batch size, and prompt complexity.</text>
+  <text x="60" y="640" fill="#666" font-size="9">  $/1M tokens = (hourly cost ÷ (tok/s × 3,600)) × 1,000,000. Lower is better.</text>
+
+  <!-- Divider -->
+  <line x1="40" y1="655" x2="1060" y2="655" stroke="#2a2a3a" stroke-width="1"/>
+
+  <!-- ==================== SECTION 3: KEY INSIGHT CALLOUT ==================== -->
+  <rect x="60" y="665" width="490" height="42" rx="8" fill="#1a1a0d" stroke="#FF9900" stroke-width="1"/>
+  <text x="80" y="686" fill="#FF9900" font-size="11" font-weight="600">💡 Inferentia2 delivers comparable tok/s to A10G at 25% lower cost</text>
+  <text x="80" y="700" fill="#998" font-size="10">with 33% more VRAM (32GB vs 24GB) for longer context windows</text>
+
+  <rect x="570" y="665" width="470" height="42" rx="8" fill="#1a1a0d" stroke="#4CAF50" stroke-width="1"/>
+  <text x="590" y="686" fill="#4CAF50" font-size="11" font-weight="600">💰 Best cost-per-token: $3.51/1M tokens (Inferentia2)</text>
+  <text x="590" y="700" fill="#6b9b5e" font-size="10">vs $5.08 (A10G), $5.74 (L40S), $28.33 (V100)</text>
+
+  <!-- Source -->
+  <text x="550" y="718" text-anchor="middle" fill="#444" font-size="9">Sources: aws.amazon.com/ec2/pricing · instances.vantage.sh · AWS Inferentia2 specs (190 BF16 TFLOPS, 32GB HBM per chip)</text>
+</svg>

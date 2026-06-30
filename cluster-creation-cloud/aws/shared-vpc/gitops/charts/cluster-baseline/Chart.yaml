@@ -1,0 +1,16 @@
+apiVersion: v2
+name: cluster-baseline
+description: Baseline configuration for all production OpenShift clusters (ROSA and ARO)
+type: application
+version: 1.0.0
+appVersion: "4.18"
+keywords:
+  - cluster
+  - baseline
+  - gitops
+  - openshift
+  - rosa
+  - aro
+maintainers:
+  - name: Platform Team
+    email: platform-team@example.com

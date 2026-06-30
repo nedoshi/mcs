@@ -1,0 +1,20 @@
+# ClusterLogging - REQUIRES LokiStack to be deployed first
+# Apply after 06-lokistack.yaml and LokiStack is Ready
+#
+# Rename to 07-clusterlogging.yaml after LokiStack is ready
+---
+apiVersion: logging.openshift.io/v1
+kind: ClusterLogging
+metadata:
+  name: instance
+  namespace: openshift-logging
+spec:
+  managementState: Managed
+  logStore:
+    type: lokistack
+    lokistack:
+      name: logging-loki
+  visualization:
+    type: ocp-console
+  collection:
+    type: vector

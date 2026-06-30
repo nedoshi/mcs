@@ -1,0 +1,66 @@
+# Apply after cluster install when enable_cluster_install = false (infra-only Terraform).
+# Replace placeholders using `terraform output` values.
+#
+#   infrastructure_name  -> terraform output infrastructure_name
+#   worker_instance_profile -> terraform output worker_instance_profile
+#   rhcos_ami            -> terraform output rhcos_ami
+#   private_subnet_ids   -> terraform output private_subnet_ids (one per AZ)
+#   region               -> your AWS region
+#
+# oc apply -f worker-machineset.yaml
+
+apiVersion: machine.openshift.io/v1beta1
+kind: MachineSet
+metadata:
+  labels:
+    machine.openshift.io/cluster-api-cluster: INFRASTRUCTURE_NAME
+  name: INFRASTRUCTURE_NAME-worker-us-east-1a
+  namespace: openshift-machine-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      machine.openshift.io/cluster-api-cluster: INFRASTRUCTURE_NAME
+      machine.openshift.io/cluster-api-machineset: INFRASTRUCTURE_NAME-worker-us-east-1a
+  template:
+    metadata:
+      labels:
+        machine.openshift.io/cluster-api-cluster: INFRASTRUCTURE_NAME
+        machine.openshift.io/cluster-api-machine-role: worker
+        machine.openshift.io/cluster-api-machine-type: worker
+        machine.openshift.io/cluster-api-machineset: INFRASTRUCTURE_NAME-worker-us-east-1a
+    spec:
+      providerSpec:
+        value:
+          ami:
+            id: ami-xxxxxxxxxxxxxxxxx
+          apiVersion: machine.openshift.io/v1beta1
+          blockDevices:
+          - ebs:
+              volumeSize: 120
+              volumeType: gp3
+          credentialsSecret:
+            name: aws-cloud-credentials
+          deviceIndex: 0
+          iamInstanceProfile:
+            id: INFRASTRUCTURE_NAME-worker-profile
+          instanceType: m6i.large
+          kind: AWSMachineProviderConfig
+          placement:
+            availabilityZone: us-east-1a
+            region: us-east-1
+          securityGroups:
+          - filters:
+            - name: tag:Name
+              values:
+              - INFRASTRUCTURE_NAME-worker
+          subnet:
+            filters:
+            - name: subnet-id
+              values:
+              - subnet-xxxxxxxxxxxxxxxxx
+          tags:
+          - name: kubernetes.io/cluster/INFRASTRUCTURE_NAME
+            value: owned
+          userDataSecret:
+            name: worker-user-data

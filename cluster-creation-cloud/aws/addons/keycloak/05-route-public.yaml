@@ -1,0 +1,23 @@
+---
+# Public Route - Accessible from Internet
+# This creates a public AWS Load Balancer automatically
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: keycloak
+  namespace: keycloak
+  labels:
+    app: keycloak
+spec:
+  # host: keycloak-keycloak.apps.<your-cluster-domain>  # Optional: Let OpenShift auto-generate, or uncomment and set your domain
+  to:
+    kind: Service
+    name: keycloak
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+

@@ -1,0 +1,317 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 900" font-family="Red Hat Display, -apple-system, Segoe UI, Arial, sans-serif">
+  <defs>
+    <linearGradient id="rhGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#CC0000" />
+      <stop offset="100%" style="stop-color:#A30000" />
+    </linearGradient>
+    <linearGradient id="awsGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FF9900" />
+      <stop offset="100%" style="stop-color:#E68A00" />
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#666"/>
+    </marker>
+    <marker id="arrowUp" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto-start-reverse">
+      <polygon points="0 0, 8 3, 0 6" fill="#666"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#FF9900"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4CAF50"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#42A5F5"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#7C4DFF"/>
+    </marker>
+  </defs>
+
+  <!-- ============ BACKGROUND ============ -->
+  <rect width="960" height="900" rx="12" fill="#0C0E14"/>
+
+  <!-- ============ TITLE BAR ============ -->
+  <rect x="0" y="0" width="960" height="50" rx="12" fill="#12141C"/>
+  <rect x="0" y="46" width="960" height="4" fill="#12141C"/>
+  <rect x="0" y="0" width="960" height="3" fill="url(#rhGrad)"/>
+  <text x="480" y="33" text-anchor="middle" fill="#FFF" font-size="16" font-weight="700" letter-spacing="0.5">vLLM on AWS Inferentia2 &#x2014; Deployment Architecture</text>
+
+  <!-- ============ OUTER: AWS CLOUD ============ -->
+  <rect x="15" y="55" width="930" height="835" rx="10" fill="none" stroke="#FF9900" stroke-width="2" stroke-opacity="0.5" stroke-dasharray="10,5"/>
+  <rect x="15" y="55" width="130" height="24" rx="6" fill="#FF9900"/>
+  <text x="80" y="72" text-anchor="middle" fill="#FFF" font-size="11" font-weight="600">AWS Cloud</text>
+
+  <!-- ============================================================ -->
+  <!--  ROSA HCP CLUSTER (contains App Layer + Platform Layer)       -->
+  <!-- ============================================================ -->
+  <rect x="30" y="88" width="900" height="410" rx="10" fill="none" stroke="#CC0000" stroke-width="2" stroke-opacity="0.6"/>
+  <rect x="30" y="88" width="200" height="24" rx="6" fill="#CC0000"/>
+  <text x="130" y="105" text-anchor="middle" fill="#FFF" font-size="11" font-weight="600">ROSA HCP Cluster</text>
+
+  <!-- ============================================================ -->
+  <!--  LAYER 3 (TOP): AI APPLICATION LAYER                          -->
+  <!-- ============================================================ -->
+  <rect x="45" y="120" width="870" height="185" rx="8" fill="#0D0D1A" stroke="#5C6BC0" stroke-width="1.5"/>
+  <rect x="45" y="120" width="250" height="22" rx="6" fill="#1A1A3A"/>
+  <text x="170" y="135" text-anchor="middle" fill="#9FA8DA" font-size="10" font-weight="600" letter-spacing="1">AI APPLICATION LAYER</text>
+  <text x="905" y="135" text-anchor="end" fill="#5C6BC0" font-size="9" font-style="italic">inference namespace</text>
+
+  <!-- Model Storage (PVC/EBS + S3) -->
+  <rect x="60" y="150" width="220" height="140" rx="6" fill="#141428" stroke="#7C4DFF" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="60" y="150" width="220" height="26" rx="6" fill="#1C1C40"/>
+  <rect x="60" y="170" width="220" height="1" fill="#1C1C40"/>
+  <circle cx="78" cy="163" r="9" fill="#7C4DFF" opacity="0.2"/>
+  <text x="78" y="167" text-anchor="middle" fill="#7C4DFF" font-size="10" font-weight="700">A</text>
+  <text x="175" y="167" text-anchor="middle" fill="#B39DDB" font-size="12" font-weight="600">Model Storage</text>
+
+  <!-- Option 1: PVC/EBS -->
+  <rect x="70" y="180" width="200" height="46" rx="4" fill="#1A1A30" stroke="#5C6BC0" stroke-width="0.5"/>
+  <text x="80" y="196" fill="#9FA8DA" font-size="9" font-weight="600">Option 1: PVC on EBS</text>
+  <text x="80" y="210" fill="#667" font-size="8">ReadWriteOnce &#x2022; 30 Gi &#x2022; Direct Deployment</text>
+  <text x="80" y="220" fill="#667" font-size="8">Writable for Neuron compilation cache</text>
+
+  <!-- Option 2: S3 -->
+  <rect x="70" y="232" width="200" height="46" rx="4" fill="#1A1A30" stroke="#5C6BC0" stroke-width="0.5"/>
+  <text x="80" y="248" fill="#9FA8DA" font-size="9" font-weight="600">Option 2: Amazon S3 Bucket</text>
+  <text x="80" y="262" fill="#667" font-size="8">KServe storageUri &#x2022; emptyDir for cache</text>
+  <text x="80" y="272" fill="#4CAF50" font-size="8">Recommended for production (KServe)</text>
+
+  <!-- vLLM Deployment -->
+  <rect x="295" y="150" width="340" height="140" rx="6" fill="#1C1808" stroke="#FF9900" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="295" y="150" width="340" height="26" rx="6" fill="#2A2008"/>
+  <rect x="295" y="170" width="340" height="1" fill="#2A2008"/>
+  <circle cx="313" cy="163" r="9" fill="#FF9900" opacity="0.2"/>
+  <text x="313" y="167" text-anchor="middle" fill="#FF9900" font-size="10" font-weight="700">B</text>
+  <text x="470" y="167" text-anchor="middle" fill="#FFB74D" font-size="12" font-weight="600">vLLM Neuron Deployment</text>
+  <text x="465" y="192" text-anchor="middle" fill="#8899AA" font-size="10">pytorch-inference-vllm-neuronx:0.13.0</text>
+  <text x="465" y="210" text-anchor="middle" fill="#667" font-size="9">OpenAI-compatible API server</text>
+  <text x="465" y="226" text-anchor="middle" fill="#667" font-size="9">Neuron SDK 2.27.1 &#x00B7; BF16 inference</text>
+  <text x="465" y="244" text-anchor="middle" fill="#FFB74D" font-size="9">--tensor-parallel-size=2 &#x00B7; --block-size=8</text>
+  <text x="465" y="260" text-anchor="middle" fill="#FFB74D" font-size="9">--max-model-len=2048 &#x00B7; --max-num-seqs=4</text>
+  <text x="465" y="278" text-anchor="middle" fill="#555" font-size="9">Capabilities: IPC_LOCK + SYS_ADMIN</text>
+
+  <!-- Service + Route -->
+  <rect x="650" y="150" width="250" height="140" rx="6" fill="#0D1A1A" stroke="#00BCD4" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="650" y="150" width="250" height="26" rx="6" fill="#0D2A2A"/>
+  <rect x="650" y="170" width="250" height="1" fill="#0D2A2A"/>
+  <circle cx="668" cy="163" r="9" fill="#00BCD4" opacity="0.2"/>
+  <text x="668" y="167" text-anchor="middle" fill="#00BCD4" font-size="10" font-weight="700">C</text>
+  <text x="780" y="167" text-anchor="middle" fill="#4DD0E1" font-size="12" font-weight="600">Service + Route</text>
+  <text x="775" y="192" text-anchor="middle" fill="#8899AA" font-size="10">External HTTPS Endpoint</text>
+  <text x="775" y="212" text-anchor="middle" fill="#667" font-size="9">ClusterIP Service (port 8080)</text>
+  <text x="775" y="228" text-anchor="middle" fill="#667" font-size="9">Edge-terminated TLS Route</text>
+  <text x="775" y="248" text-anchor="middle" fill="#00BCD4" font-size="9">/v1/chat/completions</text>
+  <text x="775" y="264" text-anchor="middle" fill="#00BCD4" font-size="9">/v1/completions &#x00B7; /v1/models</text>
+  <text x="775" y="282" text-anchor="middle" fill="#555" font-size="9">600s HAProxy timeout</text>
+
+  <!-- Flow arrows between app components -->
+  <line x1="280" y1="220" x2="295" y2="220" stroke="#7C4DFF" stroke-width="1.5" marker-end="url(#arrowPurple)"/>
+  <line x1="635" y1="220" x2="650" y2="220" stroke="#00BCD4" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- ============================================================ -->
+  <!--  Arrow: App Layer -> Platform Layer                           -->
+  <!-- ============================================================ -->
+  <line x1="480" y1="305" x2="480" y2="330" stroke="#5C6BC0" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow)"/>
+  <text x="492" y="322" fill="#9FA8DA" font-size="9">scheduled by</text>
+
+  <!-- ============================================================ -->
+  <!--  LAYER 2 (MIDDLE): ROSA HCP - OPENSHIFT PLATFORM LAYER       -->
+  <!-- ============================================================ -->
+  <rect x="45" y="335" width="870" height="155" rx="8" fill="#13151F" stroke="#2A2D3A" stroke-width="1"/>
+  <rect x="45" y="335" width="290" height="22" rx="6" fill="#1E2030"/>
+  <text x="190" y="350" text-anchor="middle" fill="#8899AA" font-size="10" font-weight="600" letter-spacing="1">OPENSHIFT PLATFORM LAYER</text>
+  <text x="905" y="350" text-anchor="end" fill="#555" font-size="9" font-style="italic">openshift-operators namespace</text>
+
+  <!-- NFD -->
+  <rect x="60" y="368" width="185" height="110" rx="8" fill="#161B2E" stroke="#42A5F5" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="60" y="368" width="185" height="26" rx="8" fill="#1A2540"/>
+  <rect x="60" y="388" width="185" height="1" fill="#1A2540"/>
+  <circle cx="78" cy="381" r="9" fill="#42A5F5" opacity="0.2"/>
+  <text x="78" y="385" text-anchor="middle" fill="#42A5F5" font-size="10" font-weight="700">1</text>
+  <text x="157" y="385" text-anchor="middle" fill="#90CAF9" font-size="11" font-weight="600">NFD Operator</text>
+  <text x="152" y="408" text-anchor="middle" fill="#8899AA" font-size="9">Node Feature Discovery</text>
+  <text x="152" y="424" text-anchor="middle" fill="#667" font-size="9">Detects Inferentia2 PCI</text>
+  <text x="152" y="438" text-anchor="middle" fill="#667" font-size="9">device via NodeFeatureRule</text>
+  <text x="152" y="456" text-anchor="middle" fill="#42A5F5" font-size="9">Labels: aws-neuron=true</text>
+  <text x="152" y="470" text-anchor="middle" fill="#42A5F5" font-size="9">vendor 1d0f / device 7264</text>
+
+  <!-- KMM -->
+  <rect x="260" y="368" width="185" height="110" rx="8" fill="#161B2E" stroke="#42A5F5" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="260" y="368" width="185" height="26" rx="8" fill="#1A2540"/>
+  <rect x="260" y="388" width="185" height="1" fill="#1A2540"/>
+  <circle cx="278" cy="381" r="9" fill="#42A5F5" opacity="0.2"/>
+  <text x="278" y="385" text-anchor="middle" fill="#42A5F5" font-size="10" font-weight="700">2</text>
+  <text x="357" y="385" text-anchor="middle" fill="#90CAF9" font-size="11" font-weight="600">KMM Operator</text>
+  <text x="352" y="408" text-anchor="middle" fill="#8899AA" font-size="9">Kernel Module Mgmt</text>
+  <text x="352" y="424" text-anchor="middle" fill="#667" font-size="9">Manages out-of-tree kernel</text>
+  <text x="352" y="438" text-anchor="middle" fill="#667" font-size="9">module lifecycle. Prerequisite</text>
+  <text x="352" y="456" text-anchor="middle" fill="#42A5F5" font-size="9">Installs Neuron drivers</text>
+  <text x="352" y="470" text-anchor="middle" fill="#42A5F5" font-size="9">on Inferentia2 nodes</text>
+
+  <!-- Neuron Operator -->
+  <rect x="460" y="368" width="195" height="110" rx="8" fill="#1C1808" stroke="#FF9900" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="460" y="368" width="195" height="26" rx="8" fill="#2A2008"/>
+  <rect x="460" y="388" width="195" height="1" fill="#2A2008"/>
+  <circle cx="478" cy="381" r="9" fill="#FF9900" opacity="0.2"/>
+  <text x="478" y="385" text-anchor="middle" fill="#FF9900" font-size="10" font-weight="700">3</text>
+  <text x="562" y="385" text-anchor="middle" fill="#FFB74D" font-size="11" font-weight="600">Neuron Operator</text>
+  <text x="557" y="408" text-anchor="middle" fill="#8899AA" font-size="9">AWS Neuron Stack</text>
+  <text x="557" y="424" text-anchor="middle" fill="#667" font-size="9">Orchestrates all Neuron</text>
+  <text x="557" y="438" text-anchor="middle" fill="#667" font-size="9">components via DeviceConfig CR</text>
+  <text x="557" y="456" text-anchor="middle" fill="#FFB74D" font-size="9">Driver &#x00B7; Plugin &#x00B7; Scheduler</text>
+  <text x="557" y="470" text-anchor="middle" fill="#FFB74D" font-size="9">Monitor &#x00B7; Telemetry</text>
+
+  <!-- OpenShift AI -->
+  <rect x="670" y="368" width="230" height="110" rx="8" fill="#1C0E0E" stroke="#EE0000" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="670" y="368" width="230" height="26" rx="8" fill="#2A1010"/>
+  <rect x="670" y="388" width="230" height="1" fill="#2A1010"/>
+  <text x="785" y="385" text-anchor="middle" fill="#EF9A9A" font-size="11" font-weight="600">OpenShift AI</text>
+  <text x="785" y="408" text-anchor="middle" fill="#8899AA" font-size="9">HardwareProfile (optional)</text>
+  <text x="785" y="424" text-anchor="middle" fill="#667" font-size="9">Registers Inferentia2 in the</text>
+  <text x="785" y="438" text-anchor="middle" fill="#667" font-size="9">RHOAI dashboard. Enables</text>
+  <text x="785" y="456" text-anchor="middle" fill="#667" font-size="9">workbench and model serving</text>
+  <text x="785" y="470" text-anchor="middle" fill="#EF9A9A" font-size="9">UI integration</text>
+
+  <!-- Flow arrows between operators -->
+  <line x1="245" y1="425" x2="260" y2="425" stroke="#42A5F5" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+  <line x1="445" y1="425" x2="460" y2="425" stroke="#FF9900" stroke-width="1.5" marker-end="url(#arrowOrange)"/>
+
+  <!-- ============================================================ -->
+  <!--  Arrow: Platform Layer -> Hardware                            -->
+  <!-- ============================================================ -->
+  <line x1="350" y1="490" x2="350" y2="524" stroke="#FF9900" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowOrange)"/>
+  <text x="362" y="512" fill="#FF9900" font-size="9">manages</text>
+
+  <!-- ============================================================ -->
+  <!--  AWS INFRASTRUCTURE (outside ROSA HCP, inside AWS)            -->
+  <!-- ============================================================ -->
+  <rect x="30" y="510" width="900" height="325" rx="10" fill="none" stroke="#FF9900" stroke-width="1.5" stroke-opacity="0.4"/>
+  <rect x="30" y="510" width="220" height="24" rx="6" fill="#332800"/>
+  <text x="140" y="527" text-anchor="middle" fill="#FFB74D" font-size="11" font-weight="600">AWS Infrastructure</text>
+
+  <!-- ============================================================ -->
+  <!--  LAYER 1 (BOTTOM): INFERENTIA2 WORKER NODE                    -->
+  <!-- ============================================================ -->
+  <rect x="45" y="545" width="870" height="165" rx="8" fill="#0D1A0D" stroke="#4CAF50" stroke-width="1.5"/>
+  <rect x="45" y="545" width="310" height="22" rx="6" fill="#1B3A1B"/>
+  <text x="200" y="560" text-anchor="middle" fill="#81C784" font-size="10" font-weight="600" letter-spacing="1">INFERENTIA2 WORKER NODE</text>
+  <text x="905" y="560" text-anchor="end" fill="#4CAF50" font-size="9" font-style="italic">e.g. inf2.xlarge &#x00B7; 1 chip &#x00B7; 2 NeuronCores &#x00B7; 32 GB HBM</text>
+
+  <!-- Neuron Runtime Components -->
+  <rect x="60" y="578" width="185" height="50" rx="6" fill="#142814" stroke="#388E3C" stroke-width="1"/>
+  <text x="152" y="598" text-anchor="middle" fill="#A5D6A7" font-size="10" font-weight="600">Neuron Driver</text>
+  <text x="152" y="614" text-anchor="middle" fill="#667" font-size="9">Kernel module via KMM</text>
+
+  <rect x="258" y="578" width="195" height="50" rx="6" fill="#142814" stroke="#388E3C" stroke-width="1"/>
+  <text x="355" y="598" text-anchor="middle" fill="#A5D6A7" font-size="10" font-weight="600">Neuron Device Plugin</text>
+  <text x="355" y="614" text-anchor="middle" fill="#4CAF50" font-size="9" font-weight="500">aws.amazon.com/neuroncore</text>
+
+  <rect x="466" y="578" width="195" height="50" rx="6" fill="#142814" stroke="#388E3C" stroke-width="1"/>
+  <text x="563" y="598" text-anchor="middle" fill="#A5D6A7" font-size="10" font-weight="600">Neuron Scheduler</text>
+  <text x="563" y="614" text-anchor="middle" fill="#667" font-size="9">Topology-aware placement</text>
+
+  <rect x="674" y="578" width="225" height="50" rx="6" fill="#142814" stroke="#388E3C" stroke-width="1"/>
+  <text x="786" y="598" text-anchor="middle" fill="#A5D6A7" font-size="10" font-weight="600">Neuron Monitor</text>
+  <text x="786" y="614" text-anchor="middle" fill="#667" font-size="9">Metrics + Prometheus telemetry</text>
+
+  <!-- Hardware bar: NeuronCores -->
+  <rect x="60" y="640" width="839" height="58" rx="6" fill="#1B3A1B" stroke="#2E7D32" stroke-width="1"/>
+  <text x="150" y="661" text-anchor="middle" fill="#66BB6A" font-size="10" font-weight="500">Inferentia2 Chip</text>
+  <rect x="260" y="648" width="100" height="24" rx="4" fill="#2E7D32" opacity="0.3" stroke="#4CAF50" stroke-width="1"/>
+  <text x="310" y="664" text-anchor="middle" fill="#A5D6A7" font-size="10" font-weight="600">Core 0</text>
+  <rect x="370" y="648" width="100" height="24" rx="4" fill="#2E7D32" opacity="0.3" stroke="#4CAF50" stroke-width="1"/>
+  <text x="420" y="664" text-anchor="middle" fill="#A5D6A7" font-size="10" font-weight="600">Core 1</text>
+  <text x="540" y="665" fill="#667" font-size="10">|  16 GB HBM each  |  32 GB total</text>
+  <text x="150" y="688" text-anchor="middle" fill="#555" font-size="9">NeuronCore-v2 Architecture</text>
+  <text x="400" y="688" fill="#555" font-size="9">Continuous batching &#x00B7; BF16/FP16 &#x00B7; Tensor parallelism across cores</text>
+
+  <!-- ============================================================ -->
+  <!--  AWS STORAGE SERVICES                                         -->
+  <!-- ============================================================ -->
+  <rect x="45" y="725" width="870" height="100" rx="8" fill="#0D0D1A" stroke="#7C4DFF" stroke-width="1.2"/>
+  <rect x="45" y="725" width="220" height="22" rx="6" fill="#1A1A3A"/>
+  <text x="155" y="740" text-anchor="middle" fill="#9FA8DA" font-size="10" font-weight="600" letter-spacing="1">AWS STORAGE SERVICES</text>
+
+  <!-- Amazon S3 -->
+  <rect x="60" y="758" width="410" height="55" rx="6" fill="#141428" stroke="#7C4DFF" stroke-width="1" filter="url(#shadow)"/>
+  <rect x="60" y="758" width="410" height="24" rx="6" fill="#1C1C40"/>
+  <rect x="60" y="776" width="410" height="1" fill="#1C1C40"/>
+  <text x="265" y="775" text-anchor="middle" fill="#B39DDB" font-size="11" font-weight="600">Amazon S3</text>
+  <text x="265" y="797" text-anchor="middle" fill="#667" font-size="9">Model weights bucket &#x00B7; IRSA or Secret-based access &#x00B7; KServe storageUri: s3://bucket/models/</text>
+  <text x="265" y="809" text-anchor="middle" fill="#4CAF50" font-size="8" font-weight="500">Best for KServe + production: versioned, scalable, supports pre-compiled NEFF cache alongside weights</text>
+
+  <!-- Amazon EBS -->
+  <rect x="490" y="758" width="410" height="55" rx="6" fill="#141428" stroke="#7C4DFF" stroke-width="1" filter="url(#shadow)"/>
+  <rect x="490" y="758" width="410" height="24" rx="6" fill="#1C1C40"/>
+  <rect x="490" y="776" width="410" height="1" fill="#1C1C40"/>
+  <text x="695" y="775" text-anchor="middle" fill="#B39DDB" font-size="11" font-weight="600">Amazon EBS</text>
+  <text x="695" y="797" text-anchor="middle" fill="#667" font-size="9">PersistentVolumeClaim &#x00B7; ReadWriteOnce &#x00B7; gp3 &#x00B7; 30 Gi+ &#x00B7; Mounted at /mnt/models/</text>
+  <text x="695" y="809" text-anchor="middle" fill="#8899AA" font-size="8">Best for direct Deployment: writable volume allows Neuron to cache compiled artifacts in-place</text>
+
+  <!-- Storage path indicator (right edge) -->
+  <line x1="925" y1="758" x2="925" y2="290" stroke="#7C4DFF" stroke-width="1.5" stroke-dasharray="4,4" stroke-opacity="0.35"/>
+  <line x1="920" y1="290" x2="925" y2="290" stroke="#7C4DFF" stroke-width="1.5" stroke-opacity="0.35"/>
+  <line x1="920" y1="758" x2="925" y2="758" stroke="#7C4DFF" stroke-width="1.5" stroke-opacity="0.35"/>
+  <text x="935" y="540" text-anchor="middle" fill="#7C4DFF" font-size="8" font-style="italic" transform="rotate(-90,935,540)">storage path (S3 / EBS)</text>
+
+  <!-- ============================================================ -->
+  <!--  LEGEND (bottom bar)                                          -->
+  <!-- ============================================================ -->
+  <rect x="30" y="845" width="900" height="42" rx="6" fill="#10121A" stroke="#222" stroke-width="1"/>
+
+  <!-- Deployment Order -->
+  <text x="50" y="863" fill="#AAA" font-size="10" font-weight="600">Deploy:</text>
+
+  <rect x="95" y="853" width="14" height="14" rx="3" fill="#42A5F5" opacity="0.3" stroke="#42A5F5" stroke-width="1"/>
+  <text x="102" y="864" text-anchor="middle" fill="#42A5F5" font-size="8" font-weight="700">1</text>
+  <text x="114" y="864" fill="#8899AA" font-size="8">NFD</text>
+  <text x="138" y="864" fill="#444" font-size="10">&#x2192;</text>
+
+  <rect x="150" y="853" width="14" height="14" rx="3" fill="#42A5F5" opacity="0.3" stroke="#42A5F5" stroke-width="1"/>
+  <text x="157" y="864" text-anchor="middle" fill="#42A5F5" font-size="8" font-weight="700">2</text>
+  <text x="169" y="864" fill="#8899AA" font-size="8">KMM</text>
+  <text x="195" y="864" fill="#444" font-size="10">&#x2192;</text>
+
+  <rect x="207" y="853" width="14" height="14" rx="3" fill="#FF9900" opacity="0.3" stroke="#FF9900" stroke-width="1"/>
+  <text x="214" y="864" text-anchor="middle" fill="#FF9900" font-size="8" font-weight="700">3</text>
+  <text x="226" y="864" fill="#8899AA" font-size="8">Neuron Op</text>
+  <text x="282" y="864" fill="#444" font-size="10">&#x2192;</text>
+
+  <rect x="294" y="853" width="14" height="14" rx="3" fill="#FF9900" opacity="0.3" stroke="#FF9900" stroke-width="1"/>
+  <text x="301" y="864" text-anchor="middle" fill="#FF9900" font-size="8" font-weight="700">4</text>
+  <text x="313" y="864" fill="#8899AA" font-size="8">DeviceConfig</text>
+  <text x="378" y="864" fill="#444" font-size="10">&#x2192;</text>
+
+  <rect x="390" y="853" width="14" height="14" rx="3" fill="#7C4DFF" opacity="0.3" stroke="#7C4DFF" stroke-width="1"/>
+  <text x="397" y="864" text-anchor="middle" fill="#7C4DFF" font-size="8" font-weight="700">A</text>
+  <text x="409" y="864" fill="#8899AA" font-size="8">Storage</text>
+  <text x="448" y="864" fill="#444" font-size="10">&#x2192;</text>
+
+  <rect x="460" y="853" width="14" height="14" rx="3" fill="#FF9900" opacity="0.3" stroke="#FF9900" stroke-width="1"/>
+  <text x="467" y="864" text-anchor="middle" fill="#FF9900" font-size="8" font-weight="700">B</text>
+  <text x="479" y="864" fill="#8899AA" font-size="8">vLLM</text>
+  <text x="505" y="864" fill="#444" font-size="10">&#x2192;</text>
+
+  <rect x="517" y="853" width="14" height="14" rx="3" fill="#00BCD4" opacity="0.3" stroke="#00BCD4" stroke-width="1"/>
+  <text x="524" y="864" text-anchor="middle" fill="#00BCD4" font-size="8" font-weight="700">C</text>
+  <text x="536" y="864" fill="#8899AA" font-size="8">Svc+Route</text>
+
+  <!-- Color legend (second row) -->
+  <rect x="610" y="853" width="8" height="8" rx="2" fill="none" stroke="#CC0000" stroke-width="1.5"/>
+  <text x="623" y="861" fill="#888" font-size="8">OpenShift</text>
+  <rect x="672" y="853" width="8" height="8" rx="2" fill="none" stroke="#FF9900" stroke-width="1.5"/>
+  <text x="685" y="861" fill="#888" font-size="8">AWS Neuron</text>
+  <rect x="742" y="853" width="8" height="8" rx="2" fill="none" stroke="#4CAF50" stroke-width="1.5"/>
+  <text x="755" y="861" fill="#888" font-size="8">Hardware</text>
+  <rect x="800" y="853" width="8" height="8" rx="2" fill="none" stroke="#7C4DFF" stroke-width="1.5"/>
+  <text x="813" y="861" fill="#888" font-size="8">Storage</text>
+  <rect x="852" y="853" width="8" height="8" rx="2" fill="none" stroke="#00BCD4" stroke-width="1.5"/>
+  <text x="865" y="861" fill="#888" font-size="8">Networking</text>
+
+  <!-- Color legend (second line in legend) -->
+  <text x="50" y="880" fill="#888" font-size="8" font-style="italic">AWS Storage (S3/EBS) provides model storage consumed by the AI Application Layer (see right edge path)</text>
+</svg>

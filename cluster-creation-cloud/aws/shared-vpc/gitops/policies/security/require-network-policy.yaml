@@ -1,0 +1,37 @@
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: require-network-policy
+  namespace: policies
+  annotations:
+    policy.open-cluster-management.io/standards: NIST-CSF
+    policy.open-cluster-management.io/categories: Security
+    policy.open-cluster-management.io/controls: PR.AC-5
+spec:
+  remediationAction: inform
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: require-network-policy
+        spec:
+          remediationAction: inform
+          severity: low
+          namespaceSelector:
+            include:
+              - "*"
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: networking.k8s.io/v1
+                kind: NetworkPolicy
+                metadata:
+                  name: default-deny-all
+                spec:
+                  podSelector: {}
+                  policyTypes:
+                    - Ingress
+                    - Egress

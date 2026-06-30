@@ -1,0 +1,27 @@
+# kiali-openid-auth.yaml
+apiVersion: kiali.io/v1alpha1
+kind: Kiali
+metadata:
+  name: kiali # This should be the name of your Kiali instance, typically 'kiali'
+  namespace: istio-system # Or the namespace where Kiali is installed
+spec:
+  auth:
+    strategy: openid
+    openid:
+      client_id: "b9e1efb4-4f85-46f6-8ff1-2dc638065375"
+      issuer_uri: "https://login.microsoftonline.com/64dc69e4-d083-49fc-9569-ebece1dd1408/v2.0"
+      scopes:
+        - openid
+        - profile
+        - email
+        - groups # Include if you want Kiali to see user groups for RBAC
+      secret_name: kiali-openid-secret
+      username_claim: "email" # Or "preferred_username"
+      authentication_timeout: 300
+  # Include other Kiali spec configurations here if you're managing the full CR.
+  # For example, if you want to ensure the Kiali UI is enabled:
+  # deployment:
+  #   accessible_namespaces:
+  #     - "**" # Or specific namespaces if you want to restrict visibility
+  #   ingress:
+  #     enabled: true

@@ -1,0 +1,44 @@
+---
+# AWS Configuration
+aws_region: "us-east-1"
+aws_profile: "default"
+
+# ROSA Configuration
+rosa_version: "4.14"
+rosa_channel_group: "stable"
+
+# Cluster Configuration
+cluster_name: "rosa-hcp-cluster"
+cluster_type: "public"  # public or private
+compute_machine_type: "m5.xlarge"
+replicas: 2
+availability_zones: 2
+enable_autoscaling: false
+min_replicas: 2
+max_replicas: 4
+
+# Network Configuration
+vpc_cidr: "10.0.0.0/16"
+private_subnet_cidrs:
+  - "10.0.1.0/24"
+  - "10.0.2.0/24"
+public_subnet_cidrs:
+  - "10.0.101.0/24"
+  - "10.0.102.0/24"
+
+# Cluster Access Configuration
+api_visibility: "public"  # public or private
+ingress_visibility: "public"  # public or private
+
+# Tags
+common_tags:
+  Environment: "development"
+  ManagedBy: "ansible"
+  Project: "rosa-hcp"
+
+# OIDC Configuration
+oidc_provider_url: ""
+
+# Timeouts (in seconds)
+cluster_creation_timeout: 3600
+cluster_deletion_timeout: 1800

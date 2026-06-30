@@ -1,0 +1,7 @@
+apiVersion: v2
+name: virtualization
+description: A Helm chart for KubeVirt Virtualization Operator
+type: application
+version: 1.0.0
+appVersion: "1.0"
+

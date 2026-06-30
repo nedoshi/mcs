@@ -1,0 +1,54 @@
+---
+- name: Validate Prerequisites for ROSA HCP
+  hosts: localhost
+  connection: local
+  gather_facts: true
+
+  tasks:
+    - name: Check Python version
+      ansible.builtin.assert:
+        that:
+          - ansible_python_version is version('3.8', '>=')
+        fail_msg: "Python 3.8 or higher is required"
+        success_msg: "Python version {{ ansible_python_version }} is compatible"
+
+    - name: Check for ROSA CLI
+      ansible.builtin.command: rosa version
+      register: rosa_cli
+      changed_when: false
+      failed_when: false
+
+    - name: Display ROSA CLI status
+      ansible.builtin.debug:
+        msg: "{{ 'ROSA CLI found: ' + rosa_cli.stdout if rosa_cli.rc == 0 else 'ROSA CLI not found' }}"
+
+    - name: Check for AWS CLI
+      ansible.builtin.command: aws --version
+      register: aws_cli
+      changed_when: false
+      failed_when: false
+
+    - name: Display AWS CLI status
+      ansible.builtin.debug:
+        msg: "{{ 'AWS CLI found: ' + aws_cli.stdout if aws_cli.rc == 0 else 'AWS CLI not found' }}"
+
+    - name: Check AWS credentials
+      ansible.builtin.command: aws sts get-caller-identity
+      register: aws_creds
+      changed_when: false
+      failed_when: false
+      environment:
+        AWS_REGION: "{{ aws_region | default('us-east-1') }}"
+
+    - name: Display AWS credentials status
+      ansible.builtin.debug:
+        msg: "{{ 'AWS credentials valid' if aws_creds.rc == 0 else 'AWS credentials not configured' }}"
+
+    - name: Summary
+      ansible.builtin.debug:
+        msg:
+          - "Prerequisites Validation Summary:"
+          - "Python: {{ '✓' if ansible_facts['python_version'] is version('3.8', '>=') else '✗' }}"
+          - "ROSA CLI: {{ '✓' if rosa_cli.rc == 0 else '✗' }}"
+          - "AWS CLI: {{ '✓' if aws_cli.rc == 0 else '✗' }}"
+          - "AWS Credentials: {{ '✓' if aws_creds.rc == 0 else '✗' }}"

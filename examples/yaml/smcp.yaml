@@ -1,0 +1,51 @@
+apiVersion: maistra.io/v2
+kind: ServiceMeshControlPlane
+metadata:
+  name: basic
+  namespace: istio-system
+spec:
+  version: v2.4
+  security:
+    identity:
+      type: ThirdParty
+    dataPlane:
+      mtls: true
+    controlPlane:
+      mtls: true
+  tracing:
+    type: Jaeger
+    sampling: 10000
+  general:
+    logging:
+      logAsJSON: true
+  profiles:
+    - default
+  addons:
+    grafana:
+      enabled: true
+      install:
+        security:
+          enabled: true
+    jaeger:
+      install:
+        storage:
+          type: Memory
+    kiali:
+      enabled: true
+      install:
+        dashboard:
+          enableGrafana: true
+          enableTracing: true
+          enablePrometheusLink: true
+    prometheus:
+      enabled: true
+  gateways:
+    additionalIngress:
+      oauth-gateway:
+        enabled: true
+        runtime:
+          deployment:
+            autoScaling:
+              enabled: false
+        service:
+          type: ClusterIP

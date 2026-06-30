@@ -1,0 +1,44 @@
+# Example Terraform variables file
+# Copy this file to Development/dev.tfvars and customize with your values
+
+# Domain prefix for the ARO cluster (lowercase alphanumeric and hyphens only, 1-15 chars)
+domain = "example-domain"
+
+# Azure region where resources will be created
+location = "canadacentral"
+
+# Resource group name
+resource_group_name = "example-rg"
+
+# Resource prefix (lowercase alphanumeric and hyphens only, max 15 chars)
+resource_prefix = "example"
+
+# Virtual network address space
+virtual_network_address_space = ["10.0.0.0/22"]
+
+# Master subnet address space (must be within virtual_network_address_space)
+master_subnet_address_space = ["10.0.0.0/23"]
+
+# Worker subnet address space (must be within virtual_network_address_space)
+worker_subnet_address_space = ["10.0.2.0/23"]
+
+# Optional: Override default values
+# worker_node_vm_size = "Standard_D4s_v3"
+# master_node_vm_size = "Standard_D8s_v3"
+# worker_node_count = 3
+# worker_node_vm_disk_size = 128
+# pod_cidr = "10.128.0.0/14"
+# service_cidr = "172.30.0.0/16"
+# api_server_visibility = "Public"
+# ingress_visibility = "Public"
+# fips_validated_modules = "Disabled"
+# master_encryption_at_host = "Disabled"
+# worker_encryption_at_host = "Disabled"
+
+# Tags for resources
+# tags = {
+#   Environment = "Development"
+#   Project     = "ARO"
+#   ManagedBy   = "Terraform"
+# }
+

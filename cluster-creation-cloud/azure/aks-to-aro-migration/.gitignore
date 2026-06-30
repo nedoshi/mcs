@@ -1,0 +1,38 @@
+# Secrets and sensitive data
+secrets.yaml
+*.pem
+*.key
+*.env
+terraform.tfvars
+
+# Export directories (contain sensitive data)
+exports/
+manifests/converted/
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backup files
+*.bak
+*.backup
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Testing
+test-output/

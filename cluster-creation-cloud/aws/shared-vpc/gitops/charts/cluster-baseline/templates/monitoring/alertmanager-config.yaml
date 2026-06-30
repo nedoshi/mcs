@@ -1,0 +1,18 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: {{ include "cluster-baseline.fullname" . }}-config
+  namespace: openshift-monitoring
+  labels:
+    {{- include "cluster-baseline.labels" . | nindent 4 }}
+spec:
+  route:
+    receiver: "null"
+    groupBy: ["alertname", "namespace"]
+    groupWait: 30s
+    groupInterval: 5m
+    repeatInterval: 12h
+  receivers:
+    - name: "null"
+{{- end }}

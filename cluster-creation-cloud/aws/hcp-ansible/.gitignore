@@ -1,0 +1,42 @@
+# Ansible
+*.retry
+.ansible/
+/tmp/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Cluster info files
+*_info.txt
+*_config.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Credentials
+*.pem
+*.key
+credentials.yml
+secrets.yml
+
+# Logs
+*.log
+
+# Temporary files
+/tmp/
+.cache/

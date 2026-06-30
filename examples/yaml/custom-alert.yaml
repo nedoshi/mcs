@@ -1,0 +1,44 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: node-health-alerts
+  namespace: openshift-monitoring
+  labels:
+    prometheus: k8s
+    role: alert-rules
+spec:
+  groups:
+    - name: node-status
+      rules:
+        - alert: NodePressure
+          expr: kube_node_status_condition{condition=~"DiskPressure|MemoryPressure|PIDPressure", status="true"} == 1
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node {{ $labels.node }} reporting {{ $labels.condition }}"
+            description: "{{ $labels.node }} has {{ $labels.condition }}=True for 2+ minutes."
+
+    - name: node-disk-usage
+      rules:
+        - alert: NodeDiskUsageWarning
+          expr: |
+            (1 - (node_filesystem_avail_bytes{mountpoint="/var"} / node_filesystem_size_bytes{mountpoint="/var"})) * 100 > 70
+            and
+            (1 - (node_filesystem_avail_bytes{mountpoint="/var"} / node_filesystem_size_bytes{mountpoint="/var"})) * 100 <= 80
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Disk usage warning on {{ $labels.instance }} ({{ $labels.mountpoint }})"
+            description: "Disk usage is at {{ $value | printf \"%.1f\" }}% on {{ $labels.mountpoint }}."
+
+        - alert: NodeDiskUsageCritical
+          expr: |
+            (1 - (node_filesystem_avail_bytes{mountpoint="/var"} / node_filesystem_size_bytes{mountpoint="/var"})) * 100 > 80
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Critical disk usage on {{ $labels.instance }} ({{ $labels.mountpoint }})"
+            description: "Disk usage is at {{ $value | printf \"%.1f\" }}% on {{ $labels.mountpoint }}."

@@ -1,0 +1,50 @@
+---
+- name: Check if ROSA CLI is installed
+  ansible.builtin.command: rosa version
+  register: rosa_version_check
+  changed_when: false
+  failed_when: false
+
+- name: Fail if ROSA CLI is not installed
+  ansible.builtin.fail:
+    msg: "ROSA CLI is not installed"
+  when: rosa_version_check.rc != 0
+
+- name: Check if AWS CLI is installed
+  ansible.builtin.command: aws --version
+  register: aws_version_check
+  changed_when: false
+  failed_when: false
+
+- name: Fail if AWS CLI is not installed
+  ansible.builtin.fail:
+    msg: "AWS CLI is not installed"
+  when: aws_version_check.rc != 0
+
+- name: Check AWS credentials
+  ansible.builtin.command: aws sts get-caller-identity
+  register: aws_identity
+  changed_when: false
+  environment:
+    AWS_REGION: "{{ aws_region }}"
+
+- name: Verify ROSA login
+  ansible.builtin.shell: rosa whoami
+  register: rosa_whoami
+  changed_when: false
+  failed_when: false
+
+- name: Log in to ROSA if needed
+  ansible.builtin.shell: rosa login --token="{{ lookup('env', 'ROSA_TOKEN') }}"
+  when: 
+    - rosa_whoami.rc != 0
+    - lookup('env', 'ROSA_TOKEN') | length > 0
+  changed_when: true
+
+- name: Initialize ROSA if needed
+  ansible.builtin.shell: rosa init
+  register: rosa_init
+  changed_when: "'already initialized' not in rosa_init.stdout"
+  failed_when: 
+    - rosa_init.rc != 0
+    - "'already initialized' not in rosa_init.stdout"

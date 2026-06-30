@@ -1,0 +1,41 @@
+---
+- name: Create ROSA Hosted Control Plane Cluster
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  
+  vars:
+    cluster_type: "{{ cluster_type | default('public') }}"
+    cluster_name: "{{ cluster_name | default('rosa-hcp-cluster') }}"
+
+  pre_tasks:
+    - name: Validate required variables
+      ansible.builtin.assert:
+        that:
+          - cluster_name is defined
+          - aws_region is defined
+          - cluster_type in ['public', 'private']
+        fail_msg: "Required variables are not properly defined"
+
+    - name: Display cluster configuration
+      ansible.builtin.debug:
+        msg:
+          - "Creating ROSA HCP Cluster:"
+          - "Cluster Name: {{ cluster_name }}"
+          - "Cluster Type: {{ cluster_type }}"
+          - "AWS Region: {{ aws_region }}"
+
+  roles:
+    - role: rosa_prerequisites
+      tags: ['prerequisites']
+
+    - role: "rosa_hcp_{{ cluster_type }}"
+      tags: ['cluster']
+
+  post_tasks:
+    - name: Display completion message
+      ansible.builtin.debug:
+        msg:
+          - "ROSA HCP Cluster created successfully!"
+          - "Cluster Name: {{ cluster_name }}"
+      when: cluster_created is defined and cluster_created

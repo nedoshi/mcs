@@ -1,0 +1,33 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: code-server-llm
+  namespace: redhat-ods-applications
+  labels:
+    opendatahub.io/notebook-image: "true"
+    opendatahub.io/component: "true"
+    app.kubernetes.io/part-of: workbenches
+    app.opendatahub.io/workbenches: "true"
+    component.opendatahub.io/name: notebooks
+    platform.opendatahub.io/part-of: workbenches
+  annotations:
+    opendatahub.io/notebook-image-name: "Code Server LLM Workbench"
+    opendatahub.io/notebook-image-desc: "VSCode IDE with Cline, Continue, and pre-configured LLM endpoint"
+    opendatahub.io/notebook-image-url: "https://github.com/coder/code-server"
+    opendatahub.io/notebook-image-order: "1"
+    platform.opendatahub.io/instance.name: "default-workbenches"
+    platform.opendatahub.io/type: "OpenShift AI Self-Managed"
+    platform.opendatahub.io/version: "3.3.0"
+spec:
+  lookupPolicy:
+    local: true
+  tags:
+    - name: latest
+      annotations:
+        opendatahub.io/notebook-python-dependencies: "[]"
+        opendatahub.io/notebook-software: '[{"name":"code-server","version":"latest"},{"name":"Python","version":"v3.11"}]'
+      from:
+        kind: DockerImage
+        name: quay.io/codeserver/code-server:latest
+      importPolicy:
+        importMode: Legacy

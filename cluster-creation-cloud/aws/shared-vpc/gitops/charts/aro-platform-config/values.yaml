@@ -1,0 +1,27 @@
+clusterName: ""
+cloudProvider: azure
+
+storage:
+  enabled: true
+  className: managed-premium
+  isDefault: true
+  provisioner: disk.csi.azure.com
+  skuName: Premium_LRS
+  resourceGroup: ""
+  reclaimPolicy: Delete
+  volumeBindingMode: WaitForFirstConsumer
+  allowVolumeExpansion: true
+  fsType: ext4
+
+identityProvider:
+  enabled: true
+  name: azure-ad
+  type: OpenID
+  clientID: ""
+  secretName: aro-oidc-client-secret
+  issuer: ""
+  claims:
+    preferredUsername: ["email", "upn"]
+    name: ["name"]
+    email: ["email"]
+    groups: ["groups"]

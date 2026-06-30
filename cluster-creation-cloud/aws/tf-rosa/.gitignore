@@ -1,0 +1,51 @@
+# Local .terraform directories
+**/.terraform/
+.terraform/
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Exclude all .tfvars files, which are likely to contain sensitive data
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+
+# Ignore override files as they are usually used to override resources locally
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Include override files you do wish to add to version control using negated pattern
+# !example_override.tf
+
+# Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
+*.tfplan
+tfplan
+tfplan.*
+
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc
+
+# Scratch IAM policy JSON (use Terraform aws_iam_policy_document instead)
+trust.json
+trust-*.json
+*-policy.json
+s3_policy.json
+cw-policy.json
+rosa-key-policy.json
+
+# Ignore sensitive files
+*.pem
+*.key
+*.p12
+*.pfx
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,6 @@
+charts/*/charts/
+*.tgz
+.DS_Store
+*.swp
+*.swo
+*~

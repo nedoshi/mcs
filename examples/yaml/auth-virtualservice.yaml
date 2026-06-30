@@ -1,0 +1,27 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: entraid-vs
+  namespace: istio-system
+spec:
+  hosts:
+  - "app.apps.nddemo.8qm7.p3.openshiftapps.com"
+  gateways:
+  - entraid-gateway
+  http:
+  - match:
+    - uri:
+        prefix: "/oauth2/"
+    route:
+    - destination:
+        host: oauth2-proxy.istio-system.svc.cluster.local
+        port:
+          number: 4180
+  - match:
+    - uri:
+        prefix: "/"
+    route:
+    - destination:
+        host: your-app-service.bookinfo.svc.cluster.local
+        port:
+          number: 8080

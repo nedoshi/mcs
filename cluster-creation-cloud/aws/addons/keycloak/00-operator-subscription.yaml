@@ -1,0 +1,27 @@
+---
+# Keycloak Operator Subscription
+# Installs the Keycloak Operator from OperatorHub
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: keycloak-operator-group
+  namespace: keycloak
+spec:
+  targetNamespaces:
+  - keycloak
+
+---
+# Subscription for Keycloak Operator
+# Note: Keycloak Operator is available in the community-operators catalog
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: keycloak-operator
+  namespace: keycloak
+spec:
+  channel: alpha
+  name: keycloak-operator
+  source: community-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+
