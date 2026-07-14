@@ -1,0 +1,167 @@
+:root {
+  --red-hat-red: #ee0000;
+  --red-hat-dark: #151515;
+  --red-hat-gray: #f0f0f0;
+  --text-muted: #6a6e73;
+  --card-shadow: 0 8px 24px rgba(21, 21, 21, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Red Hat Text", "Segoe UI", sans-serif;
+  color: var(--red-hat-dark);
+  background: #fafafa;
+}
+
+.hero {
+  background: linear-gradient(135deg, var(--red-hat-dark) 0%, #2d2d2d 55%, var(--red-hat-red) 100%);
+  color: #fff;
+  padding: 3rem 1.5rem 4rem;
+}
+
+.hero-content {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+  opacity: 0.85;
+  margin: 0 0 0.5rem;
+}
+
+.hero h1 {
+  margin: 0 0 0.75rem;
+  font-size: clamp(2rem, 5vw, 3rem);
+}
+
+.subtitle {
+  margin: 0;
+  max-width: 42rem;
+  line-height: 1.5;
+  opacity: 0.92;
+}
+
+.container {
+  max-width: 960px;
+  margin: -2rem auto 2rem;
+  padding: 0 1.5rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.panel {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--card-shadow);
+}
+
+.panel h2 {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+}
+
+.panel-note {
+  margin: 0 0 1rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.panel-header h2 {
+  margin: 0;
+}
+
+.badge {
+  background: var(--red-hat-gray);
+  color: var(--red-hat-dark);
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+
+.info-grid div {
+  background: var(--red-hat-gray);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.info-grid dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.info-grid dd {
+  margin: 0;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.product-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.product-card h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.product-meta {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.product-price {
+  font-weight: 700;
+  color: var(--red-hat-red);
+}
+
+.footer {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 1rem 1.5rem 2rem;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  .panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

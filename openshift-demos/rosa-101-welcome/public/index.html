@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ROSA 101 Demo</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div class="hero-content">
+        <p class="eyebrow">OpenShift on AWS</p>
+        <h1 id="welcome-title">ROSA 101 Demo</h1>
+        <p class="subtitle">
+          A single-service app to showcase deploy, scale, and route on Red Hat OpenShift Service on AWS.
+        </p>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="panel runtime-panel">
+        <h2>Runtime Info</h2>
+        <p class="panel-note">Refresh the page or scale replicas to see traffic spread across pods.</p>
+        <dl class="info-grid" id="runtime-info">
+          <div><dt>Status</dt><dd id="status">Loading...</dd></div>
+          <div><dt>Pod</dt><dd id="hostname">-</dd></div>
+          <div><dt>Namespace</dt><dd id="namespace">-</dd></div>
+          <div><dt>Version</dt><dd id="version">-</dd></div>
+        </dl>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Sample Catalog</h2>
+          <span class="badge">Static demo data</span>
+        </div>
+        <div class="product-grid" id="product-grid"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Deploy via <strong>Import from Git</strong> in the OpenShift Developer perspective.</p>
+    </footer>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
