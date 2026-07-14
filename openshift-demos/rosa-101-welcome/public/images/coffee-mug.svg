@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="OpenShift Coffee Mug">
+  <rect width="320" height="200" fill="#fff5f5"/>
+  <ellipse cx="160" cy="170" rx="72" ry="10" fill="#e8d8d8"/>
+  <path d="M98 72h108c8 0 14 6 14 14v72c0 8-6 14-14 14H98c-8 0-14-6-14-14V86c0-8 6-14 14-14z" fill="#fff" stroke="#151515" stroke-width="4"/>
+  <path d="M220 92h18c16 0 28 12 28 28s-12 28-28 28h-18" fill="none" stroke="#151515" stroke-width="8" stroke-linecap="round"/>
+  <rect x="112" y="96" width="96" height="44" rx="6" fill="#ee0000"/>
+  <circle cx="160" cy="118" r="14" fill="#fff"/>
+  <circle cx="160" cy="118" r="8" fill="#ee0000"/>
+</svg>

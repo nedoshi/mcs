@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Kubernetes Sticker Pack">
+  <rect width="320" height="200" fill="#eef4ff"/>
+  <rect x="56" y="40" width="208" height="136" rx="12" fill="#fff" stroke="#d0d8e8" stroke-width="3"/>
+  <circle cx="120" cy="96" r="28" fill="#326ce5"/>
+  <polygon points="120,78 132,102 108,102" fill="#fff"/>
+  <rect x="168" y="72" width="64" height="16" rx="8" fill="#ee0000" transform="rotate(-12 200 80)"/>
+  <rect x="176" y="104" width="56" height="14" rx="7" fill="#151515" transform="rotate(8 204 111)"/>
+  <rect x="164" y="132" width="72" height="14" rx="7" fill="#326ce5" transform="rotate(-6 200 139)"/>
+  <circle cx="88" cy="148" r="10" fill="#ffd100"/>
+  <circle cx="248" cy="60" r="10" fill="#ee0000"/>
+</svg>

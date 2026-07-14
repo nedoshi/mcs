@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="GitOps Workflow Guide">
+  <rect width="320" height="200" fill="#f4f7f4"/>
+  <rect x="88" y="36" width="144" height="128" rx="8" fill="#fff" stroke="#151515" stroke-width="3"/>
+  <rect x="104" y="52" width="112" height="14" rx="3" fill="#ee0000"/>
+  <rect x="104" y="76" width="88" height="8" rx="2" fill="#d8d8d8"/>
+  <rect x="104" y="92" width="96" height="8" rx="2" fill="#d8d8d8"/>
+  <rect x="104" y="108" width="72" height="8" rx="2" fill="#d8d8d8"/>
+  <circle cx="128" cy="140" r="10" fill="#326ce5"/>
+  <path d="M138 140h44" stroke="#151515" stroke-width="3" stroke-linecap="round"/>
+  <polygon points="182,134 194,140 182,146" fill="#151515"/>
+  <circle cx="208" cy="140" r="10" fill="#ee0000"/>
+  <path d="M88 164h144" stroke="#c8d0c8" stroke-width="2" stroke-dasharray="6 6"/>
+</svg>

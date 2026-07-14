@@ -131,10 +131,33 @@ body {
 .product-card {
   border: 1px solid #e0e0e0;
   border-radius: 10px;
-  padding: 1rem;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  overflow: hidden;
+}
+
+.product-image {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  display: block;
+  background: var(--red-hat-gray);
+}
+
+.product-card h3,
+.product-card .product-meta,
+.product-card .product-price {
+  padding: 0 1rem;
+}
+
+.product-card .product-price {
+  padding-bottom: 1rem;
+}
+
+.product-card h3 {
+  padding-top: 0.75rem;
 }
 
 .product-card h3 {

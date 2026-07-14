@@ -37,6 +37,7 @@ async function loadProducts() {
       .map(
         (product) => `
           <article class="product-card">
+            <img class="product-image" src="${product.image}" alt="${product.name}" loading="lazy" />
             <h3>${product.name}</h3>
             <p class="product-meta">${product.category} · ${product.stock} in stock</p>
             <p class="product-price">${product.price === 0 ? 'Free' : `$${product.price.toFixed(2)}`}</p>
