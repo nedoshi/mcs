@@ -32,11 +32,24 @@ Use this path in the OpenShift **Developer** perspective.
 1. **Delete any failed attempt first** (see [Troubleshooting](#troubleshooting) if you already hit `manifest unknown`)
 2. Developer → **+ Add** → **Import from Git**
 3. Set:
-   - **Git repo URL:** your fork of this repo
+   - **Git repo URL:** `https://github.com/nedoshi/mcs.git` (repo root only — see below)
+   - **Git reference:** `main`
    - **Context dir:** `openshift-demos/rosa-101-welcome`
    - **Builder Image:** **Node.js** (auto-detected from `package.json`)
    - **Resource type:** Deployment
    - **Create a route:** checked
+
+   **Wrong (browser URL — will fail clone):**
+   ```
+   https://github.com/nedoshi/mcs/tree/main/openshift-demos/rosa-101-welcome
+   ```
+
+   **Right (two separate fields):**
+   ```
+   Git repo URL:  https://github.com/nedoshi/mcs.git
+   Context dir:   openshift-demos/rosa-101-welcome
+   Git ref:       main
+   ```
 4. **Important:** do **not** choose Dockerfile builder and do **not** deploy a pre-existing image named `rosa-101-welcome:latest`
 5. Click **Create**
 
@@ -100,6 +113,15 @@ npm start
 
 ## Troubleshooting
 
+### `requested repository ... not found`
+
+You pasted the **GitHub browser URL** (`/tree/main/...`) into the Git repo field. OpenShift clones the repository root, not a folder path in the URL.
+
+Use:
+- **Git repo URL:** `https://github.com/nedoshi/mcs.git`
+- **Context dir:** `openshift-demos/rosa-101-welcome`
+- **Git ref:** `main`
+
 ### `manifest unknown` for `image-registry.../rosa-101-welcome:latest`
 
 OpenShift tried to **pull** an image from the internal registry instead of **building from Git**. Common causes:
@@ -131,6 +153,32 @@ oc expose svc/rosa-101-welcome -n rosa-demo
 ### Build succeeds but route returns 503
 
 Wait for the deployment rollout; check `oc get pods` and `oc logs deploy/rosa-101-welcome`.
+
+### Catalog empty / page still shows `Loading...` and `/app.js`
+
+Your cluster is still running an **old image**. The live HTML should include product cards directly (no `/app.js`).
+
+Verify what is deployed:
+
+```bash
+curl -sI https://YOUR_ROUTE/ | grep -i x-build-id
+curl -s https://YOUR_ROUTE/ | grep -E 'product-card|app.js'
+```
+
+- **No `X-Build-Id` header** and **`app.js` in HTML** → old build still serving
+- **Fix:** push latest code to GitHub, then force a rebuild:
+
+```bash
+git add openshift-demos/rosa-101-welcome
+git commit -m "fix: embed static catalog in index.html for ROSA demo"
+git push origin main
+
+oc start-build rosa-101-welcome -n rosa-demo --wait
+oc rollout restart deployment/rosa-101-welcome -n rosa-demo
+oc rollout status deployment/rosa-101-welcome -n rosa-demo
+```
+
+Hard-refresh the browser (`Cmd+Shift+R`) after rollout completes.
 
 ## Cleanup
 

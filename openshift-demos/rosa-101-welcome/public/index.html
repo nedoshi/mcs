@@ -10,7 +10,7 @@
     <header class="hero">
       <div class="hero-content">
         <p class="eyebrow">OpenShift on AWS</p>
-        <h1 id="welcome-title">{{WELCOME_MESSAGE}}</h1>
+        <h1 id="welcome-title">Welcome to ROSA!</h1>
         <p class="subtitle">
           A single-service app to showcase deploy, scale, and route on Red Hat OpenShift Service on AWS.
         </p>
@@ -22,10 +22,10 @@
         <h2>Runtime Info</h2>
         <p class="panel-note">Refresh the page or scale replicas to see traffic spread across pods.</p>
         <dl class="info-grid" id="runtime-info">
-          <div><dt>Status</dt><dd id="status">{{STATUS}}</dd></div>
-          <div><dt>Pod</dt><dd id="hostname">{{HOSTNAME}}</dd></div>
-          <div><dt>Namespace</dt><dd id="namespace">{{NAMESPACE}}</dd></div>
-          <div><dt>Version</dt><dd id="version">{{VERSION}}</dd></div>
+          <div><dt>Status</dt><dd id="status">Healthy</dd></div>
+          <div><dt>Pod</dt><dd id="hostname">loading...</dd></div>
+          <div><dt>Namespace</dt><dd id="namespace">loading...</dd></div>
+          <div><dt>Version</dt><dd id="version">1.0.0</dd></div>
         </dl>
       </section>
 
@@ -34,12 +34,57 @@
           <h2>Sample Catalog</h2>
           <span class="badge">Static demo data</span>
         </div>
-        <div class="product-grid" id="product-grid">{{CATALOG_HTML}}</div>
+        <div class="product-grid" id="product-grid">
+          <article class="product-card">
+            <img class="product-image" src="/images/starter-kit.svg" alt="ROSA Starter Kit" />
+            <h3>ROSA Starter Kit</h3>
+            <p class="product-meta">Bundles · 120 in stock</p>
+            <p class="product-price">$29.99</p>
+          </article>
+          <article class="product-card">
+            <img class="product-image" src="/images/coffee-mug.svg" alt="OpenShift Coffee Mug" />
+            <h3>OpenShift Coffee Mug</h3>
+            <p class="product-meta">Swag · 48 in stock</p>
+            <p class="product-price">$14.99</p>
+          </article>
+          <article class="product-card">
+            <img class="product-image" src="/images/sticker-pack.svg" alt="Kubernetes Sticker Pack" />
+            <h3>Kubernetes Sticker Pack</h3>
+            <p class="product-meta">Swag · 200 in stock</p>
+            <p class="product-price">$9.99</p>
+          </article>
+          <article class="product-card">
+            <img class="product-image" src="/images/gitops-guide.svg" alt="GitOps Workflow Guide" />
+            <h3>GitOps Workflow Guide</h3>
+            <p class="product-meta">Resources · 999 in stock</p>
+            <p class="product-price">Free</p>
+          </article>
+        </div>
       </section>
     </main>
 
     <footer class="footer">
       <p>Deploy via <strong>Import from Git</strong> in the OpenShift Developer perspective.</p>
     </footer>
+
+    <script>
+      (function () {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/api/info', true);
+        xhr.onload = function () {
+          if (xhr.status !== 200) return;
+          try {
+            var info = JSON.parse(xhr.responseText);
+            document.getElementById('welcome-title').textContent = info.message || 'Welcome to ROSA!';
+            document.getElementById('hostname').textContent = info.hostname || '-';
+            document.getElementById('namespace').textContent = info.namespace || '-';
+            document.getElementById('version').textContent = info.appVersion || '1.0.0';
+          } catch (e) {
+            /* catalog still visible without runtime details */
+          }
+        };
+        xhr.send();
+      })();
+    </script>
   </body>
 </html>

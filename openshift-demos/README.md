@@ -4,6 +4,21 @@ This directory contains demonstration examples and tutorials for various OpenShi
 
 ## Available Demos
 
+### [ROSA 101 Welcome](./rosa-101-welcome/)
+
+Minimal single-service web app for ROSA 101 workshops. Deploy via **Import from Git** in the Developer Console.
+
+**Features:**
+- Dockerfile-based build on UBI9 Node.js (optional, under `docker/`)
+- Node.js S2I import-from-git (recommended)
+- Static catalog UI with live pod/namespace info
+- Health probes and optional Kubernetes manifests
+
+**Use Cases:**
+- First app deploy on ROSA
+- Demonstrating routes, scaling, and builds
+- Lightweight alternative to multi-service CoolStore demos
+
 ### [Deploying GitOps on ROSA or ARO](./deploying-gitops-on-rosa-or-aro/)
 
 Automated deployment of a ROSA (Red Hat OpenShift Service on AWS) or ARO (Azure Red Hat OpenShift) cluster with OpenShift GitOps (Argo CD) pre-installed and configured.
@@ -56,6 +71,14 @@ Common prerequisites across demos:
 ```
 openshift-demos/
 ├── README.md                                    # This file
+├── rosa-101-welcome/                           # ROSA 101 import-from-git demo
+│   ├── README.md
+│   ├── package.json
+│   ├── server.js
+│   ├── public/
+│   ├── docker/Dockerfile
+│   ├── openshift/buildconfig-nodejs.yaml
+│   └── kubernetes/deployment.yaml
 ├── deploying-gitops-on-rosa-or-aro/            # GitOps deployment demo
 │   ├── README.md
 │   ├── main.tf
