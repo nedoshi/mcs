@@ -14,7 +14,7 @@ metadata:
   labels:
     app: rosa-101-welcome
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: rosa-101-welcome
@@ -46,10 +46,10 @@ spec:
           resources:
             requests:
               cpu: 50m
-              memory: 64Mi
+              memory: 128Mi
             limits:
               cpu: 200m
-              memory: 128Mi
+              memory: 256Mi
           livenessProbe:
             httpGet:
               path: /health

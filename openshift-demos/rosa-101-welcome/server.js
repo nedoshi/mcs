@@ -5,7 +5,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 8080;
 const PUBLIC_DIR = path.join(__dirname, 'public');
-const BUILD_ID = '2026-07-14-ssr-v2';
+const BUILD_ID = '2026-07-14-ssr-v3';
 
 const products = [
   { id: 1, name: 'ROSA Starter Kit', price: 29.99, stock: 120, category: 'Bundles', image: '/images/starter-kit.svg' },
@@ -38,6 +38,19 @@ app.get('/api/info', (_req, res) => {
 
 app.get('/api/products', (_req, res) => {
   res.json(products);
+});
+
+// Intentional CPU burn for resource-limit and HPA demos.
+app.get('/api/load', (req, res) => {
+  const ms = Math.min(Math.max(parseInt(req.query.ms, 10) || 200, 50), 5000);
+  const end = Date.now() + ms;
+  while (Date.now() < end) {
+    // busy loop
+  }
+  res.json({
+    burnedMs: ms,
+    pod: process.env.POD_NAME || os.hostname(),
+  });
 });
 
 app.use(express.static(PUBLIC_DIR, {

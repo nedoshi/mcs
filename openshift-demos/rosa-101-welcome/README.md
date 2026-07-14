@@ -7,6 +7,7 @@ A minimal single-service web app for **ROSA 101** workshops. Inspired by [CoolSt
 - Build → Deploy → Route
 - Scaling replicas and seeing which pod serves traffic
 - Health probes and resource requests
+- Resource limits and Horizontal Pod Autoscaler (see [kubernetes/DEMO-resources-hpa.md](kubernetes/DEMO-resources-hpa.md))
 
 ## What's in the box
 
@@ -17,6 +18,9 @@ A minimal single-service web app for **ROSA 101** workshops. Inspired by [CoolSt
 | `package.json` | Node.js S2I build (recommended for import) |
 | `docker/Dockerfile` | Optional container build (not in repo root on purpose) |
 | `kubernetes/deployment.yaml` | Optional manifests for `oc apply` after build |
+| `kubernetes/hpa.yaml` | HPA for CPU-based autoscaling demo |
+| `kubernetes/load-generator.yaml` | In-cluster load for HPA demo |
+| `kubernetes/DEMO-resources-hpa.md` | Step-by-step limits & HPA workshop script |
 | `openshift/buildconfig-nodejs.yaml` | Fallback build definition |
 
 **Endpoints:**
@@ -24,6 +28,7 @@ A minimal single-service web app for **ROSA 101** workshops. Inspired by [CoolSt
 - `/health` — liveness/readiness probe
 - `/api/info` — pod name, namespace, version
 - `/api/products` — static catalog (no DB)
+- `/api/load?ms=150` — CPU burn endpoint for limits/HPA demos (10–2000 ms)
 
 ## Deploy: Import from Git (recommended)
 
