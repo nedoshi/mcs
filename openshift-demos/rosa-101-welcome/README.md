@@ -14,8 +14,10 @@ A minimal single-service web app for **ROSA 101** workshops. Inspired by [CoolSt
 |-----------|---------|
 | `server.js` | Express API + static UI |
 | `public/` | Simple catalog page with runtime info |
-| `Dockerfile` | UBI9 Node.js 20 image for OpenShift builds |
-| `kubernetes/deployment.yaml` | Optional manifests for `oc apply` |
+| `package.json` | Node.js S2I build (recommended for import) |
+| `docker/Dockerfile` | Optional container build (not in repo root on purpose) |
+| `kubernetes/deployment.yaml` | Optional manifests for `oc apply` after build |
+| `openshift/buildconfig-nodejs.yaml` | Fallback build definition |
 
 **Endpoints:**
 - `/` — demo UI
@@ -27,16 +29,20 @@ A minimal single-service web app for **ROSA 101** workshops. Inspired by [CoolSt
 
 Use this path in the OpenShift **Developer** perspective.
 
-1. Switch to **Developer** perspective → **+ Add** → **Import from Git**
-2. Set:
-   - **Git repo URL:** your fork of this repo (or the upstream URL once pushed)
+1. **Delete any failed attempt first** (see [Troubleshooting](#troubleshooting) if you already hit `manifest unknown`)
+2. Developer → **+ Add** → **Import from Git**
+3. Set:
+   - **Git repo URL:** your fork of this repo
    - **Context dir:** `openshift-demos/rosa-101-welcome`
-   - **Builder:** Dockerfile
+   - **Builder Image:** **Node.js** (auto-detected from `package.json`)
    - **Resource type:** Deployment
    - **Create a route:** checked
-3. Click **Create**
+4. **Important:** do **not** choose Dockerfile builder and do **not** deploy a pre-existing image named `rosa-101-welcome:latest`
+5. Click **Create**
 
-OpenShift creates a BuildConfig, ImageStream, Deployment, Service, and Route. Watch the build in **Topology**, then open the route URL.
+OpenShift creates a BuildConfig (Git + S2I), ImageStream, Deployment, Service, and Route. Watch the build in **Topology**, then open the route URL.
+
+> **Why Node.js, not Dockerfile?** A root-level `Dockerfile` can cause the console to create a Docker build that pulls `image-registry.../rosa-101-welcome:latest` before any image exists (`manifest unknown`). The Dockerfile lives under `docker/` for optional use; import uses S2I instead.
 
 ### Demo talking points
 
@@ -51,6 +57,7 @@ oc new-project rosa-101-demo
 
 oc new-app https://github.com/YOUR_ORG/mcs.git \
   --context-dir=openshift-demos/rosa-101-welcome \
+  --image-stream=nodejs \
   --name=rosa-101-welcome
 
 oc expose svc/rosa-101-welcome
@@ -61,16 +68,15 @@ Replace `YOUR_ORG/mcs` with your Git remote.
 
 ## Deploy: pre-built manifests
 
-If you already built and pushed an image to the cluster's internal registry:
+Only use this **after** a successful build pushed an image to the internal registry:
 
 ```bash
-# Build locally and push, or use the cluster build from above first
 oc apply -f kubernetes/deployment.yaml
 
-# Point deployment at your built image if needed:
+# If your namespace differs from rosa-101-demo, patch the image:
 oc set image deployment/rosa-101-welcome \
-  rosa-101-welcome=image-registry.openshift-image-registry.svc:5000/rosa-101-demo/rosa-101-welcome:latest \
-  -n rosa-101-demo
+  rosa-101-welcome=image-registry.openshift-image-registry.svc:5000/PROJECT/rosa-101-welcome:latest \
+  -n PROJECT
 ```
 
 ## Local run
@@ -92,13 +98,45 @@ npm start
 | `POD_NAME` | hostname | Set via downward API in manifests |
 | `OPENSHIFT_NAMESPACE` | `local` | Set via downward API in manifests |
 
+## Troubleshooting
+
+### `manifest unknown` for `image-registry.../rosa-101-welcome:latest`
+
+OpenShift tried to **pull** an image from the internal registry instead of **building from Git**. Common causes:
+
+- Dockerfile builder selected on first deploy (image does not exist yet)
+- Deployment configured with image `rosa-101-welcome:latest` without a completed build
+- Retrying after a failed import left a broken BuildConfig/ImageStream
+
+**Fix — wipe and re-import with Node.js builder:**
+
+```bash
+# In your project (e.g. rosa-demo)
+oc delete route,svc,deploy,bc,is -l app=rosa-101-welcome 2>/dev/null || true
+oc delete route,svc,deploy,bc,is rosa-101-welcome 2>/dev/null || true
+```
+
+Then re-run **Import from Git** with **Node.js** builder (steps above).
+
+**Fallback — explicit BuildConfig:**
+
+```bash
+# Edit openshift/buildconfig-nodejs.yaml: set your GIT_REPO
+oc apply -f openshift/buildconfig-nodejs.yaml -n rosa-demo
+oc start-build rosa-101-welcome -n rosa-demo --wait
+oc new-app rosa-101-welcome:latest --name=rosa-101-welcome -n rosa-demo
+oc expose svc/rosa-101-welcome -n rosa-demo
+```
+
+### Build succeeds but route returns 503
+
+Wait for the deployment rollout; check `oc get pods` and `oc logs deploy/rosa-101-welcome`.
+
 ## Cleanup
 
 ```bash
-# If deployed via import from git in project rosa-101-demo:
 oc delete project rosa-101-demo
-
-# If applied manifests directly:
+# or
 oc delete -f kubernetes/deployment.yaml
 ```
 

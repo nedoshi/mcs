@@ -1,0 +1,43 @@
+# Optional: use when Import from Git fails or you want a known-good build definition.
+# 1. Set GIT_REPO to your fork
+# 2. oc apply -f openshift/buildconfig-nodejs.yaml -n rosa-demo
+# 3. oc start-build rosa-101-welcome
+# 4. oc new-app rosa-101-welcome:latest --name=rosa-101-welcome (after build succeeds)
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: rosa-101-welcome
+  labels:
+    app: rosa-101-welcome
+spec: {}
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: rosa-101-welcome
+  labels:
+    app: rosa-101-welcome
+spec:
+  source:
+    type: Git
+    git:
+      uri: https://github.com/YOUR_ORG/mcs.git
+      ref: main
+    contextDir: openshift-demos/rosa-101-welcome
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: nodejs:latest
+        namespace: openshift
+      env:
+        - name: PORT
+          value: "8080"
+  output:
+    to:
+      kind: ImageStreamTag
+      name: rosa-101-welcome:latest
+  triggers:
+    - type: ConfigChange
