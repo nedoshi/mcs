@@ -6,8 +6,7 @@ A minimal single-service web app for **ROSA 101** workshops. Inspired by [CoolSt
 - Developer Console → **Import from Git**
 - Build → Deploy → Route
 - Scaling replicas and seeing which pod serves traffic
-- Health probes and resource requests
-- Resource limits and Horizontal Pod Autoscaler (see [kubernetes/DEMO-resources-hpa.md](kubernetes/DEMO-resources-hpa.md))
+- Health probes and resource requests/limits (see [kubernetes/DEMO-resource-limits.md](kubernetes/DEMO-resource-limits.md))
 
 ## What's in the box
 
@@ -18,9 +17,11 @@ A minimal single-service web app for **ROSA 101** workshops. Inspired by [CoolSt
 | `package.json` | Node.js S2I build (recommended for import) |
 | `docker/Dockerfile` | Optional container build (not in repo root on purpose) |
 | `kubernetes/deployment.yaml` | Optional manifests for `oc apply` after build |
-| `kubernetes/hpa.yaml` | HPA for CPU-based autoscaling demo |
-| `kubernetes/load-generator.yaml` | In-cluster load for HPA demo |
-| `kubernetes/DEMO-resources-hpa.md` | Step-by-step limits & HPA workshop script |
+| `kubernetes/load-test-job.yaml` | Load test Job for resource limits demo |
+| `kubernetes/limit-range.yaml` | LimitRange for quota workshop |
+| `kubernetes/resource-quota.yaml` | ResourceQuota for quota workshop |
+| `kubernetes/DEMO-resource-limits.md` | Step-by-step resource limits workshop script |
+| `scripts/demo-resource-limits.sh` | Interactive instructor demo script |
 | `openshift/buildconfig-nodejs.yaml` | Fallback build definition |
 
 **Endpoints:**
@@ -28,7 +29,6 @@ A minimal single-service web app for **ROSA 101** workshops. Inspired by [CoolSt
 - `/health` — liveness/readiness probe
 - `/api/info` — pod name, namespace, version
 - `/api/products` — static catalog (no DB)
-- `/api/load?ms=150` — CPU burn endpoint for limits/HPA demos (10–2000 ms)
 
 ## Deploy: Import from Git (recommended)
 
@@ -67,6 +67,7 @@ OpenShift creates a BuildConfig (Git + S2I), ImageStream, Deployment, Service, a
 1. **First deploy** — show build logs, pod coming up, route created
 2. **Scale** — `oc scale deployment/rosa-101-welcome --replicas=3` (or use the UI); refresh the page and note the **Pod** field changing
 3. **Config** — add env var `WELCOME_MESSAGE` on the Deployment and roll out
+4. **Resources** — run `./scripts/demo-resource-limits.sh rosa-demo mcs-git`
 
 ## Deploy: CLI (import from Git)
 

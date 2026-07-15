@@ -1,0 +1,48 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rosa-101-load-test
+  labels:
+    app: rosa-101-load-test
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        app: rosa-101-load-test
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: load-test
+          image: curlimages/curl:8.5.0
+          env:
+            - name: SERVICE_HOST
+              value: "REPLACE_WITH_ROUTE_HOST"
+            - name: REQUESTS
+              value: "2000"
+            - name: CONCURRENCY
+              value: "50"
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Load test -> https://${SERVICE_HOST}/"
+              i=0
+              while [ "${i}" -lt "${REQUESTS}" ]; do
+                batch=0
+                while [ "${batch}" -lt "${CONCURRENCY}" ] && [ "${i}" -lt "${REQUESTS}" ]; do
+                  curl -sk -o /dev/null "https://${SERVICE_HOST}/" &
+                  i=$((i + 1))
+                  batch=$((batch + 1))
+                done
+                wait
+              done
+              echo "Completed ${REQUESTS} requests"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi

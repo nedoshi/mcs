@@ -40,19 +40,6 @@ app.get('/api/products', (_req, res) => {
   res.json(products);
 });
 
-// Intentional CPU burn for resource-limit and HPA demos.
-app.get('/api/load', (req, res) => {
-  const ms = Math.min(Math.max(parseInt(req.query.ms, 10) || 200, 50), 5000);
-  const end = Date.now() + ms;
-  while (Date.now() < end) {
-    // busy loop
-  }
-  res.json({
-    burnedMs: ms,
-    pod: process.env.POD_NAME || os.hostname(),
-  });
-});
-
 app.use(express.static(PUBLIC_DIR, {
   index: false,
   setHeaders(res, filePath) {

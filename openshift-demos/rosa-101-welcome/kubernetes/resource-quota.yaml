@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: rosa-101-quota
+spec:
+  hard:
+    pods: "10"
+    requests.cpu: 500m
+    requests.memory: 1Gi
+    limits.cpu: "2"
+    limits.memory: 2Gi
+  scopes:
+    - NotTerminating
+    - NotBestEffort
