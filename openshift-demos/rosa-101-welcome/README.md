@@ -55,32 +55,32 @@ Use this path in the OpenShift **Developer** perspective.
    Context dir:   openshift-demos/rosa-101-welcome
    Git ref:       main
    ```
-4. **Important:** do **not** choose Dockerfile builder and do **not** deploy a pre-existing image named `rosa-101-welcome:latest`
+4. **Important:** do **not** choose Dockerfile builder and do **not** deploy a pre-existing image named `rosa-demo:latest`
 5. Click **Create**
 
 OpenShift creates a BuildConfig (Git + S2I), ImageStream, Deployment, Service, and Route. Watch the build in **Topology**, then open the route URL.
 
-> **Why Node.js, not Dockerfile?** A root-level `Dockerfile` can cause the console to create a Docker build that pulls `image-registry.../rosa-101-welcome:latest` before any image exists (`manifest unknown`). The Dockerfile lives under `docker/` for optional use; import uses S2I instead.
+> **Why Node.js, not Dockerfile?** A root-level `Dockerfile` can cause the console to create a Docker build that pulls `image-registry.../rosa-demo:latest` before any image exists (`manifest unknown`). The Dockerfile lives under `docker/` for optional use; import uses S2I instead.
 
 ### Demo talking points
 
 1. **First deploy** — show build logs, pod coming up, route created
-2. **Scale** — `oc scale deployment/rosa-101-welcome --replicas=3` (or use the UI); refresh the page and note the **Pod** field changing
+2. **Scale** — `oc scale deployment/rosa-demo --replicas=3` (or use the UI); refresh the page and note the **Pod** field changing
 3. **Config** — add env var `WELCOME_MESSAGE` on the Deployment and roll out
-4. **Resources** — run `./scripts/demo-resource-limits.sh rosa-demo mcs-git`
+4. **Resources** — run `./scripts/demo-resource-limits.sh rosa-demo rosa-demo`
 
 ## Deploy: CLI (import from Git)
 
 ```bash
-oc new-project rosa-101-demo
+oc new-project rosa-demo
 
 oc new-app https://github.com/YOUR_ORG/mcs.git \
   --context-dir=openshift-demos/rosa-101-welcome \
   --image-stream=nodejs \
-  --name=rosa-101-welcome
+  --name=rosa-demo
 
-oc expose svc/rosa-101-welcome
-oc get route rosa-101-welcome
+oc expose svc/rosa-demo
+oc get route rosa-demo
 ```
 
 Replace `YOUR_ORG/mcs` with your Git remote.
@@ -92,10 +92,9 @@ Only use this **after** a successful build pushed an image to the internal regis
 ```bash
 oc apply -f kubernetes/deployment.yaml
 
-# If your namespace differs from rosa-101-demo, patch the image:
-oc set image deployment/rosa-101-welcome \
-  rosa-101-welcome=image-registry.openshift-image-registry.svc:5000/PROJECT/rosa-101-welcome:latest \
-  -n PROJECT
+oc set image deployment/rosa-demo \
+  rosa-demo=image-registry.openshift-image-registry.svc:5000/rosa-demo/rosa-demo:latest \
+  -n rosa-demo
 ```
 
 ## Local run
@@ -128,20 +127,20 @@ Use:
 - **Context dir:** `openshift-demos/rosa-101-welcome`
 - **Git ref:** `main`
 
-### `manifest unknown` for `image-registry.../rosa-101-welcome:latest`
+### `manifest unknown` for `image-registry.../rosa-demo:latest`
 
 OpenShift tried to **pull** an image from the internal registry instead of **building from Git**. Common causes:
 
 - Dockerfile builder selected on first deploy (image does not exist yet)
-- Deployment configured with image `rosa-101-welcome:latest` without a completed build
+- Deployment configured with image `rosa-demo:latest` without a completed build
 - Retrying after a failed import left a broken BuildConfig/ImageStream
 
 **Fix — wipe and re-import with Node.js builder:**
 
 ```bash
 # In your project (e.g. rosa-demo)
-oc delete route,svc,deploy,bc,is -l app=rosa-101-welcome 2>/dev/null || true
-oc delete route,svc,deploy,bc,is rosa-101-welcome 2>/dev/null || true
+oc delete route,svc,deploy,bc,is -l app=rosa-demo 2>/dev/null || true
+oc delete route,svc,deploy,bc,is rosa-demo 2>/dev/null || true
 ```
 
 Then re-run **Import from Git** with **Node.js** builder (steps above).
@@ -151,14 +150,14 @@ Then re-run **Import from Git** with **Node.js** builder (steps above).
 ```bash
 # Edit openshift/buildconfig-nodejs.yaml: set your GIT_REPO
 oc apply -f openshift/buildconfig-nodejs.yaml -n rosa-demo
-oc start-build rosa-101-welcome -n rosa-demo --wait
-oc new-app rosa-101-welcome:latest --name=rosa-101-welcome -n rosa-demo
-oc expose svc/rosa-101-welcome -n rosa-demo
+oc start-build rosa-demo -n rosa-demo --wait
+oc new-app rosa-demo:latest --name=rosa-demo -n rosa-demo
+oc expose svc/rosa-demo -n rosa-demo
 ```
 
 ### Build succeeds but route returns 503
 
-Wait for the deployment rollout; check `oc get pods` and `oc logs deploy/rosa-101-welcome`.
+Wait for the deployment rollout; check `oc get pods` and `oc logs deploy/rosa-demo`.
 
 ### Catalog empty / page still shows `Loading...` and `/app.js`
 
@@ -179,9 +178,9 @@ git add openshift-demos/rosa-101-welcome
 git commit -m "fix: embed static catalog in index.html for ROSA demo"
 git push origin main
 
-oc start-build rosa-101-welcome -n rosa-demo --wait
-oc rollout restart deployment/rosa-101-welcome -n rosa-demo
-oc rollout status deployment/rosa-101-welcome -n rosa-demo
+oc start-build rosa-demo -n rosa-demo --wait
+oc rollout restart deployment/rosa-demo -n rosa-demo
+oc rollout status deployment/rosa-demo -n rosa-demo
 ```
 
 Hard-refresh the browser (`Cmd+Shift+R`) after rollout completes.
@@ -189,7 +188,7 @@ Hard-refresh the browser (`Cmd+Shift+R`) after rollout completes.
 ## Cleanup
 
 ```bash
-oc delete project rosa-101-demo
+oc delete project rosa-demo
 # or
 oc delete -f kubernetes/deployment.yaml
 ```

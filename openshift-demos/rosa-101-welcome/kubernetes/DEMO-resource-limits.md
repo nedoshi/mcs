@@ -26,7 +26,7 @@ After this demo you can explain:
 
 ```bash
 oc project rosa-demo          # or your project
-oc get deploy                 # note deployment name (often mcs-git)
+oc get deploy                 # deployment name should be rosa-demo
 chmod +x scripts/demo-resource-limits.sh
 ```
 
@@ -42,17 +42,17 @@ curl -sk https://$(oc get route -o jsonpath='{.items[0].spec.host}')/health
 Runs step-by-step with pauses:
 
 ```bash
-./scripts/demo-resource-limits.sh rosa-demo mcs-git
+./scripts/demo-resource-limits.sh rosa-demo rosa-demo
 ```
 
-Replace `mcs-git` with your deployment name.
+Replace `rosa-demo` if your deployment name differs.
 
 ## Manual demo steps
 
 ### 1. Set requests and limits
 
 ```bash
-DEPLOY=mcs-git
+DEPLOY=rosa-demo
 NS=rosa-demo
 
 oc set resources deployment/${DEPLOY} \

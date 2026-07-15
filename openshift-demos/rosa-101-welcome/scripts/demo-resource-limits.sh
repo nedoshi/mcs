@@ -8,14 +8,14 @@
 #   ./scripts/demo-resource-limits.sh [namespace] [deployment]
 #
 # Example:
-#   ./scripts/demo-resource-limits.sh rosa-demo mcs-git
+#   ./scripts/demo-resource-limits.sh rosa-demo rosa-demo
 #
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 NAMESPACE="${1:-rosa-demo}"
-DEPLOY="${2:-}"
+DEPLOY="${2:-rosa-demo}"
 
 step() {
   echo
@@ -26,16 +26,6 @@ step() {
 pause() {
   read -r -p "Press Enter to continue (Ctrl+C to stop)..."
 }
-
-if [[ -z "${DEPLOY}" ]]; then
-  DEPLOY="$(oc get deploy -n "${NAMESPACE}" -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null | rg -v 'load-test' | head -1 || true)"
-fi
-
-if [[ -z "${DEPLOY}" ]]; then
-  echo "Usage: $0 <namespace> <deployment>"
-  echo "Could not auto-detect deployment in namespace ${NAMESPACE}"
-  exit 1
-fi
 
 SVC="$(oc get svc -n "${NAMESPACE}" -o jsonpath="{.items[?(@.spec.selector.app=='${DEPLOY}')].metadata.name}" 2>/dev/null || true)"
 if [[ -z "${SVC}" ]]; then
