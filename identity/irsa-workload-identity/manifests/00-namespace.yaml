@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: irsa-demo
+  labels:
+    app.kubernetes.io/part-of: irsa-workload-identity
+    demo: rosa-hcp-irsa

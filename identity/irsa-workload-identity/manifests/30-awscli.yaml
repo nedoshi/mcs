@@ -1,0 +1,48 @@
+# Interactive awscli pod for workshop-style verification (oc rsh)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: awscli
+  namespace: irsa-demo
+  labels:
+    app: awscli
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: awscli
+  template:
+    metadata:
+      labels:
+        app: awscli
+    spec:
+      serviceAccountName: s3-reader
+      containers:
+        - name: awscli
+          image: public.ecr.aws/aws-cli/aws-cli:latest
+          command: ["/bin/sh", "-c", "while true; do sleep 3600; done"]
+          env:
+            - name: HOME
+              value: /tmp
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: irsa-demo-config
+                  key: AWS_REGION
+            - name: AWS_DEFAULT_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: irsa-demo-config
+                  key: AWS_REGION
+            - name: S3_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: irsa-demo-config
+                  key: S3_BUCKET
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi

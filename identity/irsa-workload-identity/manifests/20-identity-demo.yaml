@@ -1,0 +1,117 @@
+# identity-demo — HTTP API that calls STS + S3 using IRSA-injected credentials
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: identity-demo
+  namespace: irsa-demo
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: identity-demo
+  namespace: irsa-demo
+spec:
+  source:
+    type: Binary
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: identity-demo:latest
+  successfulBuildsHistoryLimit: 2
+  failedBuildsHistoryLimit: 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity-demo
+  namespace: irsa-demo
+  labels:
+    app: identity-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: identity-demo
+  template:
+    metadata:
+      labels:
+        app: identity-demo
+    spec:
+      # Critical: SA with eks.amazonaws.com/role-arn → webhook mutation
+      serviceAccountName: s3-reader
+      containers:
+        - name: identity-demo
+          image: image-registry.openshift-image-registry.svc:5000/irsa-demo/identity-demo:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: S3_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: irsa-demo-config
+                  key: S3_BUCKET
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: irsa-demo-config
+                  key: AWS_REGION
+            - name: AWS_DEFAULT_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: irsa-demo-config
+                  key: AWS_REGION
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: identity-demo
+  namespace: irsa-demo
+spec:
+  selector:
+    app: identity-demo
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: identity-demo
+  namespace: irsa-demo
+spec:
+  to:
+    kind: Service
+    name: identity-demo
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
