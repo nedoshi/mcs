@@ -1,0 +1,35 @@
+# =============================================================================
+# IngressClassParams — ROSA/ALBO equivalent of EKS alb.ingress.kubernetes.io/group.name
+# =============================================================================
+# On EKS you set group.name on each Ingress annotation. AWS Load Balancer Operator
+# on OpenShift/ROSA starts the controller with --disable-ingress-group-name-annotation,
+# so grouping MUST be declared here. Every Ingress that uses the linked IngressClass
+# is merged onto ONE Application Load Balancer.
+# =============================================================================
+apiVersion: elbv2.k8s.aws/v1beta1
+kind: IngressClassParams
+metadata:
+  name: shop-shared-alb-params
+  labels:
+    app.kubernetes.io/part-of: alb-ingress-grouping
+spec:
+  # IngressGroup name → single ALB tagged ingress.k8s.aws/stack=shop-shared-alb
+  group:
+    name: shop-shared-alb
+  # Optional: pin scheme at the class level (also set per-Ingress below for clarity)
+  # scheme: internet-facing
+---
+# IngressClass wired to the AWS Load Balancer Controller + the group params above.
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: shop-shared-alb
+  labels:
+    app.kubernetes.io/part-of: alb-ingress-grouping
+spec:
+  # Must be ingress.k8s.aws/alb for ALBO-managed AWS Load Balancer Controller
+  controller: ingress.k8s.aws/alb
+  parameters:
+    apiGroup: elbv2.k8s.aws
+    kind: IngressClassParams
+    name: shop-shared-alb-params

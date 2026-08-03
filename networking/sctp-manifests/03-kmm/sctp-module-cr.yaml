@@ -1,0 +1,18 @@
+# Standard KMM Module CR — expected to fail for in-tree SCTP (blacklist / no kmod image).
+# Replace quay.io/<your-org>/sctp-loader:latest with a real image before applying.
+apiVersion: kmm.sigs.x-k8s.io/v1beta1
+kind: Module
+metadata:
+  name: sctp
+  namespace: openshift-kmm
+spec:
+  moduleLoader:
+    container:
+      modprobe:
+        moduleName: sctp
+      kernelMappings:
+        - regexp: '.*'
+          containerImage: "quay.io/example/sctp-loader:latest"
+    serviceAccountName: kmm-operator-module-loader
+  selector:
+    node-role.kubernetes.io/worker: ""

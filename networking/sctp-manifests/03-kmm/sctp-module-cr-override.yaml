@@ -1,0 +1,37 @@
+# Workaround: override KMM worker command to clear blacklist + modprobe.
+# Depends on Module CR container.command/args passthrough (version-specific).
+apiVersion: kmm.sigs.x-k8s.io/v1beta1
+kind: Module
+metadata:
+  name: sctp-override
+  namespace: openshift-kmm
+spec:
+  moduleLoader:
+    container:
+      modprobe:
+        moduleName: sctp
+      kernelMappings:
+        - regexp: '.*'
+          containerImage: "quay.io/example/sctp-loader:latest"
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          set -e
+          echo "[KMM-SCTP] Removing blacklist..."
+          nsenter --target 1 --mount -- \
+            sh -c 'echo "" > /etc/modprobe.d/sctp-blacklist.conf'
+          echo "[KMM-SCTP] Adding persistent module load..."
+          nsenter --target 1 --mount -- \
+            sh -c 'echo "sctp" > /etc/modules-load.d/sctp-load.conf'
+          echo "[KMM-SCTP] Loading SCTP module..."
+          nsenter --target 1 --mount -- modprobe sctp
+          if nsenter --target 1 --mount -- lsmod | grep -q '^sctp'; then
+            echo "[KMM-SCTP] SUCCESS"
+          else
+            echo "[KMM-SCTP] FAILED"
+            exit 1
+          fi
+          sleep infinity
+    serviceAccountName: kmm-operator-module-loader
+  selector:
+    node-role.kubernetes.io/worker: ""

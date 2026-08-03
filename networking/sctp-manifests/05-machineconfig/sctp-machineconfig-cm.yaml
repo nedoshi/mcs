@@ -1,0 +1,32 @@
+# Preferred path when available: MachineConfig via NodePool spec.config
+# Apply on management cluster in the hostedcluster namespace (often "clusters").
+# ConfigMap key MUST be "config".
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: load-sctp-module
+  namespace: clusters
+data:
+  config: |
+    apiVersion: machineconfiguration.openshift.io/v1
+    kind: MachineConfig
+    metadata:
+      name: load-sctp-module
+      labels:
+        machineconfiguration.openshift.io/role: worker
+    spec:
+      config:
+        ignition:
+          version: 3.2.0
+        storage:
+          files:
+            - path: /etc/modprobe.d/sctp-blacklist.conf
+              mode: 0644
+              overwrite: true
+              contents:
+                source: data:,
+            - path: /etc/modules-load.d/sctp-load.conf
+              mode: 0644
+              overwrite: true
+              contents:
+                source: data:,sctp

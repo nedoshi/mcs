@@ -1,0 +1,8 @@
+# Namespace for the shared-ALB e-commerce demo apps.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shop-demo
+  labels:
+    app.kubernetes.io/part-of: alb-ingress-grouping
+    demo: rosa-hcp-shared-alb

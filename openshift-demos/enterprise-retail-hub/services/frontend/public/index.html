@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enterprise Retail Hub</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="brand">
+      <span class="logo">RH</span>
+      <div>
+        <h1>Enterprise Retail Hub</h1>
+        <p class="tagline">Multi-tier e-commerce on OpenShift</p>
+      </div>
+    </div>
+    <div class="session">
+      <span id="session-label">Session</span>
+      <code id="session-id"></code>
+      <button id="cart-toggle" class="btn btn-secondary">Cart (<span id="cart-count">0</span>)</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="catalog">
+      <h2>Procurement Catalog</h2>
+      <div id="product-grid" class="product-grid"></div>
+    </section>
+
+    <aside id="cart-panel" class="cart-panel hidden">
+      <h2>Your Cart</h2>
+      <ul id="cart-items"></ul>
+      <div class="cart-footer">
+        <p>Total: <strong id="cart-total">$0.00</strong></p>
+        <label>
+          Work email
+          <input type="email" id="customer-email" placeholder="you@company.com" />
+        </label>
+        <button id="checkout-btn" class="btn btn-primary">Place Order</button>
+        <p id="checkout-status" class="status"></p>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="footer">
+    <p id="runtime-info"></p>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

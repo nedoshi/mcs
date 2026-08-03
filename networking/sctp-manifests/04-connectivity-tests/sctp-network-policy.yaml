@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-sctp
+  namespace: sctp-test
+spec:
+  podSelector:
+    matchLabels:
+      app: sctp-server
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: sctp-client
+      ports:
+        - protocol: SCTP
+          port: 38412
+  policyTypes:
+    - Ingress

@@ -1,0 +1,35 @@
+# Option B: Custom least-privilege SCC
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: sctp-loader-scc
+  annotations:
+    kubernetes.io/description: >
+      Allows the SCTP module loader DaemonSet to access the host
+      filesystem and PID namespace to load kernel modules.
+allowPrivilegedContainer: true
+allowHostPID: true
+allowHostNetwork: false
+allowHostPorts: false
+allowHostIPC: false
+allowedCapabilities:
+  - SYS_ADMIN
+  - SYS_MODULE
+defaultAddCapabilities: []
+requiredDropCapabilities: []
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: RunAsAny
+fsGroup:
+  type: RunAsAny
+supplementalGroups:
+  type: RunAsAny
+volumes:
+  - configMap
+  - downwardAPI
+  - emptyDir
+  - projected
+  - secret
+users:
+  - system:serviceaccount:sctp-module-loader:sctp-loader-sa

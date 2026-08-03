@@ -1,0 +1,31 @@
+# Option A: RBAC binding to built-in privileged SCC (GitOps-friendly on ROSA)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: use-privileged-scc
+  labels:
+    app.kubernetes.io/name: sctp-module-loader
+rules:
+  - apiGroups:
+      - security.openshift.io
+    resourceNames:
+      - privileged
+    resources:
+      - securitycontextconstraints
+    verbs:
+      - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: sctp-loader-privileged-scc
+  labels:
+    app.kubernetes.io/name: sctp-module-loader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: use-privileged-scc
+subjects:
+  - kind: ServiceAccount
+    name: sctp-loader-sa
+    namespace: sctp-module-loader

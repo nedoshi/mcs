@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sctp-client
+  namespace: sctp-test
+  labels:
+    app: sctp-client
+spec:
+  containers:
+    - name: sctp-client
+      image: registry.access.redhat.com/ubi9/ubi:latest
+      command:
+        - /bin/sh
+        - -c
+        - |
+          echo "SCTP client ready (python3 IPPROTO_SCTP=132)."
+          sleep infinity

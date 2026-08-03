@@ -4,6 +4,21 @@ This directory contains demonstration examples and tutorials for various OpenShi
 
 ## Available Demos
 
+### [Enterprise Retail Hub](./enterprise-retail-hub/)
+
+Multi-tier enterprise e-commerce microservices demo for ROSA/ARO workshops. Inspired by [Google Online Boutique](https://github.com/GoogleCloudPlatform/microservices-demo).
+
+**Features:**
+- 4 Node.js microservices + API gateway + PostgreSQL
+- OpenShift BuildConfigs, Routes, Secrets, HPA
+- One-command `./deploy.sh` for live cluster deploy
+- Enterprise IT procurement storefront (browse → cart → checkout)
+
+**Use Cases:**
+- Demonstrating OpenShift Topology and multi-service apps
+- Developer advocacy for Routes, builds, and internal service mesh
+- Scaling, health probes, and persistent state on managed OpenShift
+
 ### [ROSA 101 Welcome](./rosa-101-welcome/)
 
 Minimal single-service web app for ROSA 101 workshops. Deploy via **Import from Git** in the Developer Console.
@@ -71,6 +86,12 @@ Common prerequisites across demos:
 ```
 openshift-demos/
 ├── README.md                                    # This file
+├── enterprise-retail-hub/                      # Multi-tier e-commerce microservices demo
+│   ├── README.md
+│   ├── deploy.sh
+│   ├── services/
+│   ├── openshift/
+│   └── database/
 ├── rosa-101-welcome/                           # ROSA 101 import-from-git demo
 │   ├── README.md
 │   ├── package.json

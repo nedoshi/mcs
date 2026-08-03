@@ -1,0 +1,14 @@
+{
+  "profile": [
+    {
+      "name": "sctp-enabled",
+      "data": "[main]\nsummary=Load SCTP kernel module\ninclude=openshift-node\n\n[modules]\nsctp\n"
+    }
+  ],
+  "recommend": [
+    {
+      "profile": "sctp-enabled",
+      "priority": 20
+    }
+  ]
+}

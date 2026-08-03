@@ -1,0 +1,147 @@
+# ImageStreams and Docker BuildConfigs — build context is the demo root directory.
+# deploy.sh runs: oc start-build <name> --from-dir=. --wait
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: catalog-service
+  namespace: retail-hub
+  labels:
+    app: catalog-service
+spec: {}
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: catalog-service
+  namespace: retail-hub
+  labels:
+    app: catalog-service
+spec:
+  source:
+    type: Binary
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: services/catalog-service/Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: catalog-service:latest
+  triggers: []
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: cart-service
+  namespace: retail-hub
+  labels:
+    app: cart-service
+spec: {}
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: cart-service
+  namespace: retail-hub
+  labels:
+    app: cart-service
+spec:
+  source:
+    type: Binary
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: services/cart-service/Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: cart-service:latest
+  triggers: []
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: order-service
+  namespace: retail-hub
+  labels:
+    app: order-service
+spec: {}
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: order-service
+  namespace: retail-hub
+  labels:
+    app: order-service
+spec:
+  source:
+    type: Binary
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: services/order-service/Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: order-service:latest
+  triggers: []
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: api-gateway
+  namespace: retail-hub
+  labels:
+    app: api-gateway
+spec: {}
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: api-gateway
+  namespace: retail-hub
+  labels:
+    app: api-gateway
+spec:
+  source:
+    type: Binary
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: services/api-gateway/Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: api-gateway:latest
+  triggers: []
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: frontend
+  namespace: retail-hub
+  labels:
+    app: frontend
+spec: {}
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: frontend
+  namespace: retail-hub
+  labels:
+    app: frontend
+spec:
+  source:
+    type: Binary
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: services/frontend/Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: frontend:latest
+  triggers: []

@@ -1,0 +1,48 @@
+# =============================================================================
+# Shared ALB — catalog Ingress (group.order 10)
+# =============================================================================
+# Both Ingresses use ingressClassName: shop-shared-alb → one ALB.
+# Do NOT set alb.ingress.kubernetes.io/group.name — ALBO disables that annotation.
+# Group membership comes from IngressClassParams.spec.group.name.
+# =============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: catalog-ingress
+  namespace: shop-demo
+  labels:
+    app: catalog-service
+    app.kubernetes.io/part-of: alb-ingress-grouping
+  annotations:
+    # Public ALB in tagged public subnets (kubernetes.io/role/elb)
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    # OpenShift/ROSA: instance mode only (IP/pod target mode is disabled by ALBO)
+    alb.ingress.kubernetes.io/target-type: instance
+    # Rule merge order within the shared ALB (lower = evaluated first)
+    alb.ingress.kubernetes.io/group.order: "10"
+    # Health check against the NodePort service backends
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/success-codes: "200"
+    # Optional: tags for cost allocation demos
+    alb.ingress.kubernetes.io/tags: Environment=demo,Project=alb-ingress-grouping,Service=catalog
+spec:
+  ingressClassName: shop-shared-alb
+  rules:
+    # Host-based routing: set DEMO_HOST or use the ALB DNS + Host header in curl.
+    # Leave host empty to match any host (path-only routing on the shared ALB).
+    - http:
+        paths:
+          - path: /catalog
+            pathType: Prefix
+            backend:
+              service:
+                name: catalog-service
+                port:
+                  number: 80
+          - path: /catalog/
+            pathType: Prefix
+            backend:
+              service:
+                name: catalog-service
+                port:
+                  number: 80

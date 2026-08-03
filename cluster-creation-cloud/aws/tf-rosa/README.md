@@ -24,6 +24,9 @@ This folder provisions:
 cp examples/standard.tfvars.example terraform.tfvars
 # Or pick a pattern from examples/README.md
 
+# Set secrets via env (do not commit):
+#   source ~/Documents/Scripts/cluster-creation-cloud/env.sh aws-tf-rosa
+
 make init
 make test
 make plan TFVARS=terraform.tfvars

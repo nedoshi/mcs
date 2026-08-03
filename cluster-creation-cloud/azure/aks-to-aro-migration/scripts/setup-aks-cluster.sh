@@ -264,9 +264,12 @@ echo ""
 # Step 7: Save Environment
 print_step "Step 7: Saving Environment Variables"
 
-ENV_FILE="aks-environment.sh"
-cat > $ENV_FILE << EOF
-# AKS Environment Variables
+ENV_DIR="${CCC_CONFIG_DIR:-$HOME/.config/cluster-creation-cloud}"
+mkdir -p "$ENV_DIR"
+chmod 700 "$ENV_DIR"
+ENV_FILE="$ENV_DIR/aks-migration.env"
+cat > "$ENV_FILE" << EOF
+# AKS Environment Variables — local only, do not commit
 # Load with: source $ENV_FILE
 
 export SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
@@ -285,8 +288,9 @@ echo "  Cluster: \$AKS_CLUSTER_NAME"
 echo "  ACR: \$ACR_LOGIN_SERVER"
 echo "  Namespace: \$AKS_NAMESPACE"
 EOF
+chmod 600 "$ENV_FILE"
 
-print_success "Environment saved to: $ENV_FILE"
+print_success "Environment saved to: $ENV_FILE (outside git)"
 
 echo ""
 echo "╔═══════════════════════════════════════════════════════════╗"

@@ -1,0 +1,24 @@
+# Approach 1 Option: Direct Tuned CR (likely blocked on ROSA HCP managed NTO ns)
+apiVersion: tuned.openshift.io/v1
+kind: Tuned
+metadata:
+  name: sctp-module-loader
+  namespace: openshift-cluster-node-tuning-operator
+spec:
+  profile:
+    - name: sctp-enabled
+      data: |
+        [main]
+        summary=Load SCTP kernel module for telecom workloads
+        include=openshift-node
+
+        [modules]
+        # Prefer plain "sctp" over "sctp=+r".
+        # +r causes TuneD to run `modprobe -r` first; that fails (Degraded)
+        # when the module is already in use.
+        sctp
+  recommend:
+    - profile: sctp-enabled
+      priority: 20
+      match:
+        - label: node-role.kubernetes.io/worker

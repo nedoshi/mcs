@@ -1,0 +1,214 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: retail-hub
+  labels:
+    app.kubernetes.io/part-of: enterprise-retail-hub
+    app.openshift.io/runtime: nodejs
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-credentials
+  namespace: retail-hub
+  labels:
+    app: postgres
+type: Opaque
+stringData:
+  # Use built-in postgres role — always exists, even on PVCs from prior failed deploys
+  POSTGRESQL_USER: postgres
+  POSTGRESQL_PASSWORD: retail-demo-change-me
+  POSTGRESQL_DATABASE: retail
+  POSTGRESQL_ADMIN_PASSWORD: retail-demo-change-me
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-schema
+  namespace: retail-hub
+  labels:
+    app: postgres
+data:
+  schema.sql: |
+    CREATE TABLE IF NOT EXISTS products (
+        id          SERIAL PRIMARY KEY,
+        sku         VARCHAR(32) UNIQUE NOT NULL,
+        name        VARCHAR(128) NOT NULL,
+        description TEXT,
+        category    VARCHAR(64) NOT NULL,
+        price_cents INTEGER NOT NULL CHECK (price_cents >= 0),
+        stock       INTEGER NOT NULL CHECK (stock >= 0),
+        image_url   VARCHAR(256)
+    );
+    CREATE TABLE IF NOT EXISTS carts (
+        session_id  VARCHAR(64) PRIMARY KEY,
+        items       JSONB NOT NULL DEFAULT '[]'::jsonb,
+        updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS orders (
+        id              SERIAL PRIMARY KEY,
+        order_number    VARCHAR(32) UNIQUE NOT NULL,
+        session_id      VARCHAR(64) NOT NULL,
+        status          VARCHAR(32) NOT NULL DEFAULT 'CONFIRMED',
+        total_cents     INTEGER NOT NULL,
+        items           JSONB NOT NULL,
+        customer_email  VARCHAR(256) NOT NULL,
+        created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    INSERT INTO products (sku, name, description, category, price_cents, stock, image_url) VALUES
+      ('LAP-001', 'ThinkPad X1 Carbon', '14" ultrabook for enterprise developers', 'Hardware', 189999, 42, '/images/laptop.svg'),
+      ('MON-002', '27" 4K Monitor', 'USB-C docking monitor for hybrid workspaces', 'Hardware', 44999, 85, '/images/monitor.svg'),
+      ('CHR-003', 'Ergonomic Task Chair', 'Adjustable lumbar support, 8hr comfort rating', 'Furniture', 32999, 30, '/images/chair.svg'),
+      ('LIC-004', 'OpenShift Dev Subscription', 'Annual developer platform license (demo)', 'Software', 99900, 500, '/images/license.svg'),
+      ('NET-005', 'Wi-Fi 6 Access Point', 'Enterprise-grade wireless for branch offices', 'Networking', 27999, 60, '/images/network.svg'),
+      ('SEC-006', 'Hardware Security Key', 'FIDO2 key for zero-trust authentication', 'Security', 4999, 200, '/images/security-key.svg')
+    ON CONFLICT (sku) DO NOTHING;
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: retail-hub
+  labels:
+    app: postgres
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: retail-hub
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: registry.redhat.io/rhel9/postgresql-16:latest
+          ports:
+            - containerPort: 5432
+              name: postgres
+          envFrom:
+            - secretRef:
+                name: postgres-credentials
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/pgsql/data
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -h 127.0.0.1 -p 5432 -U postgres
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -h 127.0.0.1 -p 5432 -U postgres
+            initialDelaySeconds: 60
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: retail-hub
+  labels:
+    app: postgres
+spec:
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+  selector:
+    app: postgres
+---
+# Idempotent schema load — runs after postgres is up, safe on re-deploy
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-init
+  namespace: retail-hub
+  labels:
+    app: postgres
+spec:
+  backoffLimit: 6
+  template:
+    metadata:
+      labels:
+        app: db-init
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: db-init
+          image: registry.redhat.io/rhel9/postgresql-16:latest
+          envFrom:
+            - secretRef:
+                name: postgres-credentials
+          volumeMounts:
+            - name: schema
+              mountPath: /schema
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              echo "Waiting for PostgreSQL..."
+              for i in $(seq 1 60); do
+                if PGPASSWORD="${POSTGRESQL_PASSWORD}" pg_isready -h postgres -p 5432 -U postgres; then
+                  break
+                fi
+                sleep 2
+              done
+              PGPASSWORD="${POSTGRESQL_PASSWORD}" pg_isready -h postgres -p 5432 -U postgres
+
+              # Ensure target database exists (handles PVCs initialized without POSTGRESQL_DATABASE)
+              if ! PGPASSWORD="${POSTGRESQL_PASSWORD}" psql -h postgres -U postgres -d postgres -tAc \
+                "SELECT 1 FROM pg_database WHERE datname='${POSTGRESQL_DATABASE}'" | grep -q 1; then
+                PGPASSWORD="${POSTGRESQL_PASSWORD}" psql -h postgres -U postgres -d postgres \
+                  -c "CREATE DATABASE ${POSTGRESQL_DATABASE}"
+              fi
+
+              echo "Applying schema..."
+              PGPASSWORD="${POSTGRESQL_PASSWORD}" psql -h postgres -U postgres -d "${POSTGRESQL_DATABASE}" \
+                -v ON_ERROR_STOP=1 -f /schema/schema.sql
+              echo "Database ready."
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: schema
+          configMap:
+            name: postgres-schema

@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: sctp-module-loader
+  namespace: sctp-module-loader
+  labels:
+    app: sctp-module-loader
+    app.kubernetes.io/component: kernel-module-loader
+spec:
+  selector:
+    matchLabels:
+      app: sctp-module-loader
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: sctp-module-loader
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+      serviceAccountName: sctp-loader-sa
+      hostPID: true
+      terminationGracePeriodSeconds: 10
+      tolerations:
+        - operator: Exists
+      volumes:
+        - name: host-root
+          hostPath:
+            path: /
+            type: Directory
+      initContainers:
+        - name: load-sctp
+          # Full ubi includes util-linux (nsenter). hostPath+chroot is more reliable than nsenter --mount alone.
+          image: registry.access.redhat.com/ubi9/ubi:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -euo pipefail
+              NODE_NAME="${NODE_NAME:-unknown}"
+              echo "[sctp-loader] Starting SCTP module enablement on ${NODE_NAME}"
+
+              echo "[sctp-loader] Removing SCTP blacklist..."
+              chroot /host sh -c 'echo "# Cleared by sctp-module-loader" > /etc/modprobe.d/sctp-blacklist.conf'
+              chroot /host sh -c 'echo "# Cleared by sctp-module-loader" > /etc/modprobe.d/sctp_diag-blacklist.conf' || true
+
+              echo "[sctp-loader] Removing install-redirect overrides..."
+              chroot /host sh -c 'sed -i "/install sctp/d" /etc/modprobe.d/*.conf 2>/dev/null || true'
+
+              echo "[sctp-loader] Adding SCTP to modules-load.d..."
+              chroot /host sh -c 'echo "sctp" > /etc/modules-load.d/sctp-load.conf'
+
+              echo "[sctp-loader] Loading SCTP module..."
+              chroot /host /usr/sbin/modprobe -v sctp
+
+              echo "[sctp-loader] Verifying..."
+              if chroot /host /usr/sbin/lsmod | grep -E '^sctp[[:space:]]'; then
+                echo "[sctp-loader] SUCCESS: SCTP module loaded on ${NODE_NAME}"
+              else
+                echo "[sctp-loader] FAILED: SCTP module not loaded on ${NODE_NAME}"
+                chroot /host sh -c 'cat /etc/modprobe.d/sctp-blacklist.conf; ls -la /lib/modules/$(uname -r)/kernel/net/sctp/ 2>/dev/null || true'
+                exit 1
+              fi
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: host-root
+              mountPath: /host
+              # RW required to clear blacklist + write modules-load.d
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      containers:
+        - name: keepalive
+          image: registry.access.redhat.com/ubi9/ubi:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              NODE_NAME="${NODE_NAME:-unknown}"
+              echo "[sctp-loader] Module loaded. Monitoring on ${NODE_NAME}..."
+              while true; do
+                if chroot /host /usr/sbin/lsmod | grep -qE '^sctp[[:space:]]'; then
+                  echo "[sctp-loader] SCTP module verified on ${NODE_NAME}"
+                else
+                  echo "[sctp-loader] WARNING: SCTP module no longer loaded on ${NODE_NAME}!"
+                  chroot /host /usr/sbin/modprobe sctp || true
+                fi
+                sleep 300
+              done
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: host-root
+              mountPath: /host
+          resources:
+            requests:
+              cpu: 5m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 64Mi

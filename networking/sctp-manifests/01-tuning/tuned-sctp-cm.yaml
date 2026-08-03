@@ -1,0 +1,27 @@
+# Approach 1 Option B: TuningConfig via ConfigMap (management cluster / HyperShift)
+# ConfigMap key MUST be "tuning". Apply against management cluster, then patch NodePool.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tuned-sctp
+  namespace: clusters
+data:
+  tuning: |
+    apiVersion: tuned.openshift.io/v1
+    kind: Tuned
+    metadata:
+      name: load-sctp
+      namespace: openshift-cluster-node-tuning-operator
+    spec:
+      profile:
+        - name: openshift-sctp
+          data: |
+            [main]
+            summary=Load SCTP kernel module
+            include=openshift-node
+
+            [modules]
+            sctp
+      recommend:
+        - priority: 20
+          profile: openshift-sctp

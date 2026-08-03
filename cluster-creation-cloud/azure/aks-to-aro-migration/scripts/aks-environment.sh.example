@@ -1,0 +1,23 @@
+# AKS Environment Variables — EXAMPLE ONLY
+# Copy to a local path outside git, then source it:
+#   cp aks-environment.sh.example ~/.config/cluster-creation-cloud/aks-migration.env
+#   source ~/.config/cluster-creation-cloud/aks-migration.env
+#
+# Or use the interactive script:
+#   source ~/Documents/Scripts/cluster-creation-cloud/env.sh azure-aks-migration
+
+export SUBSCRIPTION_ID="<your-subscription-id>"
+export RESOURCE_GROUP="<your-resource-group>"
+export AKS_CLUSTER_NAME="<your-aks-cluster>"
+export LOCATION="eastus"
+export ACR_NAME="<your-acr-name>"
+export ACR_LOGIN_SERVER="<your-acr-name>.azurecr.io"
+export AKS_NAMESPACE="production"
+
+# For migration scripts
+export APP_NAME="nginx-demo"
+
+echo "AKS environment loaded:"
+echo "  Cluster: $AKS_CLUSTER_NAME"
+echo "  ACR: $ACR_LOGIN_SERVER"
+echo "  Namespace: $AKS_NAMESPACE"

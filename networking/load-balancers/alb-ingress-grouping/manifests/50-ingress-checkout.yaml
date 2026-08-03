@@ -1,0 +1,41 @@
+# =============================================================================
+# Shared ALB — checkout Ingress (group.order 20)
+# =============================================================================
+# Same IngressClass → same IngressGroup → SAME physical ALB as catalog-ingress.
+# AWS consolidates listener rules; you pay for one ALB instead of two.
+# =============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: checkout-ingress
+  namespace: shop-demo
+  labels:
+    app: checkout-service
+    app.kubernetes.io/part-of: alb-ingress-grouping
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: instance
+    # Evaluated after catalog (order 10); still distinct rules on the same ALB
+    alb.ingress.kubernetes.io/group.order: "20"
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/success-codes: "200"
+    alb.ingress.kubernetes.io/tags: Environment=demo,Project=alb-ingress-grouping,Service=checkout
+spec:
+  ingressClassName: shop-shared-alb
+  rules:
+    - http:
+        paths:
+          - path: /checkout
+            pathType: Prefix
+            backend:
+              service:
+                name: checkout-service
+                port:
+                  number: 80
+          - path: /checkout/
+            pathType: Prefix
+            backend:
+              service:
+                name: checkout-service
+                port:
+                  number: 80

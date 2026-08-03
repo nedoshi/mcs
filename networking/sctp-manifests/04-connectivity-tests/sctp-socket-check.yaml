@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sctp-socket-check
+  namespace: sctp-test
+  labels:
+    app: sctp-socket-check
+spec:
+  restartPolicy: Never
+  containers:
+    - name: check
+      image: registry.access.redhat.com/ubi9/ubi:latest
+      command:
+        - /bin/sh
+        - -c
+        - |
+          python3 - <<'PY'
+          import socket
+          for kind, socktype in [("one-to-one", socket.SOCK_STREAM), ("one-to-many", socket.SOCK_SEQPACKET)]:
+              try:
+                  s = socket.socket(socket.AF_INET, socktype, 132)
+                  print(f"{kind} SCTP socket: OK")
+                  s.close()
+              except OSError as e:
+                  print(f"{kind} SCTP socket FAILED: {e}")
+                  raise SystemExit(1)
+          PY

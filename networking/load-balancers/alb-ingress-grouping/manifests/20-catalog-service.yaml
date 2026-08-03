@@ -1,0 +1,96 @@
+# catalog-service — product catalog backend (NodePort required by ALBO)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-service
+  namespace: shop-demo
+  labels:
+    app: catalog-service
+    app.kubernetes.io/part-of: alb-ingress-grouping
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: catalog-service
+  template:
+    metadata:
+      labels:
+        app: catalog-service
+    spec:
+      containers:
+        - name: catalog
+          # Built by deploy.sh into the project ImageStream
+          image: image-registry.openshift-image-registry.svc:5000/shop-demo/catalog-service:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+---
+# ALBO requires NodePort (not ClusterIP) when target-type=instance.
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-service
+  namespace: shop-demo
+  labels:
+    app: catalog-service
+spec:
+  type: NodePort
+  selector:
+    app: catalog-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: catalog-service
+  namespace: shop-demo
+  labels:
+    app: catalog-service
+spec:
+  source:
+    type: Binary
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: catalog-service:latest
+  successfulBuildsHistoryLimit: 2
+  failedBuildsHistoryLimit: 2
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: catalog-service
+  namespace: shop-demo
+  labels:
+    app: catalog-service
