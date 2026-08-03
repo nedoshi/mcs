@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-api
+  namespace: db-migration
+  labels:
+    app: order-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-api
+  template:
+    metadata:
+      labels:
+        app: order-api
+    spec:
+      serviceAccountName: order-api
+      containers:
+        - name: order-api
+          image: image-registry.openshift-image-registry.svc:5000/db-migration/order-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: PORT
+              value: "8080"
+            - name: READ_MODE
+              value: "legacy"
+            - name: WRITE_MODE
+              value: "legacy"
+          envFrom:
+            - secretRef:
+                name: db-credentials-app
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-api
+  namespace: db-migration
+spec:
+  selector:
+    app: order-api
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: order-api
+  namespace: db-migration
+spec:
+  to:
+    kind: Service
+    name: order-api
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: order-api
+  namespace: db-migration
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: order-api
+  namespace: db-migration
+spec:
+  source:
+    type: Binary
+  strategy:
+    type: Docker
+  output:
+    to:
+      kind: ImageStreamTag
+      name: order-api:latest
+  runPolicy: Serial

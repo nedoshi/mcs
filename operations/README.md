@@ -19,6 +19,13 @@ Common issues and their solutions.
 
 - [OCM Visibility](troubleshooting/OCM_visibility.md) - Troubleshooting cluster visibility in Red Hat Hybrid Cloud Console
 
+### [Database Migration](database-migration/)
+Online schema change lab for **ROSA HCP** / ARO: Expand/Contract phases, DDL vs DML Postgres roles, ESO secret sync, dedicated `db-migrator` ServiceAccount.
+
+- [README](database-migration/README.md) — quick start
+- [Scenario](database-migration/docs/scenario.md) — sample `customer_name` → first/last + JSONB → `order_items`
+- [Runbook](database-migration/docs/runbook.md) — phase-by-phase `oc` flow
+
 ## Related Documentation
 
 - [Cluster Installation](../cluster-creation-onprem/) - On-premises cluster installation

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: db-migration
+  labels:
+    app.kubernetes.io/part-of: database-migration
+    purpose: online-schema-migration-lab

@@ -1,0 +1,31 @@
+# Minimal RBAC: migrator SA can create Jobs in this namespace only.
+# Cluster-admin not required for day-2 migration runs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: db-migrator
+  namespace: db-migration
+rules:
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "configmaps", "secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: db-migrator
+  namespace: db-migration
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: db-migrator
+subjects:
+  - kind: ServiceAccount
+    name: db-migrator
+    namespace: db-migration

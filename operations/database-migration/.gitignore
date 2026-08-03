@@ -1,0 +1,4 @@
+# Local / lab state — never commit real cloud secrets
+.demo-state.env
+*.pem
+credentials.json
