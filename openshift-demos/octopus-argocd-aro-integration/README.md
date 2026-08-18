@@ -222,14 +222,26 @@ For **Azure DevOps in another tenant**, complete federated identity setup before
 
 ### 2.4 Deploy the Argo CD Application on ARO
 
+**OpenShift RBAC:** The default OpenShift GitOps instance needs permission to manage workloads in your app namespace. Label the namespace and grant the application-controller service account access:
+
 ```bash
-export GIT_REPO_URL='https://github.com/your-org/hello-aro-gitops.git'
 export TARGET_NAMESPACE='hello-aro'
 
 oc create namespace "${TARGET_NAMESPACE}" --dry-run=client -o yaml | oc apply -f -
+oc label namespace "${TARGET_NAMESPACE}" argocd.argoproj.io/managed-by=openshift-gitops --overwrite
+oc create rolebinding openshift-gitops-"${TARGET_NAMESPACE}" \
+  --clusterrole=admin \
+  --serviceaccount=openshift-gitops:openshift-gitops-argocd-application-controller \
+  -n "${TARGET_NAMESPACE}"
+```
 
-# Edit repo URL in the Application manifest, then:
-oc apply -f examples/argocd-application.yaml -n "${TARGET_NAMESPACE}"
+**OpenShift SCC note:** Example manifests use `ubi9/httpd-24` on port **8080** with TCP probes. Images that bind to port 80 (e.g. `nginx:alpine`, `argocd-example-apps` guestbook) fail under the default `restricted-v2` SCC unless you change the namespace SCC.
+
+```bash
+export GIT_REPO_URL='https://github.com/your-org/hello-aro-gitops.git'
+
+# Edit repo URL in examples/argocd-application.yaml, then:
+oc apply -f examples/argocd-application.yaml
 ```
 
 Verify in Argo CD UI: Application `hello-aro` should appear (may be `OutOfSync` until first sync).
