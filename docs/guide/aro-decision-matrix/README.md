@@ -7,6 +7,7 @@ authors:
 validated_version: "4.20"
 related_guides:
   - ../aro-operation-guide.md
+  - ../aro-disaster-recovery/README.md
 ---
 
 # Azure Red Hat OpenShift Production Decision Matrix
@@ -532,7 +533,7 @@ See: [OpenShift GitOps operator](https://docs.openshift.com/container-platform/l
 | **Active/Passive** | Minutes–hours | High |
 | **Active/Active** | Near-zero | Very high |
 
-**A:** At minimum, implement **OADP backup** for PVs and **GitOps** for configuration. Document RPO/RTO and test restore quarterly.
+**A:** At minimum, implement **OADP backup** for PVs and **GitOps** for configuration. Document RPO/RTO and test restore quarterly. For a full cross-region strategy comparison (Pilot Light, Active/Passive, Active/Active) and a dedicated DR readiness checklist, see the [ARO Disaster Recovery Strategy guide](../aro-disaster-recovery/README.md).
 
 - [ ] Backup solution deployed (OADP)
 - [ ] DR region identified (if required)
@@ -700,5 +701,6 @@ All links verified HTTP 200 at document publication time.
 ### Related Guides in This Repository
 
 - [ARO Operations Guide](../aro-operation-guide.md)
+- [ARO Disaster Recovery Strategy & Readiness Checklist](../aro-disaster-recovery/README.md)
 - [Octopus + Argo CD on ARO](../../openshift-demos/octopus-argocd-aro-integration/README.md)
 - [ARO Network Troubleshooting](../network-troubleshooting/ARO/ARO_Network_Troubleshooting_Guide.md)
