@@ -371,8 +371,6 @@ Preferred for audit consistency: **redeploy the last known good Octopus release*
 
 ## 4. Reference material
 
-All links verified HTTP **200** at time of publication.
-
 ### Octopus Deploy — Argo CD integration
 
 - [Argo CD deployments with Octopus (overview)](https://octopus.com/docs/argo-cd)
