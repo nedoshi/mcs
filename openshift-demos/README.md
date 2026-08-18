@@ -48,6 +48,21 @@ Automated deployment of a ROSA (Red Hat OpenShift Service on AWS) or ARO (Azure 
 - Learning Argo CD integration
 - CI/CD pipeline setup
 
+### [Octopus Deploy + Argo CD on ARO](./octopus-argocd-aro-integration/)
+
+Guide and tutorial for integrating Octopus Deploy with Argo CD (OpenShift GitOps) on Azure Red Hat OpenShift during a phased migration.
+
+**Features:**
+- Architecture overview (Octopus orchestration + Argo CD sync)
+- Step-by-step tutorial with sample manifests and Octopus annotations
+- Comparative analysis: Octopus + Argo CD vs Argo CD alone
+- Curated official documentation links (verified)
+
+**Use Cases:**
+- Hybrid CD while moving workloads to ARO
+- Enterprise approvals and audit with GitOps reconciliation
+- Customer workshops on unified Octopus + GitOps workflows
+
 ### [Deploying an Application with Service Mesh](./demo-deploying-an-app-with-service-mesh/)
 
 Demonstrates how to deploy an application and integrate it with OpenShift Service Mesh (based on Istio).
@@ -108,6 +123,9 @@ openshift-demos/
 │   ├── terraform.tfvars.example
 │   ├── install-gitops.sh
 │   └── .gitignore
+├── octopus-argocd-aro-integration/             # Octopus + Argo CD on ARO guide
+│   ├── README.md
+│   └── examples/
 └── demo-deploying-an-app-with-service-mesh/    # Service Mesh demo
     ├── README.md
     ├── servicemeshroll.yaml
