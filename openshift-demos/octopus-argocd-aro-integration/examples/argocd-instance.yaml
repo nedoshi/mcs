@@ -1,0 +1,13 @@
+# Optional user-defined Argo CD instance for team isolation on ARO.
+# Requires Red Hat OpenShift GitOps operator installed cluster-wide.
+apiVersion: argoproj.io/v1beta1
+kind: ArgoCD
+metadata:
+  name: hello-aro-gitops
+  namespace: hello-aro
+spec:
+  server:
+    route:
+      enabled: true
+      wildcardPolicy: None
+  resourceTrackingMethod: annotation

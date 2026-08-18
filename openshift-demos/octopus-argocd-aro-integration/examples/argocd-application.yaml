@@ -1,0 +1,29 @@
+# Argo CD Application for hello-aro on ARO.
+# Apply to the namespace where Argo CD should manage the app (or openshift-gitops for cluster-scoped default instance).
+#
+# Octopus annotations map this Application to project "hello-aro" and environment "Staging".
+# Duplicate or adjust annotations for Production (e.g. environment.hello-aro-source: Production).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hello-aro
+  namespace: openshift-gitops
+  annotations:
+    argo.octopus.com/project.hello-aro-source: hello-aro
+    argo.octopus.com/environment.hello-aro-source: Staging
+spec:
+  project: default
+  source:
+    name: hello-aro-source
+    repoURL: https://github.com/your-org/hello-aro-gitops.git
+    targetRevision: main
+    path: manifests/base
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: hello-aro
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

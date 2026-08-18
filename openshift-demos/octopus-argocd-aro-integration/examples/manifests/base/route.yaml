@@ -1,0 +1,14 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: hello-aro
+  labels:
+    app: hello-aro
+spec:
+  to:
+    kind: Service
+    name: hello-aro
+  port:
+    targetPort: http
+  tls:
+    termination: edge

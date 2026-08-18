@@ -1,0 +1,28 @@
+# Octostache template for Octopus "Update Argo CD Application Manifests" step.
+# Place in your Octopus project Git repo (input path configured on the step).
+# Variables: Octopus.Environment.Name, Project.Replicas, Octopus.Action.Package[hello-aro].PackageVersion
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-aro
+  labels:
+    app: hello-aro
+    environment: #{Octopus.Environment.Name}
+spec:
+  replicas: #{Project.Replicas}
+  selector:
+    matchLabels:
+      app: hello-aro
+  template:
+    metadata:
+      labels:
+        app: hello-aro
+    spec:
+      containers:
+        - name: hello-aro
+          image: #{Octopus.Action.Package[hello-aro].FullImageName}:#{Octopus.Action.Package[hello-aro].PackageVersion}
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ENVIRONMENT
+              value: #{Octopus.Environment.Name}
