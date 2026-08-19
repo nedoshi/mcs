@@ -16,13 +16,13 @@ jobs:
       - name: Convert Markdown to PDF
         uses: baileyjm02/markdown-to-pdf@v1.2.0
         with:
-          input_path: README.md # Replace with your specific file path, e.g., 'docs/my-file.md'
+          input_path: docs/guide/aro-decision-matrix/README.md
           output_dir: pdf-output
           # Optional: You can customize the look using a local CSS file
           # build_html_args: '["--stylesheet", "styles.css"]'
 
       - name: Upload PDF Artifact
-        uses: actions/artifacts@v4
+        uses: actions/upload-artifact@v4
         with:
           name: converted-pdf
           path: pdf-output/
