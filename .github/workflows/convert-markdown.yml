@@ -1,0 +1,28 @@
+name: Convert Markdown to PDF
+
+on:
+  push:
+    branches:
+      - main # Change this if your default branch is named 'master' or something else
+  workflow_dispatch: # Allows you to run this manually from the Actions tab
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Convert Markdown to PDF
+        uses: baileyjm02/markdown-to-pdf@v1.2.0
+        with:
+          input_path: README.md # Replace with your specific file path, e.g., 'docs/my-file.md'
+          output_dir: pdf-output
+          # Optional: You can customize the look using a local CSS file
+          # build_html_args: '["--stylesheet", "styles.css"]'
+
+      - name: Upload PDF Artifact
+        uses: actions/artifacts@v4
+        with:
+          name: converted-pdf
+          path: pdf-output/
