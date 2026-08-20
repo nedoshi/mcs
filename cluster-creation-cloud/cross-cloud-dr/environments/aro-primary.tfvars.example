@@ -1,0 +1,39 @@
+# ARO Primary — Cross-Cloud DR (Scenario A: Azure-centric production)
+# Deploy with: cluster-creation-cloud/azure/terraform-aro
+#   cp ../../cross-cloud-dr/environments/aro-primary.tfvars.example terraform.tfvars
+#   make create   # or make create-private
+
+cluster_name = "prod-aro-primary"
+location     = "eastus"
+# subscription_id = "00000000-0000-0000-0000-000000000000"  # or export TF_VAR_subscription_id
+
+domain = "example.com"
+
+# Match DR cluster OpenShift version
+aro_version = "4.16.30"
+
+# HA — minimum 3 workers in AZ-capable region
+worker_node_count = 3
+main_vm_size      = "Standard_D8s_v5"
+worker_vm_size    = "Standard_D4s_v3"
+
+# Non-overlapping with ROSA DR VPC (10.11.0.0/16)
+aro_virtual_network_cidr_block  = "10.0.0.0/20"
+aro_control_subnet_cidr_block   = "10.0.0.0/23"
+aro_machine_subnet_cidr_block   = "10.0.2.0/23"
+aro_pod_cidr_block              = "10.128.0.0/14"
+aro_service_cidr_block          = "172.30.0.0/16"
+
+# Public or private — must match DR design and traffic steering plan
+api_server_profile  = "Public"
+ingress_profile     = "Public"
+# api_server_profile  = "Private"
+# ingress_profile     = "Private"
+# restrict_egress_traffic = true
+
+tags = {
+  env           = "production"
+  dr-role       = "primary"
+  dr-pair       = "aro-rosa-cross-cloud"
+  cost-center   = "468"
+}

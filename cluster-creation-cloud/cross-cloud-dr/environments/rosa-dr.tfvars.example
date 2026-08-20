@@ -1,0 +1,31 @@
+# ROSA HCP DR Standby — Cross-Cloud DR (Scenario A: Azure-centric production, ROSA as DR)
+# Auth: TF_VAR_client_id + TF_VAR_client_secret (recommended)
+# Deploy: cd cluster-creation-cloud/aws/tf-rosa
+#   make plan TFVARS=../../cross-cloud-dr/environments/rosa-dr.tfvars.example
+#   make apply TFVARS=../../cross-cloud-dr/environments/rosa-dr.tfvars.example
+
+cluster_name = "prod-rosa-dr"
+region       = "us-west-2"
+
+tags = {
+  env         = "production"
+  dr-role     = "dr-standby"
+  dr-pair     = "aro-rosa-cross-cloud"
+  cost-center = "468"
+}
+
+private  = false
+multi_az = true
+
+# Pilot Light: replicas = 1 per AZ (3 total minimum for multi_az)
+# Active/Passive: match primary sizing
+replicas = 3
+
+compute_machine_type = "m5.xlarge"
+create_account_roles = true
+
+# MUST match ARO primary OpenShift minor version
+# openshift_version = "4.16.30"
+
+# Non-overlapping with ARO primary VNet (10.0.0.0/20)
+# VPC CIDR from rhcs vpc module — use distinct /16 per cluster pair

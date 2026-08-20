@@ -1,0 +1,55 @@
+# Dual-push container registry — GitHub Actions example
+# Pushes the same image to ACR (Azure) and ECR (AWS) for cross-cloud DR.
+#
+# Required secrets:
+#   AZURE_CREDENTIALS  — JSON service principal for az acr login
+#   AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY — or use OIDC to AWS
+#   ACR_NAME           — e.g. mycompany.azurecr.io
+#   ECR_REGISTRY       — e.g. 123456789012.dkr.ecr.us-east-1.amazonaws.com
+#
+# Prefer Red Hat Quay for a single neutral registry when possible.
+name: Dual-Push Registry
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/**'
+
+env:
+  IMAGE_NAME: myapp
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Azure Container Registry
+        uses: azure/docker-login@v2
+        with:
+          login-server: ${{ secrets.ACR_NAME }}.azurecr.io
+          username: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
+          password: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
+
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push to ACR and ECR
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+            ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+            ${{ secrets.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+            ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+      # Optional: update GitOps repo with new tag (region-agnostic Quay URL preferred)
+      # - name: Update Argo CD manifest
+      #   run: ...

@@ -8,6 +8,7 @@ validated_version: "4.20"
 related_guides:
   - ../aro-decision-matrix/README.md
   - ../aro-operation-guide.md
+  - ../cross-cloud-dr-aro-rosa/README.md
 ---
 
 # Azure Red Hat OpenShift Disaster Recovery Strategy & Readiness Checklist
@@ -379,6 +380,7 @@ ARO does not support a single cluster stretched across Azure regions, so DR alwa
 
 ### Related Guides in This Repository
 
+- [Cross-Cloud DR — ARO ↔ ROSA HCP](../cross-cloud-dr-aro-rosa/README.md)
 - [ARO Production Decision Matrix](../aro-decision-matrix/README.md) — see Section 12: Backup, DR & Lifecycle
 - [ARO Production Readiness Checklist](../aro-decision-matrix/production-readiness-checklist.md)
 - [ARO Operations Guide](../aro-operation-guide.md)

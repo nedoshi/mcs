@@ -73,3 +73,51 @@ spec:
         labelSelector:
           matchLabels:
             env: production
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: cross-cloud-dr
+  namespace: openshift-gitops
+spec:
+  clusterSets:
+    - cross-cloud-dr-clusters
+    - aro-primary-clusters
+    - rosa-dr-clusters
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchLabels:
+            dr-pair: aro-rosa-cross-cloud
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: aro-primary
+  namespace: openshift-gitops
+spec:
+  clusterSets:
+    - aro-primary-clusters
+    - aro-clusters
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchLabels:
+            dr-role: primary
+            platform: aro
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: rosa-dr-standby
+  namespace: openshift-gitops
+spec:
+  clusterSets:
+    - rosa-dr-clusters
+    - rosa-clusters
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchLabels:
+            dr-role: dr-standby
+            platform: rosa

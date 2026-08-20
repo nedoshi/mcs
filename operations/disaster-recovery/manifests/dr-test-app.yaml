@@ -1,0 +1,91 @@
+# Test application for cross-cloud DR validation (OADP Kopia backup/restore).
+# Writes a timestamp to a PVC; backup on primary, restore on DR, verify data matches.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dr-validation
+  labels:
+    dr.mcs.redhat.com/purpose: validation
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dr-test-data
+  namespace: dr-validation
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  # Override via kustomize or sed — must exist on primary cluster
+  storageClassName: managed-csi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dr-test-app
+  namespace: dr-validation
+  labels:
+    app: dr-test-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dr-test-app
+  template:
+    metadata:
+      labels:
+        app: dr-test-app
+      annotations:
+        backup.velero.io/backup-volumes: data
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: app
+          image: registry.redhat.io/ubi9/ubi-minimal:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              MARKER="/data/dr-marker.txt"
+              if [ ! -f "$MARKER" ]; then
+                echo "DR-VALIDATION-$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$MARKER"
+              fi
+              echo "Marker: $(cat $MARKER)"
+              while true; do sleep 3600; done
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - test -f /data/dr-marker.txt
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: dr-test-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dr-test-app
+  namespace: dr-validation
+spec:
+  selector:
+    app: dr-test-app
+  ports:
+    - port: 8080
+      targetPort: 8080

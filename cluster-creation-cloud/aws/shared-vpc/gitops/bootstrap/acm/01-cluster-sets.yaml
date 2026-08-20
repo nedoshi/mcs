@@ -30,3 +30,29 @@ metadata:
   labels:
     data-sovereignty: eu
 spec: {}
+---
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSet
+metadata:
+  name: cross-cloud-dr-clusters
+  labels:
+    dr: cross-cloud
+spec: {}
+---
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSet
+metadata:
+  name: aro-primary-clusters
+  labels:
+    platform: aro
+    dr-role: primary
+spec: {}
+---
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSet
+metadata:
+  name: rosa-dr-clusters
+  labels:
+    platform: rosa
+    dr-role: dr-standby
+spec: {}

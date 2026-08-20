@@ -1,0 +1,14 @@
+# ROSA HCP DR cluster overlay — Scenario A (ARO primary, ROSA DR)
+# ManagedCluster name: prod-rosa-dr
+
+clusterName: prod-rosa-dr
+
+storage:
+  enabled: true
+  kmsKeyArn: "arn:aws:kms:us-west-2:ACCOUNT_ID:key/KEY_ID"
+  className: gp3-csi-kms
+  isDefault: true
+
+# Terraform rosa-entra-idp manages OAuth — keep disabled to avoid conflict
+identityProvider:
+  enabled: false

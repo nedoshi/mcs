@@ -9,6 +9,7 @@ Example YAML files covering:
 - **GitOps / Argo CD** — `argocd.yaml`, `configmap-argocd-cm.yaml`, `secret-argocd-secret.yaml`
 - **Auth** — `auth_gateway.yaml`, `auth-virtualservice.yaml`, `authz_policy.yaml`, `request_auth.yaml`
 - **Backup (OADP/Velero)** — `dpa-azure-rbac.yaml`, `cloud-credentials-azure.yaml`, `credentials-velero`
+- **Cross-cloud backup (ARO ↔ ROSA HCP)** — `dpa-s3-cross-cloud.yaml`, `cloud-credentials-aws-s3.yaml`, `backup-schedule-cross-cloud.yaml`
 - **Service mesh** — `smcp.yaml`, `smp.yaml`, `kiali-openid-auth.yaml`
 - **Networking** — `privatelink-with-network-firewall.yaml`, `nodenetworkstate-worker01.yaml`
 - **Other** — `deploy-rhoai.yaml`, `install-nvidia.yaml`, `pod.yaml`, `daemonset.yaml`, `virtualmachine-rosa2003-vm.yaml`, etc.

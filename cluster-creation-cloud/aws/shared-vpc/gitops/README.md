@@ -69,6 +69,18 @@ This repo uses a clear **Day 0–1 / Day 2** split to avoid resource conflicts:
 
 **Important:** For ROSA clusters where Terraform manages the Entra ID IdP, set `identityProvider.enabled: false` in the cluster-values file to prevent conflict. The GitOps OAuth template is available for ARO clusters or any cluster not using the Terraform IdP module.
 
+### Cross-Cloud DR Placements
+
+For ARO ↔ ROSA HCP disaster recovery pairs, additional ManagedClusterSets and Placements are defined in `bootstrap/acm/`:
+
+| Placement | Labels | Purpose |
+|-----------|--------|---------|
+| `cross-cloud-dr` | `dr-pair: aro-rosa-cross-cloud` | Both clusters in a DR pair |
+| `aro-primary` | `dr-role: primary`, `platform: aro` | ARO primary |
+| `rosa-dr-standby` | `dr-role: dr-standby`, `platform: rosa` | ROSA DR standby |
+
+See [Cross-Cloud DR ACM Setup](../../../operations/disaster-recovery/acm-gitops-setup.md) and example cluster values (`prod-aro-primary.yaml`, `prod-rosa-dr.yaml`).
+
 ## Directory Structure
 
 ```

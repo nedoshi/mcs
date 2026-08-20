@@ -1,0 +1,9 @@
+# Per-cluster baseline overrides — ARO primary
+# Filename MUST match ManagedCluster name in ACM.
+
+clusterName: prod-aro-primary
+
+# rbac:
+#   adminGroups:
+#     - cluster-admins
+#     - platform-admins

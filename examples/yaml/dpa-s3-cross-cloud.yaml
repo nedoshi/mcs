@@ -1,0 +1,60 @@
+# DataProtectionApplication — Cross-Cloud S3 Backup (ARO ↔ ROSA HCP)
+#
+# Prerequisites:
+#   1. oc create namespace openshift-adp
+#   2. Install OADP operator (stable-1.4)
+#   3. Create secret: cloud-credentials-aws (see oadp_cross_cloud_s3_guide.md)
+#
+# Replace placeholders before applying:
+#   - AWS_REGION
+#   - BACKUP_BUCKET
+#
+# Cross-cloud note: snapshotLocations intentionally omitted.
+# Use Kopia/datamover for PV backup — CSI snapshots do not transfer across clouds.
+---
+apiVersion: oadp.openshift.io/v1alpha1
+kind: DataProtectionApplication
+metadata:
+  name: oadp-cross-cloud-s3
+  namespace: openshift-adp
+  labels:
+    dr.mcs.redhat.com/strategy: cross-cloud-s3
+spec:
+  configuration:
+    velero:
+      defaultPlugins:
+        - aws
+        - openshift
+      featureFlags:
+        - EnableCSI
+      resourceAllocations:
+        limits:
+          cpu: "1"
+          memory: 1Gi
+        requests:
+          cpu: 500m
+          memory: 256Mi
+    nodeAgent:
+      enable: true
+      uploaderType: kopia
+      podConfig:
+        resourceAllocations:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+  backupLocations:
+    - name: aws-s3-cross-cloud
+      velero:
+        provider: aws
+        default: true
+        credential:
+          key: cloud
+          name: cloud-credentials-aws
+        config:
+          region: AWS_REGION
+        objectStorage:
+          bucket: BACKUP_BUCKET
+          prefix: velero

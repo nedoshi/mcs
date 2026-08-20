@@ -1,0 +1,29 @@
+# ROSA HCP Primary — Cross-Cloud DR (Scenario B: AWS-centric production)
+# Auth: TF_VAR_client_id + TF_VAR_client_secret (recommended)
+# Deploy: cd cluster-creation-cloud/aws/tf-rosa
+#   make plan TFVARS=../../cross-cloud-dr/environments/rosa-primary.tfvars.example
+#   make apply TFVARS=../../cross-cloud-dr/environments/rosa-primary.tfvars.example
+
+cluster_name = "prod-rosa-primary"
+region       = "us-east-1"
+
+tags = {
+  env         = "production"
+  dr-role     = "primary"
+  dr-pair     = "rosa-aro-cross-cloud"
+  cost-center = "468"
+}
+
+private  = false
+multi_az = true
+replicas = 3
+# max_replicas = 6
+
+compute_machine_type = "m5.xlarge"
+create_account_roles = true
+
+# Pin same OpenShift version as ARO DR cluster
+# openshift_version = "4.16.30"
+
+# Non-overlapping with ARO DR VNet (10.10.0.0/20)
+# Set via tf-rosa network module defaults or override if supported

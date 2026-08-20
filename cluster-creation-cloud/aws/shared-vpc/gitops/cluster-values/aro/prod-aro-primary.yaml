@@ -1,0 +1,17 @@
+# ARO primary cluster overlay — Scenario A
+# ManagedCluster name: prod-aro-primary
+
+clusterName: prod-aro-primary
+
+storage:
+  enabled: true
+  resourceGroup: prod-aro-primary-rg
+  className: managed-premium
+  isDefault: true
+  skuName: Premium_LRS
+
+identityProvider:
+  enabled: true
+  clientID: "<entra-app-client-id>"
+  issuer: "https://login.microsoftonline.com/<tenant-id>/v2.0"
+  secretName: aro-oidc-client-secret

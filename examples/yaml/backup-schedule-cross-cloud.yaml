@@ -1,0 +1,39 @@
+# OADP backup schedule for cross-cloud DR
+# Adjust schedule to match RPO tier (see oadp_cross_cloud_s3_guide.md)
+---
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: cross-cloud-daily
+  namespace: openshift-adp
+  labels:
+    dr.mcs.redhat.com/strategy: cross-cloud-s3
+spec:
+  schedule: "0 */4 * * *"
+  template:
+    includedNamespaces:
+      - production
+    excludedResources:
+      - events
+      - events.events.k8s.io
+    storageLocation: aws-s3-cross-cloud
+    ttl: 720h0m0s
+    snapshotVolumes: false
+    defaultVolumesToFsBackup: true
+---
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: cross-cloud-tier1-frequent
+  namespace: openshift-adp
+  labels:
+    dr.mcs.redhat.com/tier: tier1
+spec:
+  schedule: "*/15 * * * *"
+  template:
+    includedNamespaces:
+      - production
+    storageLocation: aws-s3-cross-cloud
+    ttl: 168h0m0s
+    snapshotVolumes: false
+    defaultVolumesToFsBackup: true

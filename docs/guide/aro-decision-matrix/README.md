@@ -533,7 +533,7 @@ See: [OpenShift GitOps operator](https://docs.openshift.com/container-platform/l
 | **Active/Passive** | Minutes–hours | High |
 | **Active/Active** | Near-zero | Very high |
 
-**A:** At minimum, implement **OADP backup** for PVs and **GitOps** for configuration. Document RPO/RTO and test restore quarterly. For a full cross-region strategy comparison (Pilot Light, Active/Passive, Active/Active) and a dedicated DR readiness checklist, see the [ARO Disaster Recovery Strategy guide](../aro-disaster-recovery/README.md).
+**A:** At minimum, implement **OADP backup** for PVs and **GitOps** for configuration. Document RPO/RTO and test restore quarterly. For a full cross-region strategy comparison (Pilot Light, Active/Passive, Active/Active) and a dedicated DR readiness checklist, see the [ARO Disaster Recovery Strategy guide](../aro-disaster-recovery/README.md). For **cross-cloud DR between ARO and ROSA HCP**, see the [Cross-Cloud DR Guide](../cross-cloud-dr-aro-rosa/README.md) and [Cross-Cloud Production Readiness Checklist](./cross-cloud-production-readiness-checklist.md).
 
 - [ ] Backup solution deployed (OADP)
 - [ ] DR region identified (if required)

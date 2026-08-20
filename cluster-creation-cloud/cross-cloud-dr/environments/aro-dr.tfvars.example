@@ -1,0 +1,35 @@
+# ARO DR Standby — Cross-Cloud DR (Scenario B: AWS-centric production, ARO as DR)
+# Deploy with: cluster-creation-cloud/azure/terraform-aro
+#   cp ../../cross-cloud-dr/environments/aro-dr.tfvars.example terraform.tfvars
+#   make create   # or make create-private
+
+cluster_name = "prod-aro-dr"
+location     = "westus2"
+# subscription_id = "00000000-0000-0000-0000-000000000000"
+
+domain = "example.com"
+
+# MUST match primary cluster minor version
+aro_version = "4.16.30"
+
+# Pilot Light: 1–2 workers; Active/Passive: match primary sizing
+worker_node_count = 3
+main_vm_size      = "Standard_D8s_v5"
+worker_vm_size    = "Standard_D4s_v3"
+
+# Non-overlapping with ROSA primary VPC (10.1.0.0/16) and ARO primary (10.0.0.0/20)
+aro_virtual_network_cidr_block  = "10.10.0.0/20"
+aro_control_subnet_cidr_block   = "10.10.0.0/23"
+aro_machine_subnet_cidr_block   = "10.10.2.0/23"
+aro_pod_cidr_block              = "10.132.0.0/14"
+aro_service_cidr_block          = "172.31.0.0/16"
+
+api_server_profile  = "Public"
+ingress_profile     = "Public"
+
+tags = {
+  env           = "production"
+  dr-role       = "dr-standby"
+  dr-pair       = "rosa-aro-cross-cloud"
+  cost-center   = "468"
+}

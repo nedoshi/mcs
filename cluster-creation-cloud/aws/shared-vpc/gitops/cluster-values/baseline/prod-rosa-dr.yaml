@@ -1,0 +1,9 @@
+# Per-cluster baseline overrides — ROSA HCP DR standby
+# Filename MUST match ManagedCluster name in ACM.
+
+clusterName: prod-rosa-dr
+
+# rbac:
+#   adminGroups:
+#     - cluster-admins
+#     - platform-admins
