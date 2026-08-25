@@ -8,3 +8,6 @@
 	path = cluster-creation-cloud/azure/aro-terra-gitactions
 	url = https://github.com/nedoshi/aro-terra-gitactions.git
 
+[submodule "cluster-creation-cloud/azure/aro-hcp"]
+	path = cluster-creation-cloud/azure/aro-hcp
+	url = https://github.com/rh-mobb/aro-hcp.git
