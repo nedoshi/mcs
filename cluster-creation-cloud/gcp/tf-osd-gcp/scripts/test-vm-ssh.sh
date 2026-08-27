@@ -103,7 +103,8 @@ spec:
       storage:
         resources:
           requests:
-            storage: 30Gi
+            # Must be >= golden-image snapshot (centos-stream9 is 32Gi; CDI rejects smaller clones)
+            storage: 32Gi
   runStrategy: RerunOnFailure
   template:
     metadata:
