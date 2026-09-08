@@ -12,6 +12,7 @@ A practical guide for teams transitioning to ARO and GitOps while keeping Octopu
 2. [Step-by-step tutorial](#2-step-by-step-tutorial)
 3. [Comparative analysis](#3-comparative-analysis)
 4. [Reference material](#4-reference-material)
+5. [Live demo (10-15 minutes)](#5-live-demo-10-15-minutes)
 
 ---
 
@@ -111,12 +112,14 @@ Relationships are declared with **annotations** on Argo CD `Application` manifes
 ```yaml
 metadata:
   annotations:
-    argo.octopus.com/project.<source-name>: my-octopus-project
-    argo.octopus.com/environment.<source-name>: Staging
+    argo.octopus.com/project.<source-name>: hello-aro
+    argo.octopus.com/environment.<source-name>: staging
 ```
 
-- `<source-name>` matches `spec.sources[].name` when using multiple sources; leave blank or use the default source name for single-source Applications.
-- Octopus discovers Applications through the gateway and shows them in **Infrastructure → Argo CD Instances**.
+- Values are **Octopus slugs**, not display names. An environment named `Staging` is often slug `staging`. A mismatch means Octopus never maps the Application.
+- `<source-name>` matches `spec.source.name` / `spec.sources[].name`. Unnamed single-source apps use unscoped annotations (`argo.octopus.com/project` with no suffix).
+- Prefer **Infrastructure → Argo CD Instances → Generate Scoping Annotations** over hand-editing.
+- Octopus discovers Applications through the gateway (**Infrastructure → Argo CD Instances**).
 
 See [`examples/argocd-application.yaml`](./examples/argocd-application.yaml) for a full ARO-ready sample.
 
@@ -146,11 +149,13 @@ Many customers run this **hybrid model for 12–24 months**: legacy Octopus targ
 
 This tutorial deploys a sample **hello-aro** application to ARO using:
 
-- Git repo: `manifests/` (Kubernetes Deployment + Route)
-- Argo CD Application in namespace `hello-aro`
-- Octopus project: `hello-aro` with an image-tag update step
+- Git path: `examples/manifests/base/` (Deployment + Service + Route)
+- Argo CD `Application` in `openshift-gitops` (workloads land in `hello-aro`)
+- Octopus project slug `hello-aro` with an image-tag update step
 
-Estimated time: **2–4 hours** (excluding ARO cluster provisioning).
+**Instance model:** follow the **default** cluster-scoped OpenShift GitOps instance (`openshift-gitops`). Do **not** also apply [`examples/argocd-instance.yaml`](./examples/argocd-instance.yaml)—that is an alternative (team-scoped instance), not an extra step.
+
+Estimated time: **2–4 hours** (excluding ARO cluster provisioning). For a 10-15 minute walkthrough of a cluster that is already prepared, see [§5](#5-live-demo-10-15-minutes).
 
 ### 2.1 Prerequisites
 
@@ -165,58 +170,62 @@ Estimated time: **2–4 hours** (excluding ARO cluster provisioning).
 
 ### 2.2 Install OpenShift GitOps (Argo CD) on ARO
 
-1. In the OpenShift console: **Operators → OperatorHub → Red Hat OpenShift GitOps → Install**.
-2. Confirm the default Argo CD instance in `openshift-gitops` (or create a user-defined instance per team namespace).
+1. In the OpenShift console: **Operators → OperatorHub → Red Hat OpenShift GitOps → Install** (all namespaces). A default Argo CD instance is created in `openshift-gitops`.
+2. Confirm the operator and default instance:
 
 ```bash
-# Verify operator and default instance
-oc get subscription -n openshift-operators | grep gitops
+# Subscription is typically in openshift-gitops-operator (not openshift-operators)
+oc get subscription -A | grep gitops
 oc get argocd -n openshift-gitops
 oc get pods -n openshift-gitops
+oc get route -n openshift-gitops
 ```
 
-3. (Optional) Create a **user-defined** Argo CD instance for application teams:
+3. **Pick one instance model.** This tutorial uses the default instance. Skip the user-defined CR unless you are *replacing* the default instance and will put `Application` objects in that team namespace instead of `openshift-gitops`.
 
 ```bash
-oc create namespace hello-aro
-# Apply examples/argocd-instance.yaml after customizing
-oc apply -f examples/argocd-instance.yaml
+# OPTIONAL alternative only — do not apply this if you follow §2.4
+# oc create namespace hello-aro
+# oc apply -f examples/argocd-instance.yaml
 ```
 
-4. Retrieve the Argo CD admin password (default instance example):
+4. Retrieve the Argo CD admin password (default instance):
 
 ```bash
 oc -n openshift-gitops get secret openshift-gitops-cluster \
   -o jsonpath='{.data.admin\.password}' | base64 -d && echo
 ```
 
-5. Install the `argocd` CLI (optional but useful for token generation):
+5. Install the `argocd` CLI (optional; needed to mint a gateway JWT):
 
 ```bash
-# macOS example
+# macOS
 brew install argocd
-argocd login <argocd-route-host> --username admin --password '<password>'
+
+ARGOCD_HOST=$(oc -n openshift-gitops get route openshift-gitops-server -o jsonpath='{.spec.host}')
+# OpenShift GitOps Routes are reencrypt — --grpc-web --insecure are required
+argocd login "$ARGOCD_HOST" --username admin --password '<password>' --grpc-web --insecure
 argocd account generate-token
 ```
 
-Save the JWT for gateway registration.
+Save the JWT for gateway registration. You can also log into the Argo CD UI via OpenShift SSO (Dex) as `kube:admin`.
 
 ### 2.3 Prepare the Git repository
 
-Layout (included under `examples/` in this demo):
+Layout in this demo:
 
 ```
-manifests/
-  base/
-    deployment.yaml      # image: registry.example.com/hello-aro:1.0.0
+examples/
+  manifests/base/
+    deployment.yaml      # image: registry.access.redhat.com/ubi9/httpd-24:latest
     service.yaml
     route.yaml
-argocd/
-  hello-aro-application.yaml   # Argo CD Application + Octopus annotations
+  argocd-application.yaml   # Application CR + Octopus annotations (applied to the cluster, not synced as a workload)
 ```
 
-1. Push `examples/manifests/` and `examples/argocd-application.yaml` to your Git repo.
-2. Register the repo in Argo CD (UI: **Settings → Repositories**, or declarative secret).
+1. Use this repository (or copy `examples/manifests/` into a dedicated gitops repo).
+2. Edit `repoURL`, `targetRevision`, and `path` in `examples/argocd-application.yaml` to match the Git remote Argo CD will clone. If Argo CD watches *this* repo, `path` is `openshift-demos/octopus-argocd-aro-integration/examples/manifests/base`.
+3. Public HTTPS remotes need no repo secret. Private GitHub/ADO: Argo CD **Settings → Repositories** (or a declarative repo Secret) before first sync.
 
 For **Azure DevOps in another tenant**, complete federated identity setup before this step.
 
@@ -237,39 +246,43 @@ oc create rolebinding openshift-gitops-"${TARGET_NAMESPACE}" \
 
 **OpenShift SCC note:** Example manifests use `ubi9/httpd-24` on port **8080** with TCP probes. Images that bind to port 80 (e.g. `nginx:alpine`, `argocd-example-apps` guestbook) fail under the default `restricted-v2` SCC unless you change the namespace SCC.
 
-```bash
-export GIT_REPO_URL='https://github.com/your-org/hello-aro-gitops.git'
+Apply the Application **to `openshift-gitops`** (that is where the CR lives). `spec.destination.namespace` is `hello-aro`.
 
-# Edit repo URL in examples/argocd-application.yaml, then:
+```bash
+# Edit repoURL + path in examples/argocd-application.yaml first, then:
 oc apply -f examples/argocd-application.yaml
+
+oc -n openshift-gitops get applications.argoproj.io hello-aro
+# Expect SYNC=Synced HEALTH=Healthy after the first reconcile (~30s)
 ```
 
-Verify in Argo CD UI: Application `hello-aro` should appear (may be `OutOfSync` until first sync).
-
-```bash
-oc -n openshift-gitops get applications.argoproj.io -A | grep hello-aro
-```
+`ubi9/httpd-24` serves the RHEL welcome page with **HTTP 403**. That is Apache’s default DocumentRoot, not a failed deploy. Confirm with `oc -n hello-aro get deploy,pods,route`.
 
 ### 2.5 Connect Octopus to Argo CD (gateway install)
 
 1. Octopus UI: **Infrastructure → Argo CD Instances → Add Argo CD Instance**.
 2. Name: `aro-prod-gitops` (unique per cluster).
-3. Environments: select environments this instance serves (e.g. Staging, Production).
-4. Argo CD API URL: default in-cluster URL (wizard pre-fills `https://openshift-gitops-server.openshift-gitops.svc.cluster.local`).
-5. Paste the Argo CD JWT token from step 2.2.
-6. Copy the generated **Helm install** command and run it from a machine with `kubectl` context pointed at ARO:
+3. Environments: select environments this instance serves.
+4. Argo CD API URL: in-cluster `https://openshift-gitops-server.openshift-gitops.svc.cluster.local` (wizard usually pre-fills this).
+5. Paste the Argo CD JWT from step 2.2.
+6. **Copy the wizard’s Helm command** and run it against this cluster. Do not type the sample below from memory—current chart (`1.33.x` at time of writing) also sets `spaceId`, `environments`, and `gateway.octopus.serverGrpcUrl`.
+
+Illustrative shape (values are placeholders):
 
 ```bash
 helm install octo-argo-gateway oci://registry-1.docker.io/octopusdeploy/octopus-argocd-gateway-chart \
-  --namespace octo-argo-gateway --create-namespace \
-  --set registration.octopus.serverApiUrl="https://your-octopus.example.com" \
+  --namespace octo-argo-gateway --create-namespace --atomic \
+  --set registration.octopus.serverApiUrl="https://your-instance.octopus.app" \
   --set registration.octopus.serverAccessToken="<one-hour-registration-token>" \
+  --set gateway.octopus.serverGrpcUrl="grpc://your-instance.octopus.app:8443" \
   --set gateway.argocd.serverGrpcUrl="openshift-gitops-server.openshift-gitops.svc.cluster.local:443" \
   --set gateway.argocd.authenticationToken="<argocd-jwt>" \
   --set gateway.argocd.insecure="true"
 ```
 
-7. Wait for the wizard health check to pass. The instance appears under **Infrastructure → Argo CD Instances** with discovered Applications.
+On ARO, keep `gateway.argocd.insecure="true"` (cluster-signed certs). The gateway is **outbound-only** from the cluster (HTTPS 443 + gRPC 8443 to Octopus).
+
+7. Wait for the wizard health check. Confirm `oc -n octo-argo-gateway get pods` is `Running`, then check discovered Applications including `hello-aro`.
 
 ### 2.6 Configure Git credentials in Octopus
 
@@ -281,7 +294,7 @@ Octopus must clone and push to the same repos referenced by Argo CD Applications
 
 ### 2.7 Create the Octopus project and deployment process
 
-1. **Projects → Add Project** → name: `hello-aro`.
+1. **Projects → Add Project** → name: `hello-aro`. The **project slug** and **environment slug** must match the Application annotations exactly (see §1.4).
 2. **Deployment Process → Add step** → category **Argo CD**:
    - **Update Argo CD Application Image Tags** (simplest for image-only promotions).
 
@@ -321,7 +334,7 @@ Or configure an **External Feed Trigger** in Octopus to create releases when new
 1. **Releases → Create release** (version `1.2.3`).
 2. **Deploy to Staging** → approve if required.
 3. Watch Octopus task log:
-   - **Update Argo CD Application Image Tags** — clones repo, bumps `image:` tag in `manifests/base/deployment.yaml`, pushes commit.
+   - **Update Argo CD Application Image Tags** — clones repo, bumps `image:` tag in `examples/manifests/base/deployment.yaml` (or your gitops path), pushes commit.
    - **Trigger Argo CD application sync** — requests sync for the mapped Application.
    - **Wait for Argo CD Application Health** — polls until `Healthy`.
 4. Confirm on ARO:
@@ -349,7 +362,7 @@ Preferred for audit consistency: **redeploy the last known good Octopus release*
 - [ ] Application mapped in Octopus with correct project/environment
 - [ ] Git commit appears after deployment with expected tag
 - [ ] Argo CD sync status `Synced` / health `Healthy`
-- [ ] Route responds with new version
+- [ ] Route serves the httpd welcome page (`ubi9/httpd-24` returns HTTP 403 with HTML — expected)
 - [ ] Octopus deployment timeline shows green verification step
 
 ---
@@ -435,6 +448,37 @@ Preferred for audit consistency: **redeploy the last known good Octopus release*
 
 ---
 
+## 5. Live demo (10-15 minutes)
+
+Assumes GitOps + `hello-aro` are already Synced/Healthy (complete §2.1–2.4 first). Goal: one sentence of architecture, proof on the cluster, self-heal wow, then Octopus as the missing control plane.
+
+**Talk track:** Octopus decides *what/when/who approved*. Git is desired state. Argo CD reconciles ARO. The gateway is outbound-only—Argo CD stays private.
+
+| Min | What | Do |
+|-----|------|----|
+| 0–1 | Split of duties | Whiteboard the mermaid in §1.2. Point at the three boxes: Octopus / Git / Argo-on-ARO. |
+| 1–3 | GitOps is an operator | OpenShift console → **Operators** → `Red Hat OpenShift GitOps`. Then Argo CD UI → Application `hello-aro` → **Synced / Healthy**. |
+| 3–5 | Mapping, not a target | Show Application YAML: `spec.source` (Git) vs `destination.namespace: hello-aro` vs `argo.octopus.com/*` annotations. Emphasize **slugs**. |
+| 5–7 | Workload on ARO | `oc -n hello-aro get deploy,pods,route` and open the Route. 403 + RHEL test page = Apache is up. |
+| 7–11 | Self-heal | `oc -n hello-aro scale deploy/hello-aro --replicas=1`. In Argo CD, health goes Progressing then Argo reverts to **2**. Cluster is not the source of truth. |
+| 11–15 | Octopus | **If gateway is installed:** create release → deploy Staging → watch Git commit + Argo Healthy + Octopus timeline. **If not:** show wizard + Helm snippet (§2.5) and the image line in `deployment.yaml` (“Octopus commits this tag; Argo syncs it”). Close with the §3 table: approvals stay in Octopus, drift stays in Argo. |
+
+**Do not** install the operator, create a second Argo CD instance, or live-debug SCC in this window.
+
+```bash
+# Pre-flight (30s, before the audience sits down)
+oc whoami --show-server
+oc -n openshift-gitops get applications.argoproj.io hello-aro
+oc -n hello-aro get deploy,pods,route
+
+# Self-heal beat
+oc -n hello-aro scale deploy/hello-aro --replicas=1
+# watch Argo UI or:
+watch -n2 'oc -n hello-aro get deploy hello-aro && oc -n openshift-gitops get applications.argoproj.io hello-aro'
+```
+
+---
+
 ## Files in this demo
 
 | Path | Purpose |
@@ -451,7 +495,7 @@ Preferred for audit consistency: **redeploy the last known good Octopus release*
 ## Cleanup
 
 ```bash
-oc delete application hello-aro -n hello-aro --ignore-not-found
+oc delete application hello-aro -n openshift-gitops --ignore-not-found
 oc delete namespace hello-aro --ignore-not-found
 helm uninstall octo-argo-gateway -n octo-argo-gateway
 oc delete namespace octo-argo-gateway --ignore-not-found

@@ -1,8 +1,15 @@
 # Argo CD Application for hello-aro on ARO.
-# Apply to the namespace where Argo CD should manage the app (or openshift-gitops for cluster-scoped default instance).
+# Apply this CR to openshift-gitops (default cluster-scoped instance).
+# Do not also apply examples/argocd-instance.yaml unless you are using a team-scoped
+# instance instead of the default — they are alternatives, not layers.
 #
-# Octopus annotations map this Application to project "hello-aro" and environment "Staging".
-# Duplicate or adjust annotations for Production (e.g. environment.hello-aro-source: Production).
+# Octopus annotation VALUES are slugs, not display names.
+# Use Octopus UI: Infrastructure → Argo CD Instances → Generate Scoping Annotations.
+# Duplicate annotations for Production with that environment's slug.
+#
+# Edit repoURL + path before apply. If Argo CD watches this repository:
+#   repoURL: https://github.com/<org>/mcs.git
+#   path: openshift-demos/octopus-argocd-aro-integration/examples/manifests/base
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

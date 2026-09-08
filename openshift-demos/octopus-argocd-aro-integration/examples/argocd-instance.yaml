@@ -1,4 +1,6 @@
-# Optional user-defined Argo CD instance for team isolation on ARO.
+# OPTIONAL alternative to the default openshift-gitops instance — not an extra step.
+# If you apply this, put Application CRs in namespace hello-aro and skip the
+# default-instance flow in README §2.4 (Application metadata.namespace: openshift-gitops).
 # Requires Red Hat OpenShift GitOps operator installed cluster-wide.
 apiVersion: argoproj.io/v1beta1
 kind: ArgoCD
