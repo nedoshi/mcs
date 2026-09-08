@@ -925,36 +925,33 @@ Choose your deployment method based on your infrastructure-as-code preferences a
 
 **Red Hat MOBB Terraform Examples:**
 
-The Red Hat MOBB team provides production-ready Terraform modules with various configurations:
+MCS wraps upstream [rh-mobb/terraform-aro](https://github.com/rh-mobb/terraform-aro) at `cluster-creation-cloud/azure/terraform-aro/` (pinned release — see `UPSTREAM_PIN`).
 
-📚 **Repository**: https://github.com/rh-mobb/terraform-aro
+📚 **Upstream repository**: https://github.com/rh-mobb/terraform-aro
 
-**Available Examples:**
-- `private-cluster` - Private ARO with managed identities
-- `public-cluster` - Public ARO cluster (dev/test)
-- `byovnet` - Bring your own VNet
-- `custom-domain` - ARO with custom domain
-- `multiple-machinepools` - Multiple worker node pools
+**MCS layout:**
+- `upstream/` — vendored rh-mobb module (submodule)
+- `examples/mobb-lab.tfvars.example` — MOBB lab defaults (cost-center 468, lifecycle tags)
+- `cluster-oauth-config.yaml` — optional post-deploy Entra ID OAuth
+- `overlays/cost_notifier.tf` — automatic `expires-at` / `delete-after` tags
 
-**Quick Start:**
+**Quick Start (MCS):**
 ```bash
-# Clone the repository
-git clone https://github.com/rh-mobb/terraform-aro.git
-cd terraform-aro/examples/private-cluster
+cd cluster-creation-cloud/azure/terraform-aro
+git submodule update --init --recursive upstream
+cp examples/mobb-lab.tfvars.example terraform.tfvars
+export TF_VAR_subscription_id="<subscription-id>"
 
-# Review and customize terraform.tfvars
-cp terraform.tfvars.example terraform.tfvars
-vi terraform.tfvars
-
-# Initialize Terraform
-terraform init
-
-# Preview changes
-terraform plan
-
-# Deploy cluster (30-45 minutes)
-terraform apply
+make init
+make plan
+make apply
 ```
+
+**Private cluster:** set `api_server_profile = "Private"` and `ingress_profile = "Private"` in tfvars, or use `make create-private`.
+
+**Managed identities (preview):** set `enable_managed_identities = true` and use `make create-managed-identity` or `make create-private-managed-identity`. On newer upstream (AzAPI), run `REFERENCE_ARO_AZAPI_URL=... make reference-sync` before `make init`.
+
+**Legacy flat fork** (destroy-only): `cluster-creation-cloud/azure/terraform-aro.legacy/`
 
 **Official Terraform Provider:**
 
@@ -1004,7 +1001,7 @@ resource "azurerm_redhat_openshift_cluster" "aro" {
 }
 ```
 
-**For Managed Identity Configuration**, see the [Red Hat MOBB examples](https://github.com/rh-mobb/terraform-aro) which include complete managed identity setup.
+**For Managed Identity Configuration**, see the [MCS terraform-aro README](../../../cluster-creation-cloud/azure/terraform-aro/README.md#managed-identities-preview) and [upstream managed identities docs](https://github.com/rh-mobb/terraform-aro#aro-managed-identities-preview).
 
 ---
 

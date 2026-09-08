@@ -1,7 +1,7 @@
 # ARO Primary — Cross-Cloud DR (Scenario A: Azure-centric production)
 # Deploy with: cluster-creation-cloud/azure/terraform-aro
-#   cp ../../cross-cloud-dr/environments/aro-primary.tfvars.example terraform.tfvars
-#   make create   # or make create-private
+#   make plan TFVARS=../../cross-cloud-dr/environments/aro-primary.tfvars.example
+#   make apply TFVARS=../../cross-cloud-dr/environments/aro-primary.tfvars.example
 
 cluster_name = "prod-aro-primary"
 location     = "eastus"

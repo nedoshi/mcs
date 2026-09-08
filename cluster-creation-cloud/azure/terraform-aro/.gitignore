@@ -1,5 +1,6 @@
 **.tfstate*
 /*.json
+.terraform-root/
 .terraform*
 *.plan
 terraform.tfvars

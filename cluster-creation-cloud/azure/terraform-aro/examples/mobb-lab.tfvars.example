@@ -1,0 +1,92 @@
+# MOBB lab ARO — full variable reference
+# Copy: cp examples/mobb-lab.tfvars.example terraform.tfvars
+#
+# Auth: export TF_VAR_subscription_id=...  (do not commit terraform.tfvars)
+
+#------------------------------------------------------------------------------
+# Required
+#------------------------------------------------------------------------------
+
+cluster_name = "mobb-lab-aro"
+location     = "eastus"
+# subscription_id = "00000000-0000-0000-0000-000000000000"
+
+domain = "example.com"
+
+#------------------------------------------------------------------------------
+# MOBB tagging (cost-center 468 + expires-at/delete-after applied via overlays/cost_notifier.tf)
+#------------------------------------------------------------------------------
+
+tags = {
+  app-code      = "MOBB-001"
+  service-phase = "lab"
+  cost-center   = "468"
+  owner         = "nedoshi_mobb"
+}
+
+#------------------------------------------------------------------------------
+# Cluster version (null = auto-detect latest for region)
+#------------------------------------------------------------------------------
+
+# aro_version = "4.16.30"
+
+#------------------------------------------------------------------------------
+# Cluster topology
+#------------------------------------------------------------------------------
+
+worker_node_count = 3
+main_vm_size      = "Standard_D8s_v3"
+worker_vm_size    = "Standard_D4s_v3"
+
+api_server_profile = "Public"
+ingress_profile    = "Public"
+
+# Private cluster example:
+# api_server_profile      = "Private"
+# ingress_profile           = "Private"
+# restrict_egress_traffic   = true
+# outbound_type             = "UserDefinedRouting"
+
+#------------------------------------------------------------------------------
+# Networking
+#------------------------------------------------------------------------------
+
+aro_virtual_network_cidr_block = "10.0.0.0/20"
+aro_control_subnet_cidr_block  = "10.0.0.0/23"
+aro_machine_subnet_cidr_block  = "10.0.2.0/23"
+aro_pod_cidr_block             = "10.128.0.0/14"
+aro_service_cidr_block         = "172.30.0.0/16"
+
+#------------------------------------------------------------------------------
+# Pull secret (optional — path on deployer machine)
+#------------------------------------------------------------------------------
+
+# pull_secret_path = "~/Downloads/pull-secret.txt"
+
+#------------------------------------------------------------------------------
+# Managed identities (preview — disabled by default for MOBB lab)
+#------------------------------------------------------------------------------
+
+enable_managed_identities = false
+
+# Public cluster with managed identities (v2.0.0-preview uses ARM template path):
+# enable_managed_identities = true
+# make create-managed-identity TFVARS=terraform.tfvars
+#
+# Private + managed identities:
+# enable_managed_identities = true
+# api_server_profile = "Private"
+# ingress_profile = "Private"
+# restrict_egress_traffic = true
+# outbound_type = "UserDefinedRouting"
+# make create-private-managed-identity TFVARS=terraform.tfvars
+#
+# When upstream is bumped to main/AzAPI, run reference-sync first:
+# REFERENCE_ARO_AZAPI_URL=... make reference-sync
+
+#------------------------------------------------------------------------------
+# Advanced
+#------------------------------------------------------------------------------
+
+# acr_private = false
+# apply_restricted_policies = false

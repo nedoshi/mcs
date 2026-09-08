@@ -1,130 +1,141 @@
-# Using Terraform to build an ARO cluster
+# MCS terraform-aro
 
-Azure Red Hat OpenShift (ARO) is a fully-managed turnkey application platform.
+MCS wrapper around [rh-mobb/terraform-aro](https://github.com/rh-mobb/terraform-aro) with MOBB lab defaults, cost-notifier tagging, and post-deploy OAuth addon.
 
-Supports Public ARO clusters and Private ARO clusters.
+**Pinned upstream:** `v2.0.0-preview` (see [UPSTREAM_PIN](UPSTREAM_PIN))
 
-## Setup
+## Layout
 
-Using the code in the repo will require having the following tools installed:
-
-- The Terraform CLI
-- The OC CLI
-
-## Create the ARO cluster and required infrastructure
-
-### Public ARO cluster
-
-1. Create a local variables file
-
-   ```bash
-   make tfvars
-   ```
-
-1. Modify the `terraform.tfvars` var file, you can use the `variables.tf` to see the full list of variables that can be set.
-
-   >NOTE: You can define the subscription_id needed for the Auth using ```export TF_VAR_subscription_id="xxx"``` as well.
-
-1. Deploy your cluster
-
-   ```bash
-   make create
-   ```
-
-   NOTE: By default the ingress_profile and the api_server_profile is both Public, but can be change using the [TF variables](https://github.com/rh-mobb/terraform-aro/blob/main/variable.tf).
-
-### Private ARO cluster
-
-1. Modify the `terraform.tfvars` var file, you can use the `variables.tf` to see the full list of variables that can be set.
-
-   ```bash
-   make create-private
-   ```
-
-   >NOTE: restrict_egress_traffic=true will secure ARO cluster by routing [Egress traffic through an Azure Firewall](https://learn.microsoft.com/en-us/azure/openshift/howto-restrict-egress).
-
-   >NOTE2: Private Clusters can be created [without Public IP using the UserDefineRouting](https://learn.microsoft.com/en-us/azure/openshift/howto-create-private-cluster-4x#create-a-private-cluster-without-a-public-ip-address) flag in the outboundtype=UserDefineRouting variable. By default LoadBalancer is used for the egress.
-
-## Test Connectivity
-
-1. Get the ARO cluster's api server URL.
-
-   ```bash
-   ARO_URL=$(az aro show -n $AZR_CLUSTER -g $AZR_RESOURCE_GROUP -o json | jq -r '.apiserverProfile.url')
-   echo $ARO_URL
-   ```
-
-1. Get the ARO cluster's Console URL
-
-   ```bash
-   CONSOLE_URL=$(az aro show -n $AZR_CLUSTER -g $AZR_RESOURCE_GROUP -o json | jq -r '.consoleProfile.url')
-   echo $CONSOLE_URL
-   ```
-
-1. Get the ARO cluster's credentials.
-
-   ```bash
-   ARO_USERNAME=$(az aro list-credentials -n $AZR_CLUSTER -g $AZR_RESOURCE_GROUP -o json | jq -r '.kubeadminUsername')
-   ARO_PASSWORD=$(az aro list-credentials -n $AZR_CLUSTER -g $AZR_RESOURCE_GROUP -o json | jq -r '.kubeadminPassword')
-   echo $ARO_PASSWORD
-   echo $ARO_USERNAME
-   ```
-
-### Public Test Connectivity
-
-1. Log into the cluster using oc login command from the create admin command above. ex.
-
-    ```bash
-    oc login $ARO_URL -u $ARO_USERNAME -p $ARO_PASSWORD
-    ```
-
-1. Check that you can access the Console by opening the console url in your browser.
-
-### Private Test Connectivity
-
-1. Save the jump host public IP address
-
-    ```bash
-   JUMP_IP=$(az vm list-ip-addresses -g $AZR_RESOURCE_GROUP -n $AZR_CLUSTER-jumphost -o tsv \
-   --query '[].virtualMachine.network.publicIpAddresses[0].ipAddress')
-   echo $JUMP_IP
-   ```
-
-1. update /etc/hosts to point the openshift domains to localhost. Use the DNS of your openshift cluster as described in the previous step in place of $YOUR_OPENSHIFT_DNS below
-
-   ```bash
-   127.0.0.1 api.$YOUR_OPENSHIFT_DNS
-   127.0.0.1 console-openshift-console.apps.$YOUR_OPENSHIFT_DNS
-   127.0.0.1 oauth-openshift.apps.$YOUR_OPENSHIFT_DNS
-   ```
-
-1. SSH to that instance, tunneling traffic for the appropriate hostnames. Be sure to use your new/existing private key, the OpenShift DNS for $YOUR_OPENSHIFT_DNS and your Jumphost IP
-
-   ```bash
-   sudo ssh -L 6443:api.$YOUR_OPENSHIFT_DNS:6443 \
-   -L 443:console-openshift-console.apps.$YOUR_OPENSHIFT_DNS:443 \
-   -L 80:console-openshift-console.apps.$YOUR_OPENSHIFT_DNS:80 \
-   aro@$JUMP_IP
-   ```
-
-1. Log in using oc login
-
-   ```bash
-   oc login $ARO_URL -u $ARO_USERNAME -p $ARO_PASSWORD
-   ```
-
-NOTE: Another option to connect to a Private ARO cluster jumphost is the usage of [sshuttle](https://sshuttle.readthedocs.io/en/stable/index.html). If we suppose that we deployed ARO vnet with the `10.0.0.0/20` CIDR we can connect to the cluster using (both API and Console):
-
-```bash
-sshuttle --dns -NHr aro@$JUMP_IP 10.0.0.0/20 --daemon
+```
+terraform-aro/
+├── upstream/                 # rh-mobb/terraform-aro @ pinned tag (git submodule)
+├── overlays/
+│   └── cost_notifier.tf      # cost-center 468 + expires-at/delete-after tags
+├── examples/
+│   └── mobb-lab.tfvars.example
+├── cluster-oauth-config.yaml # MCS post-deploy Entra ID OAuth addon
+├── terraform.tfvars.example
+├── Makefile                  # merges upstream + overlays, delegates targets
+├── UPSTREAM_PIN
+└── .terraform-root/          # generated merge dir (gitignored)
 ```
 
-and opening a browser the `api.$YOUR_OPENSHIFT_DNS` and `console-openshift-console.apps.$YOUR_OPENSHIFT_DNS` will be reachable.
+Legacy flat SP-only fork: [`../terraform-aro.legacy/`](../terraform-aro.legacy/)
 
-## Cleanup
+## Quick start
 
-1. Delete Cluster and Resources
+```bash
+cd cluster-creation-cloud/azure/terraform-aro
 
-    ```bash
-    make destroy-force
-    ```
+# First-time: populate upstream submodule
+git submodule update --init --recursive upstream
+# or: make submodule-update
+
+cp examples/mobb-lab.tfvars.example terraform.tfvars
+export TF_VAR_subscription_id="<azure-subscription-id>"
+
+make init
+make plan
+make apply
+```
+
+Cross-cloud DR tfvars: [`../../cross-cloud-dr/environments/`](../../cross-cloud-dr/environments/)
+
+```bash
+make plan TFVARS=../../cross-cloud-dr/environments/aro-primary.tfvars.example
+make apply TFVARS=../../cross-cloud-dr/environments/aro-primary.tfvars.example
+```
+
+## MCS customizations
+
+| Item | Location |
+|------|----------|
+| cost-center `468` | `overlays/cost_notifier.tf` (always applied) |
+| `expires-at` (+2d), `delete-after` (+3d) | `overlays/cost_notifier.tf` via `time_static` |
+| Entra ID OAuth addon | `cluster-oauth-config.yaml` (apply after cluster is ready) |
+
+```bash
+oc apply -f cluster-oauth-config.yaml
+```
+
+## Managed identities (preview)
+
+Pinned `v2.0.0-preview` uses **ARM template** deployment for managed identities (`enable_managed_identities = true`).
+
+```bash
+# In terraform.tfvars:
+enable_managed_identities = true
+
+make create-managed-identity
+# or private:
+make create-private-managed-identity
+```
+
+Destroy managed-identity clusters with:
+
+```bash
+make destroy-managed-identity
+```
+
+### reference-sync (newer upstream / AzAPI path)
+
+`main` branch adds AzAPI modules under `reference/` (not vendored in git). Before `make init` on that upstream revision:
+
+```bash
+REFERENCE_ARO_AZAPI_URL=https://github.com/your-org/terraform-aro-reference-aro-azapi.git make reference-sync
+```
+
+On `v2.0.0-preview`, `make reference-sync` prints a no-op notice. See upstream [CONTRIBUTING.md](https://github.com/rh-mobb/terraform-aro/blob/main/CONTRIBUTING.md) when bumping `UPSTREAM_PIN`.
+
+## Validation (no Azure credentials)
+
+```bash
+make pr          # validate + fmt + optional tflint/checkov in merged root
+make validate
+```
+
+`make test` / `terraform plan` require `az login`.
+
+## State migration from legacy fork
+
+The previous MCS layout was a **flat fork** (now in `terraform-aro.legacy/`). The new wrapper uses a **different root module** (upstream rh-mobb). Existing `terraform.tfstate` is **not compatible** without manual `state mv` across renamed/restructured resources.
+
+| Situation | Recommendation |
+|-----------|----------------|
+| Lab / disposable cluster | `terraform destroy` with legacy code, then greenfield `make apply` |
+| Production cluster | Stay on `terraform-aro.legacy/` until planned migration, or use Azure Portal/CLI import workflow |
+| DR templates | Update tfvars paths only; variable names match upstream |
+
+To destroy a cluster created with the legacy fork:
+
+```bash
+cd ../terraform-aro.legacy
+terraform destroy -var "subscription_id=$TF_VAR_subscription_id"
+```
+
+## Submodule maintenance
+
+Convert from old `nedoshi/terraform-aro` submodule (one-time, repo maintainer):
+
+```bash
+# From MCS repo root — deinit old submodule, commit MCS wrapper + new upstream submodule
+git submodule deinit -f cluster-creation-cloud/azure/terraform-aro
+git rm cluster-creation-cloud/azure/terraform-aro
+# restore MCS wrapper files, then:
+git submodule add -b v2.0.0-preview https://github.com/rh-mobb/terraform-aro.git \
+  cluster-creation-cloud/azure/terraform-aro/upstream
+```
+
+Bump upstream:
+
+1. Update `UPSTREAM_PIN`
+2. `make submodule-update`
+3. `make pr`
+4. Test apply in lab
+
+## Related docs
+
+- [ARO operation guide](../../../docs/guide/aro-operation-guide.md)
+- [Cross-cloud DR](../cross-cloud-dr/README.md)
+- [Failover runbook](../../../operations/disaster-recovery/failover-runbook-aro-rosa.md)
+- Upstream: https://github.com/rh-mobb/terraform-aro

@@ -16,7 +16,7 @@ cross-cloud-dr/
 
 Source Terraform modules:
 
-- ARO: [`../azure/terraform-aro/`](../azure/terraform-aro/)
+- ARO: [`../azure/terraform-aro/`](../azure/terraform-aro/) (rh-mobb upstream wrapper; tfvars below)
 - ROSA HCP: [`../aws/tf-rosa/`](../aws/tf-rosa/)
 
 ## Scenarios
@@ -45,12 +45,19 @@ No overlap — required for cross-cloud VPN and future connectivity.
 
 ```bash
 cd cluster-creation-cloud/azure/terraform-aro
-cp ../../cross-cloud-dr/environments/aro-primary.tfvars.example terraform.tfvars
-# Edit subscription_id, cluster_name, location, domain
-make create          # public
-# or
-make create-private  # private + optional egress lockdown
+git submodule update --init --recursive upstream
+make init
+make plan TFVARS=../../cross-cloud-dr/environments/aro-primary.tfvars.example
+make apply TFVARS=../../cross-cloud-dr/environments/aro-primary.tfvars.example
 ```
+
+For private clusters, set `api_server_profile`, `ingress_profile`, and egress variables in the tfvars file, or use upstream shortcuts:
+
+```bash
+make create-private TFVARS=../../cross-cloud-dr/environments/aro-primary.tfvars.example
+```
+
+MOBB lab defaults: [`../azure/terraform-aro/examples/mobb-lab.tfvars.example`](../azure/terraform-aro/examples/mobb-lab.tfvars.example)
 
 ### ROSA HCP (primary or DR)
 

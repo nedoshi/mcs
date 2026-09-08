@@ -47,7 +47,9 @@ make apply TFVARS=../../cross-cloud-dr/environments/rosa-dr.tfvars.example
 
 # Scenario B: ARO DR
 cd cluster-creation-cloud/azure/terraform-aro
-make create  # or make create-private
+make init
+make apply TFVARS=../../cross-cloud-dr/environments/aro-dr.tfvars.example
+# Private: make create-private TFVARS=../../cross-cloud-dr/environments/aro-dr.tfvars.example
 ```
 
 **Start timer** — RTO measurement begins.

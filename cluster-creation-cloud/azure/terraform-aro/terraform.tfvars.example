@@ -1,4 +1,16 @@
+# MCS terraform-aro — copy to terraform.tfvars and customize.
+# See examples/mobb-lab.tfvars.example for a full MOBB lab reference.
+
 pull_secret_path = "~/Downloads/pull-secret.txt"
-location = "eastus"
-subscription_id = "TO_BE_FILLED" ## also "export TF_VAR_subscription_id=xxx" can be used
-domain = "example.com"  ## required by the backend terraform provider
+location         = "eastus"
+# subscription_id = "TO_BE_FILLED"  # or: export TF_VAR_subscription_id=...
+domain           = "example.com"
+
+tags = {
+  app-code      = "MOBB-001"
+  service-phase = "lab"
+  cost-center   = "468"
+  owner         = "you@example.com"
+}
+
+enable_managed_identities = false
