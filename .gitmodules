@@ -1,6 +1,7 @@
-[submodule "cluster-creation-cloud/azure/terraform-aro"]
-	path = cluster-creation-cloud/azure/terraform-aro
-	url = https://github.com/nedoshi/terraform-aro.git
+[submodule "cluster-creation-cloud/azure/terraform-aro/upstream"]
+	path = cluster-creation-cloud/azure/terraform-aro/upstream
+	url = https://github.com/rh-mobb/terraform-aro.git
+	branch = v2.0.0-preview
 [submodule "cluster-creation-cloud/gcp/tf-osd-gcp"]
 	path = cluster-creation-cloud/gcp/tf-osd-gcp
 	url = https://github.com/rh-mobb/tf-osd-gcp.git
