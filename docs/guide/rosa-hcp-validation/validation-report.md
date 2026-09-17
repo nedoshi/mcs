@@ -1,51 +1,47 @@
-# ROSA HCP validation report — Phase 1
+# ROSA use-case validation — execution report
 
-Fill during live QE execution. Template mirrors [ARO HCP validation-report](../aro-hcp-validation/validation-report.md).
+Template for recording live QE runs against [README.md](README.md) pass/fail matrix.
 
-## Metadata
+## Run metadata
 
 | Field | Value |
-|-------|-------|
+|-------|--------|
+| Cluster name | |
+| ROSA type | HCP / Classic |
+| OpenShift version | |
+| Region | |
+| Cluster profile | Standard / Bare metal |
 | Tester | |
 | Date range | |
-| ROSA CLI version | `rosa version` |
-| OCP version tested | |
-| AWS region | |
-| Cluster name(s) | |
-| Source docs reconciled? | No — see [source-doc-reconciliation.md](source-doc-reconciliation.md) |
 
-## Summary
+## Results
 
-| Result | Count |
-|--------|-------|
-| PASS | |
-| FAIL | |
-| BLOCKED | |
-| PENDING | |
+| ID | Test | Result | Date | Notes |
+|----|------|--------|------|-------|
+| — | Prerequisites | PENDING | | |
+| UC-01 | ALB + ACM (instance mode) | PENDING | | Include UC-01N IP negative if run |
+| UC-02 | IRSA → S3 | PENDING | | |
+| UC-03 | EBS gp3 PVC | PENDING | | |
+| UC-04 | User Workload Monitoring | PENDING | | |
+| UC-05 | GPU machine pool | PENDING | | BLOCKED if no metal |
+| UC-06 | Terraform + Helm | PENDING | | |
+| UC-07 | Virt RHEL cloud-init | PENDING | | BLOCKED if no metal |
+| ING-01 | Routes / HAProxy | PENDING | | |
+| ING-02 | Edge ALB + Ingress | PENDING | | |
+| ING-04 | MetalLB BGP | PENDING | | |
+| ING-05 | Virt IPsec VPN | PENDING | | |
+| ING-06 | Service Mesh | PENDING | | |
 
-## Results by test case
+**Result values:** `PASS` | `FAIL` | `BLOCKED` | `PENDING`
 
-| ID | Title | Result | Date | Notes |
-|----|-------|--------|------|-------|
-| TC-01 | STS account and operator roles | PENDING | | |
-| TC-02 | Public cluster lifecycle | PENDING | | |
-| TC-03 | Private cluster lifecycle | PENDING | | |
-| TC-04 | Shared VPC install | PENDING | | |
-| TC-05 | External authentication | PENDING | | |
-| TC-06 | Post-install cluster review | PENDING | | |
-| TC-07 | Machine pools / multi-AZ | PENDING | | |
-| TC-08 | Identity providers | PENDING | | |
-| TC-09 | Private ingress connectivity | PENDING | | |
-| TC-10 | Day-2 smoke tests | PENDING | | |
+## Blockers log
 
-## Defects / follow-ups
-
-| ID | Summary | Severity | Link |
-|----|---------|----------|------|
-| | | | |
+| ID | Blocker | Resolution |
+|----|---------|------------|
+| | | |
 
 ## Sign-off
 
-- [ ] All in-scope tests executed or explicitly BLOCKED with reason
-- [ ] Google Doc catalog reconciled to file names and IDs
-- [ ] README pass/fail matrix updated
+- [ ] All applicable rows marked PASS or BLOCKED with justification
+- [ ] [gap-analysis.md](gap-analysis.md) updated if new repo gaps found
+- [ ] PDF reconciliation reviewed ([source-doc-reconciliation.md](source-doc-reconciliation.md))

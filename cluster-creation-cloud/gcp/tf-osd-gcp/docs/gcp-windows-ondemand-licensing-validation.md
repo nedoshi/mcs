@@ -46,7 +46,69 @@ License code from API: `7142647615590922601`.
 
 ---
 
-## Procedure
+## When is the license required?
+
+| Scenario | Tag `windows-server-*-dc` on metal boot disk? |
+|----------|-----------------------------------------------|
+| C3 metal pool + OpenShift Virtualization + **Linux** guests | **No** |
+| Windows guests with BYOL / eval ISO only (guest EULA in pipeline) | **No** for this GCP host tag (licensing doc does not replace Microsoft guest licensing) |
+| Windows guests under **Google PAYG** on that metal node | **Yes** — opt in per metal worker (or per licensed machine pool) |
+
+OpenShift Virtualization does not need this tag to expose KVM or to import Windows boot sources. The tag is a **GCP billing/compliance** control for PAYG Windows on bare metal.
+
+---
+
+## Ways to tag the metal worker boot disk
+
+### Provision-time (new machine pool)
+
+**QE (Machine API, not day-2 gcloud):** [gcp-machine-api-disk-licenses-qe.md](gcp-machine-api-disk-licenses-qe.md) — tests [openshift/api#2980](https://github.com/openshift/api/pull/2980), [machine-api-provider-gcp#184](https://github.com/openshift/machine-api-provider-gcp/pull/184), [machine-api-operator#1553](https://github.com/openshift/machine-api-operator/pull/1553), [cluster-api-actuator-pkg#492](https://github.com/openshift/cluster-api-actuator-pkg/pull/492) with expected `gcloud` output.
+
+When creating a **new** C3 metal machine pool for Windows on GCP PAYG, declare the license on the **boot disk** in `GCPMachineProviderSpec` so the disk is tagged at first provision (no stop/drain cycle). Use **`hyperdisk-balanced`** for the boot disk — `pd-standard` / `pd-ssd` cannot attach to C3 metal.
+
+Example `providerSpec.value` fragment (adjust image, network, subnet, zone, and service account to your cluster):
+
+```yaml
+apiVersion: machine.openshift.io/v1beta1
+kind: GCPMachineProviderSpec
+machineType: c3-standard-192-metal
+onHostMaintenance: Terminate
+region: us-central1
+zone: us-central1-a
+projectID: xxxx-gcp-xxxx
+disks:
+  - autoDelete: true
+    boot: true
+    image: projects/rhcos-cloud/global/images/<rhcos-image>
+    sizeGb: 200
+    type: hyperdisk-balanced
+    licenses:
+      - projects/windows-cloud/global/licenses/windows-server-2025-dc
+networkInterfaces:
+  - network: xxxx-xxxx-network
+    subnetwork: xxxx-osd-xxxx-worker-subnet
+```
+
+After the Machine comes up, confirm on GCE (instance name is the Machine name, not the cluster display name):
+
+```bash
+NODE=xxxx-xxxx-virt-worker-a-xxxx
+gcloud compute instances describe "$NODE" \
+  --zone=us-central1-a --project=xxxx-gcp-xxxx \
+  --format='yaml(disks[].boot,disks[].licenses,disks[].type)'
+```
+
+**Expected:** boot disk `type: hyperdisk-balanced`; `licenses` includes RHCOS marketplace **and** `windows-server-2025-dc`. GCE may also attach `projects/vm-options/global/licenses/enable-vmx` on metal workers; that is for nested virtualization on the host, not Windows PAYG.
+
+**Pool design:** Keep at least one **untagged** metal worker if you need Linux-only or non-PAYG workloads — PAYG is per node, not per guest VM.
+
+### Day-2 attach (existing worker)
+
+Use the procedure below (steps 1–8) on a worker that was already provisioned **without** the Windows license. Requires cordon, drain, **stop** the GCE instance, then `gcloud compute disks update --append-licenses=...`.
+
+---
+
+## Procedure (day-2 attach validation)
 
 Filter `name~xxxx-osd-xxxx` returns nothing. List the project and match `c3-standard-192-metal`.
 

@@ -59,8 +59,10 @@ allowVolumeExpansion: true
 parameters:
   type: hyperdisk-balanced
   storage-pools: ${POOL_PATH}
-  provisioned-throughput-on-create: "250Mi"
-  provisioned-iops-on-create: "7000"
+  # Do NOT set provisioned-iops-on-create / provisioned-throughput-on-create here.
+  # Fixed IOPS breaks small PVCs (KubeVirt EFI state is 4Gi → max 2000 IOPS; pipeline
+  # ISO is ~9Gi; VM disks may be 20–60Gi). Let the GCE PD CSI driver apply
+  # size-appropriate Hyperdisk defaults (500×GiB for volumes ≤6Gi).
 EOF
 
 # Remove default from standard-csi to avoid two defaults (per GCP KubeVirt storage docs)
