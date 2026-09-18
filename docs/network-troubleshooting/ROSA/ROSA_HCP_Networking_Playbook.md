@@ -3235,23 +3235,7 @@ For Public Clusters:
 
 ---
 
-## Appendix A: Copilot Output Corrections
-
-The following corrections apply to the Copilot-generated security bundles referenced in the original conversation:
-
-| Issue | What Copilot Said | Correction |
-|-------|------------------|-----------|
-| TGW Security Groups | "TGW attachment SG" with `aws ec2 authorize-security-group-ingress` on `$TGW_ATTACHMENT_SG` | TGW attachments do NOT have security groups. Control TGW traffic via route tables (VPC and TGW) and security groups on the worker nodes |
-| NetworkPolicy label for router | `ingress: "router"` as pod selector label | The correct way to allow router traffic is via `namespaceSelector` matching `network.openshift.io/policy-group: ingress` |
-| Missing VPC Endpoints | Not mentioned | Private clusters require VPC Endpoints for S3, ECR (api + dkr), STS, EC2, and ELB to function |
-| Missing DNS egress in NetworkPolicy | Default deny without DNS allow | Any default-deny egress policy MUST include a DNS (port 53) egress allow, or all name resolution breaks |
-| SNAT not explained | Pod IPs shown reaching on-prem directly | Pod traffic is SNATed to node IPs by OVN. On-prem firewalls should allow VPC CIDR (e.g., 10.0.0.0/16), not pod CIDR (10.128.0.0/14) |
-| Geneve port not mentioned | No mention of UDP 6081 | Security groups MUST allow UDP 6081 between worker nodes for cross-node pod communication |
-| Packet-level flow missing | No packet transformation details | Each hop transforms IPs via DNAT/SNAT. Understanding the transformation chain is essential for debugging |
-
----
-
-## Appendix B: Glossary Quick Reference
+## Appendix A: Glossary Quick Reference
 
 | Term | Layer | One-Line Definition |
 |------|-------|-------------------|
