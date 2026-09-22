@@ -129,6 +129,34 @@ gcloud compute networks subnets update "$WORKER_SUBNET" \
 Updated [...].
 ```
 
+### Route KMS via default internet gateway (not Cloud NAT)
+
+OSD worker Cloud NAT can make TCP :1688 succeed while `slmgr /ato` returns `0xC004F074`. Add a host route so `35.190.247.13/32` uses the default internet gateway (with PGA) so Google associates the request with the licensed metal instance:
+
+```bash
+export NETWORK=$(gcloud compute instances describe "$NODE" \
+  --zone="$GCP_ZONE" --project="$GCP_PROJECT" \
+  --format='value(networkInterfaces[0].network)' | awk -F/ '{print $NF}')
+echo "NETWORK=$NETWORK"
+
+gcloud compute routes create windows-kms-activation \
+  --project="$GCP_PROJECT" \
+  --network="$NETWORK" \
+  --destination-range=35.190.247.13/32 \
+  --next-hop-gateway=default-internet-gateway \
+  --priority=100 \
+  --description="Windows KMS via DIG not Cloud NAT"
+```
+
+**Expected output:**
+
+```text
+NETWORK=<vpc-name>
+Created [.../windows-kms-activation].
+NAME                    NETWORK     DEST_RANGE        NEXT_HOP                  PRIORITY
+windows-kms-activation  <vpc-name>  35.190.247.13/32  default-internet-gateway  100
+```
+
 ```bash
 gcloud compute routers list --project="$GCP_PROJECT" --regions="$GCP_REGION"
 export NAT_ROUTER=<nat-router-name>
@@ -324,11 +352,65 @@ windows-manual-install   ...   Running   10.x.x.x     <metal-worker-name>       
 Console: Virtualization → `windows-manual-install` → **Console**  
 (or `virtctl vnc --proxy-only windows-manual-install -n default` → TigerVNC `127.0.0.1:<port from JSON>`)
 
-1. Load disk driver: VirtIO CD → `viostor\2k25\amd64`
-2. Select **Windows Server 2025 Datacenter (Desktop Experience)**
-3. Complete install and first login
-4. Install VirtIO guest tools and QEMU guest agent from VirtIO ISO
-5. Sysprep:
+#### 3.5.1 Boot from the Windows ISO (UEFI)
+
+If the console shows the **EDK2 / OpenShift Virtualization** firmware menu (not Windows Setup yet):
+
+![UEFI firmware menu](images/windows-payg/01-uefi-firmware.png)
+
+1. Select **Boot Manager** → Enter  
+2. Choose a **UEFI QEMU DVD-ROM** entry (there are usually two — Windows ISO and VirtIO ISO):
+
+![Boot Manager — two DVD-ROM entries](images/windows-payg/02-boot-manager-dvdrom.png)
+
+3. Try **`UEFI QEMU DVD-ROM QM00001`** first. If Windows Setup does not start, Esc and try **`QM00003`**.  
+4. Skip **UEFI Misc Device** (that is the blank disk).
+
+**Expected:** Windows Server Setup appears.
+
+#### 3.5.2 Select setup option
+
+![Select setup option](images/windows-payg/03-select-setup-option.png)
+
+1. Select **Install Windows Server**  
+2. Check **I agree everything will be deleted including files, apps, and settings**  
+3. **Next** (stays disabled until the checkbox is checked)
+
+#### 3.5.3 Select Datacenter Desktop Experience
+
+![Select Image — editions](images/windows-payg/04-select-datacenter-desktop.png)
+
+Select:
+
+**Windows Server 2025 Datacenter Evaluation (Desktop Experience)**
+
+Do **not** select Standard, and do **not** select Datacenter without “(Desktop Experience)” (Server Core).
+
+#### 3.5.4 Load VirtIO disk driver
+
+When Setup reports no disks:
+
+1. **Load driver** → **Browse**  
+2. Open **CD Drive (`E:`) `virtio-win-…`** (not the Windows ISO on `D:`)  
+3. Scroll to **`viostor` → `2k25` → `amd64`** (use `2k22\amd64` if `2k25` is missing)  
+4. Select the Red Hat VirtIO SCSI controller → **Install**
+
+![Browse VirtIO ISO for viostor](images/windows-payg/05-load-viostor-driver.png)
+
+**Expected:** the blank disk appears; continue installation onto that disk.
+
+#### 3.5.5 Guest tools and Sysprep
+
+After first login you should see **Server Manager** (Desktop Experience):
+
+![Server Manager after first login](images/windows-payg/06-server-manager-first-login.png)
+
+1. From VirtIO ISO (`E:`), run **`virtio-win-gt-x64.msi`**. On Custom Setup, leave defaults (all features on local disk) → **Next**:
+
+![VirtIO custom setup](images/windows-payg/07-virtio-custom-setup.png)
+
+2. Install QEMU guest agent from `E:\guest-agent\` if not included by the MSI; reboot if prompted.  
+3. Sysprep + shutdown:
 
 ```powershell
 C:\Windows\System32\Sysprep\sysprep.exe /generalize /oobe /shutdown
@@ -551,11 +633,9 @@ Current Edition : ServerDatacenter
 Test-NetConnection kms.windows.googlecloud.com -Port 1688
 ```
 
-**Expected output:**
+**Expected output** (`TcpTestSucceeded : True`):
 
-```text
-TcpTestSucceeded : True
-```
+![KMS TCP connectivity](images/windows-payg/08-kms-tcp-test.png)
 
 If edition is `ServerDatacenterEval`:
 
@@ -570,26 +650,33 @@ Restart-Computer
 The operation completed successfully.
 ```
 
-Then:
+Then (Datacenter GVLK from [Microsoft KMS client keys](https://learn.microsoft.com/en-us/windows-server/get-started/kms-client-activation-keys)):
 
 ```powershell
 cscript //nologo C:\Windows\System32\slmgr.vbs /ipk D764K-2NDRG-47T6Q-P8T8W-YP6DF
-cscript //nologo C:\Windows\System32\slmgr.vbs /skms 35.190.247.13:1688
+cscript //nologo C:\Windows\System32\slmgr.vbs /skms kms.windows.googlecloud.com:1688
 cscript //nologo C:\Windows\System32\slmgr.vbs /ato
 cscript //nologo C:\Windows\System32\slmgr.vbs /dli
 ```
 
-**Expected output:**
+**Expected output** — Product activated successfully; **License Status: Licensed**:
+
+![slmgr activation Licensed](images/windows-payg/09-slmgr-licensed.png)
 
 ```text
 Installed product key ... successfully.
-Key Management Service machine name set to 35.190.247.13:1688 successfully.
+Key Management Service machine name set to kms.windows.googlecloud.com:1688 successfully.
 Product activated successfully.
 
 Name: Windows(R), ServerDatacenter edition
 Description: Windows(R) Operating System, VOLUME_KMSCLIENT channel
+Partial Product Key: YP6DF
 License Status: Licensed
+Registered KMS machine name: kms.windows.googlecloud.com:1688
+KMS machine IP address: 35.190.247.13
 ```
+
+(180-day volume expiration is normal for KMS; the guest renews against Google KMS while the metal host stays tagged.)
 
 ---
 

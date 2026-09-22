@@ -11,6 +11,7 @@
 *.tfstate.*
 .env
 .env.*
+**/env.txt
 *.pem
 **/ex-htpasswd
 helper_vars.sh
