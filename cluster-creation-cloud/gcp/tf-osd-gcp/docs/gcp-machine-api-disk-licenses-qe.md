@@ -4,6 +4,8 @@ Checklist to validate **provision-time** licensing: `licenses` on the boot disk 
 
 Day-2 attach (stop + gcloud) is documented in [gcp-windows-ondemand-licensing-validation.md](gcp-windows-ondemand-licensing-validation.md). This doc is for **OCPSTRAT-3624** / Machine API QE only.
 
+**OSD CCS run (2026-09-18):** Test A/B blocked — see [gcp-machine-api-disk-licenses-osd-findings.md](gcp-machine-api-disk-licenses-osd-findings.md).
+
 ---
 
 ## What we are testing (GitHub PRs)
@@ -60,15 +62,26 @@ export LICENSE_WIN_PAYG_URL="https://www.googleapis.com/compute/v1/projects/wind
    ```bash
    oc get machineset -n "$MS_NAMESPACE" -o name
    # pick a metal pool, e.g. machineset.machine.openshift.io/openshift-machine-api/<name>
-   oc get machineset <source-ms> -n "$MS_NAMESPACE" -o yaml > /tmp/ms-source.yaml
+   oc get <source-ms> -n "$MS_NAMESPACE" -o yaml > /tmp/ms-source.yaml
    ```
 
-2. Edit a copy: new `metadata.name` (`$TEST_MS_NAME`), unique `machine.openshift.io/cluster-api-machineset` label if present, **`spec.replicas: 1`**, boot disk `type: hyperdisk-balanced` (metal), add under the **boot** disk:
+   **OSD / managed OpenShift — do not `oc apply` the Hive MachineSet itself.** Managed pools (`hive.openshift.io/managed: true`, e.g. `virt-worker`) are blocked by `regular-user-validation.managed.openshift.io`. Always create a **new** MachineSet name (`$TEST_MS_NAME`). Patching `nddemo-*-virt-worker-a` (or any Hive pool) → `Forbidden`.
+
+2. Edit a copy into `/tmp/ms-qe.yaml` (keep source YAML as read-only reference):
+
+   - **`metadata.name`:** `$TEST_MS_NAME` (e.g. `qe-gcp-disk-licenses`) — must differ from the Hive MachineSet
+   - Strip Hive ownership so SRE webhooks allow create: remove labels/annotations `hive.openshift.io/*` if present; remove `metadata.uid`, `resourceVersion`, `generation`, `creationTimestamp`, `managedFields`, `status`
+   - Unique `machine.openshift.io/cluster-api-machineset` label (= `$TEST_MS_NAME`) on selector + template labels
+   - **`spec.replicas: 1`**
+   - Boot disk `type: hyperdisk-balanced` (metal)
+   - Under the **boot** disk add:
 
    ```yaml
    licenses:
      - projects/vm-options/global/licenses/enable-vmx
    ```
+
+   If `oc apply` warns `Unsupported value: "licenses": Unknown field (licenses) will be ignored`, the cluster **payload does not include** [openshift/api#2980](https://github.com/openshift/api/pull/2980) — provision-time passthrough cannot work; use a build that has that stack, or fall back to day-2 [gcp-windows-ondemand-licensing-validation.md](gcp-windows-ondemand-licensing-validation.md).
 
 3. Apply and wait:
 

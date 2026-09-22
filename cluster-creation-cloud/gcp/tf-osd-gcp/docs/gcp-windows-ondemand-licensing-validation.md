@@ -286,7 +286,266 @@ denied the request: Prevented from accessing Red Hat managed resources.
 
 Customers cannot Machine-replace via `oc` to drop the license.
 
-### Off-ramp (PAYG until the disk is destroyed)
+---
+
+## End-to-end verification (host → network → guest)
+
+Use this after day-2 attach (or provision-time tagging on a payload that supports `licenses`). Confirms PAYG at **three levels**: GCP boot-disk tag, Private Google Access / KMS reachability, and **KMS-level guest activation** (SNAT active + `slmgr` approval).
+
+**E2e runbook (trial golden image → recreate guest → PAYG):** [osd-gcp-virtualization-e2e.md §6.1.2–6.1.3](osd-gcp-virtualization-e2e.md#612-recreate-windows-vm-for-payg-golden-image-still-valid)
+
+### Env (reuse from e2e Step 0 or set now)
+
+```bash
+export GCP_PROJECT=<project-id>
+export GCP_REGION=<region>          # e.g. us-central1
+export GCP_ZONE=<zone>              # e.g. us-central1-a
+export WORKER_SUBNET=<worker-subnet>  # e.g. ${CLUSTER_NAME}-worker-subnet
+export NODE=<metal-worker-gce-name>   # usually matches Machine / node name
+export WIN_PAYG_LICENSE_URL="https://www.googleapis.com/compute/v1/projects/windows-cloud/global/licenses/windows-server-2025-dc"
+```
+
+List metal nodes if needed:
+
+```bash
+gcloud compute instances list --project="$GCP_PROJECT" \
+  --filter="machineType:c3-standard-192-metal OR machineType:c3-highcpu-192-metal"
+```
+
+### 1. Host / node boot disk tag (GCP)
+
+```bash
+gcloud compute instances describe "$NODE" \
+  --zone="$GCP_ZONE" --project="$GCP_PROJECT" \
+  --format='yaml(disks[].boot,disks[].licenses,disks[].type)'
+```
+
+**Pass:**
+
+- Boot disk `type` includes `hyperdisk-balanced` (metal)
+- `licenses` includes RHCOS marketplace **and**  
+  `https://www.googleapis.com/compute/v1/projects/windows-cloud/global/licenses/windows-server-2025-dc`  
+  (or your chosen `windows-server-*-dc` URL)
+- Metal may also show `projects/vm-options/global/licenses/enable-vmx` — nested virt on the host, **not** Windows PAYG
+
+**Fail:** only RH marketplace license → tag not applied (re-run day-2 stop + append, or provision-time on a supported payload).
+
+### 2. Network — Private Google Access and KMS reachability
+
+#### 2a. Private Google Access on the worker subnet
+
+```bash
+gcloud compute networks subnets describe "$WORKER_SUBNET" \
+  --region="$GCP_REGION" --project="$GCP_PROJECT" \
+  --format='value(privateIpGoogleAccess)'
+```
+
+**Pass:** `True`
+
+If `False`:
+
+```bash
+gcloud compute networks subnets update "$WORKER_SUBNET" \
+  --region="$GCP_REGION" --project="$GCP_PROJECT" \
+  --enable-private-ip-google-access
+```
+
+OSD often already has Cloud NAT (`*-nat-worker`) for SNAT; PGA is still required for private Google API paths used by activation.
+
+#### 2b. KMS endpoint connectivity (from metal host)
+
+Google’s Windows KMS host is **`kms.windows.googlecloud.com`** (TCP **1688**), IP **`35.190.247.13`**.  
+Do **not** use `kms.windows.google.com` — that name does not exist (NXDOMAIN).
+
+From a debug shell **on the tagged metal node** (ICMP `ping` is often blocked — use `nc` / `curl`):
+
+```bash
+oc debug node/"$NODE" -- chroot /host bash -c \
+  'command -v nc >/dev/null && nc -zv -w 5 kms.windows.googlecloud.com 1688 || \
+   curl -v --connect-timeout 5 telnet://kms.windows.googlecloud.com:1688'
+# IP fallback if DNS odd:
+# nc -zv -w 5 35.190.247.13 1688
+```
+
+**Pass:** connection succeeds / port open.  
+**Fail:** timeout / refused → fix PGA, Cloud NAT / egress firewall, or DNS before guest activation. Prefer also testing from a **pod** (CoreDNS) — that is the path Windows guests use.
+
+---
+
+### 3. KMS-level verification (SNAT active + activation approval)
+
+This is the pass/fail for **Google PAYG**: guest activation traffic must leave via the **tagged metal host** (SNAT), reach Google KMS, and Windows must report **approved / activated**.
+
+#### 3a. Confirm SNAT is active
+
+Guest VMs use KubeVirt **masquerade**. Outbound packets are SNAT’d to the metal node’s primary NIC, then egress via **Cloud NAT** (OSD: typically `*-nat-worker`) and/or Private Google Access.
+
+**1 — Metal host primary NIC IP** (activation source identity GCP associates with the license tag):
+
+```bash
+HOST_IP=$(gcloud compute instances describe "$NODE" \
+  --zone="$GCP_ZONE" --project="$GCP_PROJECT" \
+  --format='value(networkInterfaces[0].networkIP)')
+echo "metal primary NIC: $HOST_IP"
+```
+
+**2 — Cloud NAT exists and is enabled for the worker network/router:**
+
+```bash
+# discover router(s) in the region (OSD often: <cluster>-nat-router or similar)
+gcloud compute routers list --project="$GCP_PROJECT" --regions="$GCP_REGION" \
+  --format='table(name,region,network)'
+
+# set after list, e.g. NAT_ROUTER=<cluster>-cloud-router
+export NAT_ROUTER=<nat-router-name>
+
+gcloud compute routers nats list --router="$NAT_ROUTER" \
+  --region="$GCP_REGION" --project="$GCP_PROJECT" \
+  --format='yaml(name,natIpAllocateOption,sourceSubnetworkIpRangesToNat,enableEndpointIndependentMapping)'
+```
+
+**Pass:** at least one NAT whose source ranges cover the **worker subnet** (or `ALL_SUBNETWORKS_ALL_IP_RANGES` / `LIST_OF_SUBNETWORKS` including `$WORKER_SUBNET`).
+
+**3 — Guest interface is masquerade (required for node SNAT):**
+
+```bash
+oc get vmi "$WINDOWS_VM_NAME" -n "$WINDOWS_PROJECT" \
+  -o jsonpath='{.spec.networks}{"\n"}{.spec.domain.devices.interfaces}{"\n"}'
+```
+
+**Pass:** interface `masquerade:` present (default virt networking). Bridge/SR-IOV without SNAT to the tagged host will **not** satisfy Google’s host-tagged PAYG path.
+
+**4 — Guest is on the tagged metal node:**
+
+```bash
+oc get vmi "$WINDOWS_VM_NAME" -n "$WINDOWS_PROJECT" -o wide
+# NODE column must equal $NODE
+```
+
+**5 — (Optional) prove guest egress hits the metal path before `slmgr`:**  
+From an Admin PowerShell **inside the Windows guest**:
+
+```powershell
+Test-NetConnection kms.windows.googlecloud.com -Port 1688
+```
+
+**Pass:** `TcpTestSucceeded : True`.  
+If this fails while §2b on the metal host succeeds → guest overlay / NetworkPolicy / DNS issue, not host PGA.
+
+There is no separate OpenShift CR to “enable SNAT” for PAYG — masquerade + Cloud NAT (and PGA for Google paths) **is** SNAT active.
+
+#### 3b. Confirm activation approval (`slmgr`)
+
+1. Windows guest **Running** on tagged metal (e2e Phase 6 — `$WINDOWS_VM_NAME` / `$WINDOWS_PROJECT`).
+2. Console as **Administrator** (Mac: Console tab **Paste** / **Send key**; or `virtctl vnc --proxy-only` + TigerVNC on the **printed** port — e2e Phase 6.4).
+3. **Edition must match host PAYG tag.** Host `windows-server-2025-dc` → guest needs **Datacenter** (not Standard Eval Core). Prefer a Datacenter golden ISO up front.
+
+```powershell
+DISM /online /Get-CurrentEdition
+DISM /online /Get-TargetEditions
+```
+
+- `ServerStandardEvalCor` → try `Set-Edition:ServerDatacenterCor` with DC GVLK `D764K-2NDRG-47T6Q-P8T8W-YP6DF`.  
+  **DISM Error 1168** (failed applying edition settings / missing license EULA files) → **rebuild** from Windows Server 2025 **Datacenter** media. Do not use `ServerTurbineCor` (Azure).
+- Bare `slmgr /ipk` on Eval often returns **`0xC004F069`** — convert with DISM first.
+- Use `cscript //nologo C:\Windows\System32\slmgr.vbs …` so results stay in the console (GUI `slmgr` only pops dialogs).
+
+4. Activate against Google KMS (`kms.windows.googlecloud.com` / `35.190.247.13:1688` — **not** `kms.windows.google.com`):
+
+```powershell
+cscript //nologo C:\Windows\System32\slmgr.vbs /skms 35.190.247.13:1688
+cscript //nologo C:\Windows\System32\slmgr.vbs /ato
+cscript //nologo C:\Windows\System32\slmgr.vbs /dli
+```
+
+**Pass (activation approval):** `/ato` succeeds; `/dli` → **License Status: Licensed** (not `TIMEBASED_EVAL` / Initial grace).
+
+**Fail examples:**
+
+| Symptom | Likely cause |
+|---------|----------------|
+| Cannot connect to KMS / `0xC004F074` / `0x80072EE2` | PGA, NAT, firewall, or DNS (§2 / §3a) |
+| `0xC004F069` on `/ipk` | Still Evaluation — DISM `Set-Edition` required |
+| DISM **Error 1168** on `Set-Edition` | Standard Eval Core media cannot transmogrify — rebuild Datacenter ISO |
+| Activation fails; host **untagged** | Day-2 / provision-time license missing (§1) |
+| Guest not on tagged metal | Reschedule / node selector — VMI must land on `$NODE` |
+| Edition Standard vs host `*-dc` | Mismatch — Datacenter guest or Standard host license URL |
+
+5. Confirm license **state** (approval persisted) — see `/dli` table below.
+
+**Pass criteria to record:**
+
+| Field (in `/dli` output) | Expect |
+|--------------------------|--------|
+| License Status | **Licensed** (not Notification / Unlicensed / Initial grace) |
+| Description / channel | Volume / KMS client (Google PAYG path) — not `TIMEBASED_EVAL` |
+| Partial Product Key / KMS info | Present after successful `/ato` |
+| Remaining Windows rearm count | Informational only |
+
+Also useful:
+
+```powershell
+cscript //nologo C:\Windows\System32\slmgr.vbs /xpr
+```
+
+**Pass:** shows the machine is permanently activated, or activated until a future date via KMS (not stuck in eval/grace with activation errors).
+
+**Record for QE:** screenshot or copy of `/ato` success + `/dli` License Status = Licensed, plus `$NODE`, host license URL, `HOST_IP`, and `Get-CurrentEdition`.
+
+### Verification checklist
+
+| Level | Check | Pass criteria |
+|-------|--------|----------------|
+| Host | `gcloud … disks[].licenses` | Includes `windows-server-2025-dc` (+ RHCOS) |
+| Network | `privateIpGoogleAccess` | `True` |
+| Network | `kms.windows.googlecloud.com:1688` from metal | Reachable (§2b) |
+| KMS / SNAT | Cloud NAT covers worker subnet | NAT listed on `$NAT_ROUTER` |
+| KMS / SNAT | VMI `masquerade` + on `$NODE` | Guest SNAT to tagged metal |
+| KMS / guest | `Test-NetConnection … -Port 1688` | `TcpTestSucceeded : True` |
+| KMS / guest | `slmgr /ato` | **Product activated successfully** (KMS approval) |
+| KMS / guest | `slmgr /dlv` | **License Status: Licensed** |
+
+### Optional: automate host + subnet checks
+
+```bash
+# Requires: GCP_PROJECT GCP_ZONE GCP_REGION WORKER_SUBNET WIN_PAYG_LICENSE_URL
+# Optional: NODE (single) — otherwise all c3-*-metal instances in the project
+
+check_one() {
+  local n="$1"
+  echo "=== $n ==="
+  local licenses
+  licenses=$(gcloud compute instances describe "$n" \
+    --zone="$GCP_ZONE" --project="$GCP_PROJECT" \
+    --format='value(disks[0].licenses)' 2>/dev/null) || { echo "FAIL describe"; return 1; }
+  if echo "$licenses" | grep -qF "$WIN_PAYG_LICENSE_URL"; then
+    echo "PASS host license"
+  else
+    echo "FAIL host license missing"
+    echo "  got: $licenses"
+  fi
+}
+
+pga=$(gcloud compute networks subnets describe "$WORKER_SUBNET" \
+  --region="$GCP_REGION" --project="$GCP_PROJECT" \
+  --format='value(privateIpGoogleAccess)')
+[[ "$pga" == "True" ]] && echo "PASS PGA=$pga" || echo "FAIL PGA=$pga (want True)"
+
+if [[ -n "${NODE:-}" ]]; then
+  check_one "$NODE"
+else
+  gcloud compute instances list --project="$GCP_PROJECT" \
+    --filter="machineType:c3-standard-192-metal OR machineType:c3-highcpu-192-metal" \
+    --format='value(name)' | while read -r n; do
+      [[ -n "$n" ]] && check_one "$n"
+    done
+fi
+# Guest slmgr /ato remains manual (console / RDP).
+```
+
+---
+
+## Off-ramp (PAYG until the disk is destroyed)
 
 | Path | Who | Notes |
 |---|---|---|
