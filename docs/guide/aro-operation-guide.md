@@ -3263,15 +3263,15 @@ az network nsg rule list -g <vnet-rg> --nsg-name <nsg-name> -o table
 
 | Role Name | Role ID | Purpose | Typical Scope |
 |-----------|---------|---------|---------------|
-| **Azure Red Hat OpenShift Federated Credential** | ef318e2a-8334-4a05-9e4a-295a196c6a6e | Manage federated credentials for platform identities | Cluster identities (all 8) |
-| **Azure Red Hat OpenShift Cloud Controller Manager** | a1f96423-95ce-4224-ab27-4e3dc72facd4 | Manage load balancers, public IPs, and cloud resources | Subnets (master, worker) |
-| **Azure Red Hat OpenShift Cluster Ingress Operator** | 0336e1d3-7a87-462b-b6db-342b63f7802c | Manage ingress resources and load balancers | Subnets (master, worker) |
+| **Azure Red Hat OpenShift Federated Credential** | 11111111111111111 | Manage federated credentials for platform identities | Cluster identities (all 8) |
+| **Azure Red Hat OpenShift Cloud Controller Manager** | 1111111111111111| Manage load balancers, public IPs, and cloud resources | Subnets (master, worker) |
+| **Azure Red Hat OpenShift Cluster Ingress Operator** | 1111111111111111 | Manage ingress resources and load balancers | Subnets (master, worker) |
 | **Azure Red Hat OpenShift Disk Storage Operator** | (varies) | Manage disk storage resources | Managed resource group |
-| **Azure Red Hat OpenShift File Storage Operator** | 0d7aedc0-15fd-4a67-a412-efad370c947e | Manage file storage resources | VNet, NSG (if BYO) |
-| **Azure Red Hat OpenShift Image Registry Operator** | 8b32b316-c2f5-4ddf-b05b-83dacd2d08b5 | Manage image registry storage | VNet |
-| **Azure Red Hat OpenShift Machine API Operator** | 0358943c-7e01-48ba-8889-02cc51d78637 | Create and manage virtual machines | Subnets (master, worker) |
-| **Azure Red Hat OpenShift Network Operator** | be7a6435-15ae-4171-8f30-4a343eff9e8f | Manage networking resources | VNet |
-| **Azure Red Hat OpenShift Service Operator** | 4436bae4-7702-4c84-919b-c4069ff25ee2 | Manage ARO service resources | Subnets (master, worker), NSG (if BYO) |
+| **Azure Red Hat OpenShift File Storage Operator** | 1111111111111111 | Manage file storage resources | VNet, NSG (if BYO) |
+| **Azure Red Hat OpenShift Image Registry Operator** | 11111111111111111 | Manage image registry storage | VNet |
+| **Azure Red Hat OpenShift Machine API Operator** | 11111111111111111 | Create and manage virtual machines | Subnets (master, worker) |
+| **Azure Red Hat OpenShift Network Operator** | 11111111111111111 | Manage networking resources | VNet |
+| **Azure Red Hat OpenShift Service Operator** | 11111111111111111 | Manage ARO service resources | Subnets (master, worker), NSG (if BYO) |
 
 **Note:** These are ARO-specific built-in roles automatically assigned when using managed identities. They follow the principle of least privilege.
 
